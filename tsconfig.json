@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compileOnSave": false,
+  "files": [],
+  "references": [
+    {
+      "path": "./apps/f1-mobile-e2e"
+    },
+    {
+      "path": "./apps/f1-mobile"
+    },
+    {
+      "path": "./apps/f1-spa-e2e"
+    },
+    {
+      "path": "./apps/f1-spa"
+    },
+    {
+      "path": "./libs/shared"
+    },
+    {
+      "path": "./libs/styles"
+    }
+  ]
+}

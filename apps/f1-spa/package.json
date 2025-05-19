@@ -1,0 +1,24 @@
+{
+  "name": "f1-spa",
+  "private": true,
+  "type": "module",
+  "scripts": {},
+  "engines": {
+    "node": ">=20"
+  },
+  "sideEffects": false,
+  "nx": {
+    "name": "f1-spa"
+  },
+  "dependencies": {
+    "isbot": "^4.4.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router-dom": "^6.20.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "~18.3.12",
+    "@types/react-dom": "~18.3.1"
+  }
+}

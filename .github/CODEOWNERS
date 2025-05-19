@@ -1,0 +1,6 @@
+# These owners will be the default owners for everything in the repo
+* @YOUR_GITHUB_USERNAME
+
+# You can also specify different owners for different parts of the codebase
+# For example:
+# /apps/f1-spa/ @YOUR_GITHUB_USERNAME 
