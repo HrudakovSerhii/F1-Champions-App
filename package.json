@@ -3,9 +3,10 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "build:f1-spa": "npx nx build f1-spa",
+    "build:f1-spa": "npx nx build f1-spa && node scripts/copy-fonts.js",
     "serve:f1-spa": "npx nx dev f1-spa",
-    "dev:f1-spa": "npx nx dev f1-spa"
+    "dev:f1-spa": "npx nx dev f1-spa",
+    "copy-fonts": "node scripts/copy-fonts.js"
   },
   "private": true,
   "dependencies": {
