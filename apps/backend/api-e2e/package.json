@@ -1,10 +1,10 @@
 {
-  "name": "@f1mobile/backend-e2e",
+  "name": "@f1-champions-app/backend-e2e",
   "version": "0.0.1",
   "private": true,
   "nx": {
     "implicitDependencies": [
-      "@f1mobile/backend"
+      "@f1-champions-app/backend"
     ],
     "targets": {
       "e2e": {
@@ -17,8 +17,8 @@
           "passWithNoTests": true
         },
         "dependsOn": [
-          "@f1mobile/backend:build",
-          "@f1mobile/backend:serve"
+          "@f1-champions-app/backend:build",
+          "@f1-champions-app/backend:serve"
         ]
       }
     }

@@ -9,7 +9,7 @@ const swcJestConfig = JSON.parse(
 swcJestConfig.swcrc = false;
 
 export default {
-  displayName: '@f1mobile/shared',
+  displayName: '@f1-champions-app/backend-shared',
   preset: '../../../jest.preset.js',
   testEnvironment: 'node',
   transform: {

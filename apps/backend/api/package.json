@@ -1,5 +1,5 @@
 {
-  "name": "@f1mobile/backend",
+  "name": "@f1-champions-app/backend",
   "version": "0.0.1",
   "private": true,
   "nx": {
@@ -28,15 +28,15 @@
           "build"
         ],
         "options": {
-          "buildTarget": "@f1mobile/backend:build",
+          "buildTarget": "@f1-champions-app/backend:build",
           "runBuildTargetDependencies": false
         },
         "configurations": {
           "development": {
-            "buildTarget": "@f1mobile/backend:build:development"
+            "buildTarget": "@f1-champions-app/backend:build:development"
           },
           "production": {
-            "buildTarget": "@f1mobile/backend:build:production"
+            "buildTarget": "@f1-champions-app/backend:build:production"
           }
         }
       }

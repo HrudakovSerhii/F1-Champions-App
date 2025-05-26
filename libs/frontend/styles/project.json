@@ -1,5 +1,5 @@
 {
-  "name": "@f1mobile/styles",
+  "name": "@f1-champions-app/styles",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/frontend/styles/src",
   "projectType": "library",
