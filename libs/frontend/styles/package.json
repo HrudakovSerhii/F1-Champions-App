@@ -14,7 +14,12 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "./lib/fonts.css": "./src/lib/fonts.css"
+    "./lib/fonts.css": "./src/lib/fonts.css",
+    "./f1-style-theme": {
+      "development": "./src/lib/theme.cjs",
+      "require": "./src/lib/theme.cjs",
+      "default": "./src/lib/theme.cjs"
+    }
   },
   "nx": {
     "name": "styles"

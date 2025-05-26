@@ -1,12 +1,9 @@
 const { createGlobPatternsForDependencies } = require('@nx/react/tailwind');
 const { join } = require('path');
 
-// Import our custom tailwind theme
-// Note: In a real project, you might need to adjust the import path based on how the library is built
-// TODO: Update config to use build version of the lib instead of direct export
 const {
   tailwindTheme,
-} = require('../../../libs/frontend/styles/src/lib/tailwind-theme');
+} = require('../../../libs/frontend/styles/src/lib/theme.cjs');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -19,9 +16,6 @@ module.exports = {
   ],
   theme: {
     ...tailwindTheme,
-    extend: {
-      ...((tailwindTheme || {}).extend || {}),
-    },
   },
   plugins: [],
 };
