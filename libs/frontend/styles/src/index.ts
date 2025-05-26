@@ -1,8 +1,16 @@
 export * from './lib/styles.js';
-export * from './lib/tailwind-theme.js';
-export * from './lib/tailwind-utils.js';
 
-// CSS files need to be imported directly in the application
-// Export a comment to indicate that fonts.css should be imported separately
+// Export the theme from the CommonJS file
+// Note: We need to use require() since theme.cjs is CommonJS
+const themeExports = require('./lib/theme.cjs');
 
-// const fontsPath = './lib/fonts.css';
+export const {
+  fontDefinitions,
+  designTokens,
+  generateFontFaceCSS,
+  getFontCSS,
+  tailwindTheme,
+  cssUtilities,
+  initializeTheme,
+  f1Theme,
+} = themeExports;

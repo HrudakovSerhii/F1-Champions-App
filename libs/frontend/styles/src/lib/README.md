@@ -23,7 +23,7 @@ npm install tailwindcss @tailwindcss/postcss postcss
 In your main CSS file, import the font styles:
 
 ```css
-/* For SPA app (e.g., apps/f1-spa/src/styles.css) */
+/* For SPA app (e.g., apps/frontend/web-app/src/styles.css) */
 @import 'fonts.css';
 ```
 
@@ -32,7 +32,7 @@ In your main CSS file, import the font styles:
 Create a `tailwind.config.js` file in your app directory:
 
 ```javascript
-// For SPA app (e.g., apps/f1-spa/tailwind.config.js)
+// For SPA app (e.g., apps/frontend/web-app/tailwind.config.js)
 import { createTailwindConfig } from '@f1-champions/styles';
 
 export default createTailwindConfig({
@@ -49,7 +49,7 @@ export default createTailwindConfig({
 For React Native, you'll need to use a library like `tailwind-rn` and import the theme:
 
 ```javascript
-// apps/f1-mobile/tailwind.config.js
+// apps/frontend/mobile-app/tailwind.config.js
 import { tailwindTheme } from '@f1-champions/styles';
 
 export default {
