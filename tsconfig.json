@@ -4,22 +4,34 @@
   "files": [],
   "references": [
     {
-      "path": "./apps/f1-mobile-e2e"
+      "path": "./libs/frontend/shared"
     },
     {
-      "path": "./apps/f1-mobile"
+      "path": "./libs/backend/shared"
     },
     {
-      "path": "./apps/f1-spa-e2e"
+      "path": "./apps/frontend/mobile-app-e2e"
     },
     {
-      "path": "./apps/f1-spa"
+      "path": "./apps/frontend/web-app-e2e"
     },
     {
-      "path": "./libs/shared"
+      "path": "./apps/frontend/mobile-app"
     },
     {
-      "path": "./libs/styles"
+      "path": "./apps/frontend/web-app"
+    },
+    {
+      "path": "./apps/backend/api-e2e"
+    },
+    {
+      "path": "./libs/frontend/styles"
+    },
+    {
+      "path": "./libs/shared/types"
+    },
+    {
+      "path": "./apps/backend/api"
     }
   ]
 }
