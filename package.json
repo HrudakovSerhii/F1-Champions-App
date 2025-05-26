@@ -5,8 +5,11 @@
   "license": "MIT",
   "scripts": {
     "build:f1-spa": "npx nx build f1-spa && node scripts/copy-fonts.js",
+    "build:web-app": "npx nx build web-app && node scripts/copy-fonts.js",
     "serve:f1-spa": "npx nx dev f1-spa",
+    "serve:web-app": "npx nx dev web-app",
     "dev:f1-spa": "npx nx dev f1-spa",
+    "dev:web-app": "npx nx dev web-app",
     "copy-fonts": "node scripts/copy-fonts.js",
     "serve:backend": "npx nx serve backend",
     "build:backend": "npx nx build backend",

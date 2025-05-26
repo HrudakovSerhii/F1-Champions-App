@@ -33,7 +33,7 @@ jobs:
         run: npm ci
       
       - name: Build
-        run: npx nx build f1-spa
+        run: npx nx build web-app
       
       - name: Copy font files
         run: node scripts/copy-fonts.js
@@ -44,7 +44,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './apps/f1-spa/dist'
+          path: './apps/frontend/web-app/dist'
 
   deploy:
     environment:
