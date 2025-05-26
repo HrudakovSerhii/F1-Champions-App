@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
-import NxWelcome from './nx-welcome';
+import Home from './routes/Home';
 
 import { Layout } from './root';
 
@@ -11,7 +11,7 @@ export function App() {
   return (
     <Layout>
       <Routes>
-        <Route path="/" element={<NxWelcome title="f1-spa" />} />
+        <Route path="/" element={<Home title="f1-web-app" />} />
         <Route
           path="/about"
           element={
