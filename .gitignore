@@ -110,3 +110,4 @@ vitest.config.*.timestamp*
 .cursor/mcp.json
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
+/libs/backend/shared/src/lib/generated-types.ts

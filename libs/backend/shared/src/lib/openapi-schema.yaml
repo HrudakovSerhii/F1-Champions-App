@@ -1,0 +1,454 @@
+openapi: 3.0.3
+info:
+  title: F1 Champions API
+  description: API for Formula 1 season champions and race winners data
+  version: 1.0.0
+  contact:
+    name: F1 Champions App
+servers:
+  - url: https://api.example.com/v1
+    description: Production server
+  - url: http://localhost:3000/api/v1
+    description: Development server
+
+paths:
+  /f1/champions:
+    get:
+      summary: Get all season champions
+      description: |
+        Returns a list of Formula 1 season champions (drivers who won the championship each year).
+        Provides all championship winners from 1950 onwards in a single call.
+        Based on Ergast API endpoint: `/driverStandings/1`
+      tags:
+        - Champions
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 30
+        - name: offset
+          in: query
+          description: Number of results to skip for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: season
+          in: query
+          description: Specific season year to filter by (optional - if omitted, returns all champions)
+          required: false
+          schema:
+            type: string
+            pattern: '^[0-9]{4}$'
+            example: "2023"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeasonChampionsResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /f1/seasons/{season}/race-winners:
+    get:
+      summary: Get race winners for a season
+      description: Returns a list of race winners for all races in a specific Formula 1 season
+      tags:
+        - Race Winners
+      parameters:
+        - name: season
+          in: path
+          description: The season year
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9]{4}$'
+            example: "2023"
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 30
+        - name: offset
+          in: query
+          description: Number of results to skip for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RaceWinnersResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Season not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    MRData:
+      type: object
+      properties:
+        limit:
+          type: string
+          description: Maximum number of results returned
+        offset:
+          type: string
+          description: Number of results skipped
+        series:
+          type: string
+          description: Racing series (f1)
+          example: "f1"
+        total:
+          type: string
+          description: Total number of available results
+        url:
+          type: string
+          format: uri
+          description: URL of the request
+        xmlns:
+          type: string
+          description: XML namespace
+      required:
+        - limit
+        - offset
+        - series
+        - total
+        - url
+        - xmlns
+
+    Driver:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Wikipedia URL for the driver
+        driverId:
+          type: string
+          description: Unique identifier for the driver
+        givenName:
+          type: string
+          description: Driver's first name
+        familyName:
+          type: string
+          description: Driver's last name
+        dateOfBirth:
+          type: string
+          format: date
+          description: Driver's date of birth
+        nationality:
+          type: string
+          description: Driver's nationality
+      required:
+        - url
+        - driverId
+        - givenName
+        - familyName
+        - dateOfBirth
+        - nationality
+
+    Constructor:
+      type: object
+      properties:
+        constructorId:
+          type: string
+          description: Unique identifier for the constructor
+        url:
+          type: string
+          format: uri
+          description: Wikipedia URL for the constructor
+        name:
+          type: string
+          description: Constructor name
+        nationality:
+          type: string
+          description: Constructor nationality
+      required:
+        - constructorId
+        - url
+        - name
+        - nationality
+
+    SeasonChampion:
+      type: object
+      description: Driver championship data for a season champion (position 1)
+      properties:
+        position:
+          type: string
+          description: Final championship position (always "1" for champions)
+          example: "1"
+        positionText:
+          type: string
+          description: Text representation of position
+          example: "1"
+        points:
+          type: string
+          description: Total championship points earned by the champion
+        wins:
+          type: string
+          description: Number of race wins in the season by the champion
+        Driver:
+          $ref: '#/components/schemas/Driver'
+        Constructors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Constructor'
+          description: Constructor(s) the champion driver raced for during the season. Use Constructors[0].name for the primary constructor.
+          minItems: 1
+      required:
+        - position
+        - positionText
+        - points
+        - wins
+        - Driver
+        - Constructors
+
+    Circuit:
+      type: object
+      properties:
+        circuitId:
+          type: string
+          description: Unique identifier for the circuit
+        url:
+          type: string
+          format: uri
+          description: Wikipedia URL for the circuit
+        circuitName:
+          type: string
+          description: Circuit name
+        Location:
+          type: object
+          properties:
+            lat:
+              type: string
+              description: Latitude coordinate
+            long:
+              type: string
+              description: Longitude coordinate
+            locality:
+              type: string
+              description: City or locality
+            country:
+              type: string
+              description: Country
+          required:
+            - lat
+            - long
+            - locality
+            - country
+      required:
+        - circuitId
+        - url
+        - circuitName
+        - Location
+
+    RaceWinner:
+      type: object
+      properties:
+        season:
+          type: string
+          description: Race season year
+        round:
+          type: string
+          description: Round number in the season
+        url:
+          type: string
+          format: uri
+          description: Wikipedia URL for the race
+        raceName:
+          type: string
+          description: Name of the race
+        Circuit:
+          $ref: '#/components/schemas/Circuit'
+        date:
+          type: string
+          format: date
+          description: Race date
+        time:
+          type: string
+          description: Race start time
+        Winner:
+          type: object
+          properties:
+            number:
+              type: string
+              description: Driver's race number
+            position:
+              type: string
+              description: Finishing position (should be "1" for winners)
+            points:
+              type: string
+              description: Points earned for the race
+            Driver:
+              $ref: '#/components/schemas/Driver'
+            Constructor:
+              $ref: '#/components/schemas/Constructor'
+            laps:
+              type: string
+              description: Number of laps completed
+            Time:
+              type: object
+              properties:
+                millis:
+                  type: string
+                  description: Race time in milliseconds
+                time:
+                  type: string
+                  description: Formatted race time
+              required:
+                - millis
+                - time
+          required:
+            - number
+            - position
+            - points
+            - Driver
+            - Constructor
+            - laps
+            - Time
+      required:
+        - season
+        - round
+        - url
+        - raceName
+        - Circuit
+        - date
+        - time
+        - Winner
+
+    SeasonChampionsResponse:
+      type: object
+      properties:
+        MRData:
+          allOf:
+            - $ref: '#/components/schemas/MRData'
+            - type: object
+              properties:
+                StandingsTable:
+                  type: object
+                  properties:
+                    season:
+                      type: string
+                      description: Season filter applied (if any)
+                    StandingsLists:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          season:
+                            type: string
+                            description: Championship season
+                          round:
+                            type: string
+                            description: Final round of the season
+                          DriverStandings:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/SeasonChampion'
+                            description: Championship standings (only champion included)
+                        required:
+                          - season
+                          - round
+                          - DriverStandings
+                  required:
+                    - StandingsLists
+              required:
+                - StandingsTable
+      required:
+        - MRData
+
+    RaceWinnersResponse:
+      type: object
+      properties:
+        MRData:
+          allOf:
+            - $ref: '#/components/schemas/MRData'
+            - type: object
+              properties:
+                RaceTable:
+                  type: object
+                  properties:
+                    season:
+                      type: string
+                      description: Season year
+                    Races:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/RaceWinner'
+                      description: List of races with their winners
+                  required:
+                    - season
+                    - Races
+              required:
+                - RaceTable
+      required:
+        - MRData
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: Error code
+            message:
+              type: string
+              description: Human-readable error message
+            details:
+              type: string
+              description: Additional error details
+          required:
+            - code
+            - message
+      required:
+        - error
+
+tags:
+  - name: Champions
+    description: Operations related to Formula 1 season champions
+  - name: Race Winners
+    description: Operations related to Formula 1 race winners 
