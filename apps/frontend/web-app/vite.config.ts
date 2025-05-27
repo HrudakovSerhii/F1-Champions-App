@@ -5,7 +5,7 @@ import { resolve } from 'path';
 
 export default defineConfig(({ mode }) => ({
   root: __dirname,
-  cacheDir: '../../node_modules/.vite/apps/f1-spa',
+  cacheDir: '../../node_modules/.vite/apps/f1-web',
   base: mode === 'production' ? '/F1-Champions-App/' : '/',
   server: {
     port: 4200,

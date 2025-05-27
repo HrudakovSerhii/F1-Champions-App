@@ -1,8 +1,8 @@
 {
-  "name": "@f1-mobile/f1-mobile",
+  "name": "mobile-app",
   "version": "0.0.1",
   "private": true,
   "nx": {
-    "name": "f1-mobile"
+    "name": "mobile-app"
   }
 }
