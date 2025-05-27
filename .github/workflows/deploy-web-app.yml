@@ -1,24 +1,31 @@
-name: Deploy to GitHub Pages (Legacy)
+name: Deploy Web App to GitHub Pages
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/frontend/web-app/**'
+      - 'libs/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'nx.json'
+      - 'tsconfig.base.json'
   workflow_dispatch:
     inputs:
-      app:
-        description: 'Application to deploy'
-        required: true
-        default: 'web-app'
-        type: choice
-        options:
-          - web-app
+      force_deploy:
+        description: 'Force deployment regardless of changes'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 concurrency:
-  group: "pages"
+  group: "pages-web-app"
   cancel-in-progress: true
 
 jobs:
@@ -27,6 +34,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -37,8 +46,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
-        run: npx nx build f1-spa
+      - name: Build web-app
+        run: npx nx build web-app
 
       - name: Copy font files
         run: node scripts/copy-fonts.js
@@ -49,7 +58,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './apps/f1-spa/dist'
+          path: './apps/frontend/web-app/dist'
 
   deploy:
     environment:
