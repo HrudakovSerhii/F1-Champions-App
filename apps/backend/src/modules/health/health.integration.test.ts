@@ -32,7 +32,7 @@ describe('HealthController Integration Tests', () => {
       ],
     }).compile();
 
-    app = moduleFixture.createNestApplication({ defaultVersion: 1 });
+    app = moduleFixture.createNestApplication();
     await app.init();
 
     healthController = moduleFixture.get<HealthController>(HealthController);
@@ -65,8 +65,9 @@ describe('HealthController Integration Tests', () => {
     test('should be able to perform basic database operations', async () => {
       // Test that we can actually query the database
       try {
-        const result = await prismaService.$queryRaw`SELECT 1`;
-        expect(result).toBeDefined();
+        // Simple database operation test
+        await prismaService.driver.findFirst();
+        expect(true).toBe(true); // If we get here, database is working
       } catch (error) {
         fail(`Database query failed: ${error}`);
       }
@@ -86,18 +87,24 @@ describe('HealthController Integration Tests', () => {
   describe('Database Schema Validation', () => {
     test('should have all required collections accessible', async () => {
       const collections = [
-        { name: 'drivers', model: prismaService.driver },
-        { name: 'constructors', model: prismaService.constructor },
-        { name: 'circuits', model: prismaService.circuit },
-        { name: 'seasons', model: prismaService.season },
-        { name: 'seasonChampions', model: prismaService.seasonChampion },
-        { name: 'raceWinners', model: prismaService.raceWinner },
+        { name: 'drivers', count: () => prismaService.driver.count() },
+        {
+          name: 'constructors',
+          count: () => prismaService.constructor.count(),
+        },
+        { name: 'circuits', count: () => prismaService.circuit.count() },
+        { name: 'seasons', count: () => prismaService.season.count() },
+        {
+          name: 'seasonChampions',
+          count: () => prismaService.seasonChampion.count(),
+        },
+        { name: 'raceWinners', count: () => prismaService.raceWinner.count() },
       ];
 
       for (const collection of collections) {
         try {
           // Try to count documents in each collection
-          const count = await collection.model.count();
+          const count = await collection.count();
           expect(typeof count).toBe('number');
           console.log(`✅ Collection '${collection.name}': ${count} documents`);
         } catch (error) {
@@ -152,8 +159,8 @@ export async function manualHealthTest() {
 
     // Test 2: Direct database query
     try {
-      const queryResult = await prismaService.$queryRaw`SELECT 1`;
-      console.log('✅ Direct database query successful:', queryResult);
+      await prismaService.driver.findFirst();
+      console.log('✅ Direct database query successful');
     } catch (error) {
       console.error('❌ Direct database query failed:', error);
     }
@@ -161,17 +168,20 @@ export async function manualHealthTest() {
     // Test 3: Collection counts
     console.log('📊 Collection statistics:');
     const collections = [
-      { name: 'drivers', model: prismaService.driver },
-      { name: 'constructors', model: prismaService.constructor },
-      { name: 'circuits', model: prismaService.circuit },
-      { name: 'seasons', model: prismaService.season },
-      { name: 'seasonChampions', model: prismaService.seasonChampion },
-      { name: 'raceWinners', model: prismaService.raceWinner },
+      { name: 'drivers', count: () => prismaService.driver.count() },
+      { name: 'constructors', count: () => prismaService.constructor.count() },
+      { name: 'circuits', count: () => prismaService.circuit.count() },
+      { name: 'seasons', count: () => prismaService.season.count() },
+      {
+        name: 'seasonChampions',
+        count: () => prismaService.seasonChampion.count(),
+      },
+      { name: 'raceWinners', count: () => prismaService.raceWinner.count() },
     ];
 
     for (const collection of collections) {
       try {
-        const count = await collection.model.count();
+        const count = await collection.count();
         console.log(`  - ${collection.name}: ${count} documents`);
       } catch (error) {
         console.log(`  - ${collection.name}: Not accessible`);
@@ -206,7 +216,7 @@ export const healthTestUtils = {
    */
   async testDatabaseConnection(prismaService: PrismaService): Promise<boolean> {
     try {
-      await prismaService.$queryRaw`SELECT 1`;
+      await prismaService.driver.findFirst();
       return true;
     } catch (error) {
       console.error('Database connection test failed:', error);
@@ -222,17 +232,20 @@ export const healthTestUtils = {
   ): Promise<Record<string, number>> {
     const stats: Record<string, number> = {};
     const collections = [
-      { name: 'drivers', model: prismaService.driver },
-      { name: 'constructors', model: prismaService.constructor },
-      { name: 'circuits', model: prismaService.circuit },
-      { name: 'seasons', model: prismaService.season },
-      { name: 'seasonChampions', model: prismaService.seasonChampion },
-      { name: 'raceWinners', model: prismaService.raceWinner },
+      { name: 'drivers', count: () => prismaService.driver.count() },
+      { name: 'constructors', count: () => prismaService.constructor.count() },
+      { name: 'circuits', count: () => prismaService.circuit.count() },
+      { name: 'seasons', count: () => prismaService.season.count() },
+      {
+        name: 'seasonChampions',
+        count: () => prismaService.seasonChampion.count(),
+      },
+      { name: 'raceWinners', count: () => prismaService.raceWinner.count() },
     ];
 
     for (const collection of collections) {
       try {
-        stats[collection.name] = await collection.model.count();
+        stats[collection.name] = await collection.count();
       } catch (error) {
         stats[collection.name] = -1; // Indicates error
       }
