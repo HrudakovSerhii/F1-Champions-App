@@ -2,14 +2,13 @@ import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
-import { AxiosResponse } from 'axios';
 
-import {
+import type {
   RaceWinnersResponse,
   SeasonChampionsResponse,
-} from '@f1-app/api-types';
+} from '../../types/types.js';
 
-import { ERGAST_API } from '../../constants/constants';
+import { ERGAST_API } from '../../constants/constants.js';
 
 @Injectable()
 export class JolpicaF1Service {
@@ -40,8 +39,9 @@ export class JolpicaF1Service {
       const url = `${this.baseUrl}/driverStandings/1.json?${params.toString()}`;
       this.logger.debug(`Fetching season champions from: ${url}`);
 
-      const response: AxiosResponse<SeasonChampionsResponse> =
-        await firstValueFrom(this.httpService.get(url));
+      const response = await firstValueFrom(
+        this.httpService.get<SeasonChampionsResponse>(url)
+      );
 
       this.logger.log(`Successfully fetched season champions data`);
       return response.data;
@@ -71,8 +71,8 @@ export class JolpicaF1Service {
         `Fetching race winners for season ${season} from: ${url}`
       );
 
-      const response: AxiosResponse<RaceWinnersResponse> = await firstValueFrom(
-        this.httpService.get(url)
+      const response = await firstValueFrom(
+        this.httpService.get<RaceWinnersResponse>(url)
       );
 
       this.logger.log(
@@ -88,24 +88,24 @@ export class JolpicaF1Service {
     }
   }
 
-  async getSeasons(): Promise<string[]> {
-    try {
-      const url = `${this.baseUrl}/seasons.json?limit=100`;
-      this.logger.debug(`Fetching seasons from: ${url}`);
-
-      const response: AxiosResponse<any> = await firstValueFrom(
-        this.httpService.get(url)
-      );
-
-      const seasons =
-        response.data?.MRData?.SeasonTable?.Seasons?.map(
-          (season: any) => season.season
-        ) || [];
-      this.logger.log(`Successfully fetched ${seasons.length} seasons`);
-      return seasons;
-    } catch (error) {
-      this.logger.error('Failed to fetch seasons from Jolpica F1 API:', error);
-      return [];
-    }
-  }
+  // async getSeasons(): Promise<string[]> {
+  //   try {
+  //     const url = `${this.baseUrl}/seasons.json?limit=100`;
+  //     this.logger.debug(`Fetching seasons from: ${url}`);
+  //
+  //     const response = await firstValueFrom(
+  //       this.httpService.get<SeasonsResponse>(url)
+  //     );
+  //
+  //     const seasons =
+  //       response.data?.MRData?.SeasonTable?.Seasons?.map(
+  //         (season) => season.season
+  //       ) || [];
+  //     this.logger.log(`Successfully fetched ${seasons.length} seasons`);
+  //     return seasons;
+  //   } catch (error) {
+  //     this.logger.error('Failed to fetch seasons from Jolpica F1 API:', error);
+  //     return [];
+  //   }
+  // }
 }
