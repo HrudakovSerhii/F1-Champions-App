@@ -115,3 +115,6 @@ vitest.config.*.timestamp*
 
 /dependency-graph.html
 static
+
+#env
+/apps/backend/api/.env

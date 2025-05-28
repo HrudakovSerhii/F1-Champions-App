@@ -137,20 +137,16 @@ cat > "$OUTPUT_PATH" << 'EOF'
  * DO NOT EDIT MANUALLY - Changes will be overwritten.
  *
  * To regenerate: npm run generate-types
- * Source: libs/backend/shared/src/lib/openapi-schema.yaml
- * Generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+ * Source: libs/shared/types/src/lib/openapi-schema.yaml
  */
 
 /* eslint-disable */
 /* tslint:disable */
 
-export type paths = { ... };           // ✅ Always in sync
-export type components = { ... };      // ✅ Always in sync
-
 EOF
 
 # Add the generated content (skip the first few lines that contain auto-generated comments)
-tail -n +4 "$TEMP_OUTPUT_PATH" >> "$OUTPUT_PATH"
+tail -n +6 "$TEMP_OUTPUT_PATH" >> "$OUTPUT_PATH"
 
 # Note: Only pure generated types - no manual convenience exports to avoid sync issues
 
@@ -166,9 +162,9 @@ log_success "Post-processing completed"
 log_info "📤 Updating library exports..."
 
 # Update the main index.ts file to export the generated types
-cat > "libs/backend/shared/src/index.ts" << 'EOF'
+cat > "libs/shared/types/src/index.ts" << 'EOF'
 // Export all generated API types
-export * from './lib/generated-types';
+export * from './lib/generated-types.js';
 EOF
 
 log_success "Library exports updated"
