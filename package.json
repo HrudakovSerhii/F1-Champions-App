@@ -13,6 +13,7 @@
     "serve:backend": "npx nx serve @f1-app/backend",
     "build:backend": "npx nx build @f1-app/backend",
     "dev:backend": "npx nx serve @f1-app/backend",
+    "test:backend": "npx nx test @f1-app/backend",
     "generate-types": "./scripts/generate-types.sh",
     "web-app:init": "npm install && npm run generate-types"
   },

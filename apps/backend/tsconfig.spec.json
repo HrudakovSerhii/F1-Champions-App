@@ -6,13 +6,31 @@
       "jest",
       "node"
     ],
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
+    "module": "node16",
+    "moduleResolution": "node16",
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "composite": false,
+    "emitDeclarationOnly": false,
+    "declarationMap": false,
+    "lib": [
+      "es2022"
+    ],
+    "target": "es2022",
+    "strict": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "@f1-app/api-types": [
+        "../../libs/shared/types/dist/index.d.ts"
+      ]
+    }
   },
   "include": [
-    "jest.config.ts",
+    "jest.config.js",
     "src/**/*.test.ts",
     "src/**/*.spec.ts",
     "src/**/*.d.ts"
