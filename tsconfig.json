@@ -19,7 +19,7 @@
       "path": "./apps/frontend/mobile-app"
     },
     {
-      "path": "./apps/backend/api"
+      "path": "./apps/backend"
     },
     {
       "path": "./apps/frontend/web-app-e2e"
@@ -28,7 +28,7 @@
       "path": "./apps/frontend/mobile-app-e2e"
     },
     {
-      "path": "./apps/backend/api-e2e"
+      "path": "./apps/backend-e2e"
     }
   ]
 }

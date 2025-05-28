@@ -117,4 +117,4 @@ vitest.config.*.timestamp*
 static
 
 #env
-/apps/backend/api/.env
+/apps/backend/.env

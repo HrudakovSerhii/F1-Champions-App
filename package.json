@@ -10,9 +10,9 @@
     "serve:mobile-app": "npx nx dev mobile-app",
     "dev:mobile-app": "npx nx dev mobile-app",
     "copy-fonts": "node scripts/copy-fonts.js",
-    "serve:backend": "npx nx serve @f1-app/backend-api",
-    "build:backend": "npx nx build @f1-app/backend-api",
-    "dev:backend": "npx nx serve @f1-app/backend-api",
+    "serve:backend": "npx nx serve @f1-app/backend",
+    "build:backend": "npx nx build @f1-app/backend",
+    "dev:backend": "npx nx serve @f1-app/backend",
     "generate-types": "./scripts/generate-types.sh",
     "web-app:init": "npm install && npm run generate-types"
   },
@@ -113,6 +113,7 @@
   },
   "workspaces": [
     "apps/*",
-    "libs/*"
+    "libs/*",
+    "apps/backend/*"
   ]
 }

@@ -12,5 +12,8 @@
     {
       "path": "./tsconfig.spec.json"
     }
-  ]
+  ],
+  "compilerOptions": {
+    "resolveJsonModule": true
+  }
 }

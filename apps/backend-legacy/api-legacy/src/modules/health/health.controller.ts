@@ -35,20 +35,26 @@ export class HealthController {
   }
 
   private async checkDatabase(): Promise<HealthIndicatorResult> {
+    const key = 'database';
     try {
+      // Use Prisma's $queryRaw to test database connectivity
       await this.prismaService.$queryRaw`SELECT 1`;
+
       return {
-        database: {
+        [key]: {
           status: 'up',
           message: 'Database connection is healthy',
         },
       };
     } catch (error) {
-      throw new Error(
-        `Database connection failed: ${
-          error instanceof Error ? error.message : 'Unknown error'
-        }`
-      );
+      return {
+        [key]: {
+          status: 'down',
+          message: `Database connection failed: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
+        },
+      };
     }
   }
 }
