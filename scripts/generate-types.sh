@@ -20,9 +20,9 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-SCHEMA_PATH="libs/backend/shared/src/lib/openapi-schema.yaml"
-OUTPUT_PATH="libs/backend/shared/src/lib/generated-types.ts"
-TEMP_OUTPUT_PATH="libs/backend/shared/src/lib/generated-types.temp.ts"
+SCHEMA_PATH="libs/shared/types/src/lib/openapi-schema.yaml"
+OUTPUT_PATH="libs/shared/types/src/lib/generated-types.ts"
+TEMP_OUTPUT_PATH="shared/types/src/lib/generated-types.temp.ts"
 
 # =============================================================================
 # Helper Functions
@@ -132,10 +132,10 @@ log_info "🔄 Post-processing generated types..."
 cat > "$OUTPUT_PATH" << 'EOF'
 /**
  * F1 Champions App - Generated API Types
- * 
+ *
  * This file is auto-generated from the OpenAPI schema.
  * DO NOT EDIT MANUALLY - Changes will be overwritten.
- * 
+ *
  * To regenerate: npm run generate-types
  * Source: libs/backend/shared/src/lib/openapi-schema.yaml
  * Generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
@@ -219,4 +219,4 @@ echo "🔄 To regenerate types after schema changes:"
 echo "   npm run generate-types"
 echo ""
 
-log_success "All done! 🏎️" 
+log_success "All done! 🏎️"

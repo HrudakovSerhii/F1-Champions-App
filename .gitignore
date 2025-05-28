@@ -4,6 +4,7 @@
 dist
 tmp
 out-tsc
+/libs/shared/types/src/lib/generated-types.ts
 
 # dependencies
 node_modules

@@ -16,6 +16,14 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "es2022",
-    "customConditions": ["development"]
+    "customConditions": [
+      "development"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@f1-app/api-types": [
+        "libs/shared/types/dist/index.d.ts"
+      ]
+    }
   }
 }

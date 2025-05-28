@@ -1,22 +1,24 @@
 # F1 Champions App - Backend Shared Library
 
-This library contains shared TypeScript types generated from the OpenAPI schema, serving as the single source of truth for API contracts across the entire application.
+This library contains shared TypeScript types generated from the OpenAPI schema, serving as the single source of truth
+for API contracts across the entire application.
 
 ## 🎯 Purpose
 
 - **Single Source of Truth**: All API types are generated from the OpenAPI schema
-- **Type Safety**: Ensures FE and BE are always aligned with API specification
+- **Type Safety**: Ensures FE and BE always are aligned with API specification
 - **Developer Experience**: Organized namespaces for easy type discovery
 - **Automation**: Automatic type generation eliminates manual type maintenance
 
 ## 📁 Structure
 
 ```
-libs/backend/shared/
+libs/shared/types/
 ├── src/
 │   ├── lib/
 │   │   ├── openapi-schema.yaml      # OpenAPI specification (source of truth)
 │   │   └── generated-types.ts       # Generated TypeScript types
+│   │   └── types.ts                 # Derived API contract TypeScript types
 │   └── index.ts                     # Library exports
 ├── scripts/
 │   └── generate-types.sh            # Type generation script
@@ -39,65 +41,6 @@ npm run web-app:init  # → npm install && npm run generate-types
 npm run generate-types
 ```
 
-## 📖 Usage Examples
-
-### Frontend Usage
-
-```typescript
-import type { components, paths } from '@f1-champions-app/backend-shared';
-
-// Define your own convenience types (always in sync with schema)
-type ChampionsResponse = components['schemas']['SeasonChampionsResponse'];
-type Champion = components['schemas']['SeasonChampion'];
-
-// Champions API
-const championsResponse: ChampionsResponse = await fetch('/api/f1/champions');
-const champion: Champion = championsResponse.MRData.StandingsTable.StandingsLists[0].DriverStandings[0];
-
-// Extract data (matches your existing pattern)
-const { wins, Driver, Constructors } = champion;
-const { familyName, givenName, url } = Driver;
-const { name } = Constructors[0];
-
-// Race Winners API
-type RaceWinnersResponse = components['schemas']['RaceWinnersResponse'];
-const winnersResponse: RaceWinnersResponse = await fetch('/api/f1/seasons/2023/race-winners');
-const winners = winnersResponse.MRData.RaceTable.Races;
-```
-
-### Backend Usage
-
-```typescript
-import type { components } from '@f1-champions-app/backend-shared';
-
-// API validation/transformation
-function validateChampionResponse(data: any): components['schemas']['SeasonChampionsResponse'] {
-  // Type-safe validation logic
-  return data as components['schemas']['SeasonChampionsResponse'];
-}
-
-// Error handling
-function createErrorResponse(message: string): components['schemas']['ErrorResponse'] {
-  return {
-    error: {
-      code: 'INTERNAL_ERROR',
-      message
-    }
-  };
-}
-```
-
-### API Client Usage
-
-```typescript
-import type { paths } from '@f1-champions-app/backend-shared';
-
-// Type-safe API client
-type ChampionsEndpoint = paths['/f1/champions']['get'];
-type ChampionsParams = ChampionsEndpoint['parameters']['query'];
-type ChampionsResponse = ChampionsEndpoint['responses']['200']['content']['application/json'];
-```
-
 ## 🏗️ Type Organization
 
 ### Core Exports (Always in Sync)
@@ -106,23 +49,13 @@ type ChampionsResponse = ChampionsEndpoint['responses']['200']['content']['appli
 - **`components`** - All schema components (Driver, Constructor, etc.)
 - **`webhooks`** - Webhook definitions (if any)
 
-### Usage Pattern
-
-```typescript
-// Create your own convenience types as needed:
-type Champion = components['schemas']['SeasonChampion'];
-type ChampionsAPI = paths['/f1/champions']['get'];
-
-// These are always in sync with the schema - no maintenance required!
-```
-
 ## 🔧 Development Workflow
 
 ### 1. Update API Schema
 
 ```bash
 # Edit the OpenAPI schema
-vim libs/backend/shared/src/lib/openapi-schema.yaml
+vim libs/shared/types/src/lib/openapi-schema.yaml
 ```
 
 ### 2. Regenerate Types
@@ -177,21 +110,6 @@ const response: ChampionsResponse =
 ;
 ```
 
-### Perfect Frontend Integration
-
-```typescript
-// Matches your existing destructuring pattern
-const { wins, Driver, Constructors } = DriverStandings[0];
-const { familyName, givenName, url } = Driver;
-const { name } = Constructors[0];
-```
-
-### Type Safety Across Stack
-
-- **Frontend**: Request/response validation
-- **Backend**: API implementation contracts
-- **Future Prisma**: Schema generation reference
-
 ## 🔄 Maintenance
 
 ### When to Regenerate Types
@@ -210,14 +128,6 @@ const { name } = Constructors[0];
 4. Run from workspace root
 ```
 
-## 🚀 Benefits
-
-1. **Eliminates Type Drift** - FE/BE always in sync
-2. **Reduces Bugs** - Compile-time API contract validation
-3. **Improves DX** - IntelliSense and auto-completion
-4. **Simplifies Onboarding** - Single command setup
-5. **Future-Proof** - Easy to extend for new endpoints
-
 ## 📚 Related Documentation
 
 - [OpenAPI Schema](./src/lib/openapi-schema.yaml) - API specification
@@ -226,4 +136,5 @@ const { name } = Constructors[0];
 
 ---
 
-**Note**: This library is undeployable and used only for development-time type sharing. The generated types serve as the contract between frontend and backend applications.
+**Note**: This library is un-deployable and used only for development-time type sharing. The generated types serve as
+the contract between frontend and backend applications.

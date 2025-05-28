@@ -1,5 +1,5 @@
 {
-  "name": "@f1mobile/shared",
+  "name": "@f1-app/api-types",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -16,7 +16,7 @@
     }
   },
   "nx": {
-    "name": "shared"
+    "name": "api-types"
   },
   "dependencies": {
     "tslib": "^2.3.0"
