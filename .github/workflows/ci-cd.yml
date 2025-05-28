@@ -53,7 +53,7 @@ jobs:
         id: affected
         run: |
           if [ "${{ github.event.inputs.force_all }}" == "true" ]; then
-            echo "apps=[\"@f1-champions-app/web-app\", \"@f1-champions-app/backend\", \"@f1-champions-app/mobile-app\"]" >> $GITHUB_OUTPUT
+            echo "apps=[\"@f1-app/web-app\", \"@f1-app/backend-api\", \"@f1-app/mobile-app\"]" >> $GITHUB_OUTPUT
             echo "has-web-app=true" >> $GITHUB_OUTPUT
             echo "has-backend=true" >> $GITHUB_OUTPUT
           else
@@ -65,8 +65,8 @@ jobs:
             echo "apps=$APPS_JSON" >> $GITHUB_OUTPUT
 
             # Check specific apps
-            echo "has-web-app=$(echo "$AFFECTED" | grep -q "f1-champions-app/web-app" && echo "true" || echo "false")" >> $GITHUB_OUTPUT
-            echo "has-backend=$(echo "$AFFECTED" | grep -q "@f1-champions-app/backend" && echo "true" || echo "false")" >> $GITHUB_OUTPUT
+            echo "has-web-app=$(echo "$AFFECTED" | grep -q "@f1-app/web-app" && echo "true" || echo "false")" >> $GITHUB_OUTPUT
+            echo "has-backend=$(echo "$AFFECTED" | grep -q "@f1-app/backend-api" && echo "true" || echo "false")" >> $GITHUB_OUTPUT
           fi
 
   lint-and-test:
@@ -159,7 +159,7 @@ jobs:
         run: npm ci
 
       - name: Build backend
-        run: npx nx build @f1-champions-app/backend
+        run: npx nx build @f1-app/backend-api
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -241,7 +241,7 @@ jobs:
         run: npm ci
 
       - name: Build mobile app
-        run: npx nx build-${{ matrix.platform }} @f1-champions-app/mobile-app
+        run: npx nx build-${{ matrix.platform }} @f1-app/mobile-app
 
       - name: Upload mobile artifacts
         uses: actions/upload-artifact@v4

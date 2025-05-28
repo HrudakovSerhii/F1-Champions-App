@@ -1,7 +1,7 @@
 {
   "extends": "../../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "out-tsc/@f1mobile/backend-e2e",
+    "outDir": "out-tsc/@f1-app/backend-api-e2e",
     "esModuleInterop": true,
     "noUnusedLocals": false,
     "noImplicitAny": false

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { RaceWinnersService } from './race-winners.service';
-import { GetRaceWinnersDto } from './dto/get-race-winners.dto';
+
 import { PaginationDto } from '../../common/dto/pagination.dto';
 
 @ApiTags('Race Winners')

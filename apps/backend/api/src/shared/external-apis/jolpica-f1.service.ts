@@ -6,9 +6,9 @@ import { firstValueFrom } from 'rxjs';
 import type {
   RaceWinnersResponse,
   SeasonChampionsResponse,
-} from '../../types/types.js';
+} from '../../types/types';
 
-import { ERGAST_API } from '../../constants/constants.js';
+import { ERGAST_API } from '../../constants/constants';
 
 @Injectable()
 export class JolpicaF1Service {

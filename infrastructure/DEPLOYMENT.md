@@ -122,7 +122,7 @@ npm run build:web-app
 # Deploy to GitHub Pages (automatic on main)
 ```
 
-### Backend (`@f1-champions-app/backend`)
+### Backend (`@f1-app/backend-api`)
 
 ```bash
 # Local development
@@ -134,17 +134,17 @@ npm run build:backend
 # Deploy (configure your target platform)
 ```
 
-### Mobile App (`@f1-mobile/f1-mobile`)
+### Mobile App (`@f1-app/mobile-app`)
 
 ```bash
 # Local development
-npx nx start @f1-mobile/f1-mobile
+npx nx start @f1-app/mobile-app
 
 # Build Android
-npx nx build-android @f1-mobile/f1-mobile
+npx nx build-android @f1-app/mobile-app
 
 # Build iOS (macOS only)
-npx nx build-ios @f1-mobile/f1-mobile
+npx nx build-ios @f1-app/mobile-app
 ```
 
 ## Adding New Applications

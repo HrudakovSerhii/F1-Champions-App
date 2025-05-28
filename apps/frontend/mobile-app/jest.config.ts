@@ -1,5 +1,5 @@
 module.exports = {
-  displayName: 'f1-mobile',
+  displayName: 'mobile-app',
   preset: 'react-native',
   resolver: '@nx/jest/plugins/resolver',
   moduleFileExtensions: ['ts', 'js', 'html', 'tsx', 'jsx'],
@@ -18,5 +18,5 @@ module.exports = {
       'react-native/jest/assetFileTransformer.js'
     ),
   },
-  coverageDirectory: '../../coverage/apps/f1-mobile',
+  coverageDirectory: '../../coverage/apps/mobile-app',
 };

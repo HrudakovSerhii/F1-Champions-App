@@ -1,10 +1,10 @@
 {
-  "name": "@f1mobile/backend-e2e",
+  "name": "@f1-app/backend-api-e2e",
   "version": "0.0.1",
   "private": true,
   "nx": {
     "implicitDependencies": [
-      "@f1mobile/backend"
+      "@f1-app/backend-api"
     ],
     "targets": {
       "e2e": {
@@ -17,8 +17,8 @@
           "passWithNoTests": true
         },
         "dependsOn": [
-          "@f1mobile/backend:build",
-          "@f1mobile/backend:serve"
+          "@f1-app/backend-api:build",
+          "@f1-app/backend-api:serve"
         ]
       }
     }

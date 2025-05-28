@@ -1,11 +1,10 @@
-/// <reference types='vitest' />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
 export default defineConfig(({ mode }) => ({
   root: __dirname,
-  cacheDir: '../../node_modules/.vite/apps/f1-web',
+  cacheDir: '../../node_modules/.vite/apps/web-app',
   base: mode === 'production' ? '/F1-Champions-App/' : '/',
   server: {
     port: 4200,

@@ -1,5 +1,5 @@
 {
-  "name": "@f1mobile/styles",
+  "name": "@f1-app/frontend-styles",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -17,7 +17,7 @@
     "./lib/fonts.css": "./src/lib/fonts.css"
   },
   "nx": {
-    "name": "styles"
+    "name": "frontend-styles"
   },
   "dependencies": {
     "tslib": "^2.3.0"

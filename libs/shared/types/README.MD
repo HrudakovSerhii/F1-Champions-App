@@ -68,7 +68,7 @@ npm run generate-types
 
 ```typescript
 // Types are automatically updated across FE and BE
-import type { components } from '@f1-champions-app/backend-shared';
+import type { components } from '@f1-app/api-types';
 
 type Champion = components['schemas']['SeasonChampion'];
 ```
@@ -102,7 +102,7 @@ The `generate-types.sh` script performs:
 import { Champions } from './some-stale-types';
 
 // Use schema-driven types that auto-update
-import type { components } from '@f1-champions-app/backend-shared';
+import type { components } from '@f1-app/api-types';
 
 type ChampionsResponse = components['schemas']['SeasonChampionsResponse'];
 const response: ChampionsResponse =

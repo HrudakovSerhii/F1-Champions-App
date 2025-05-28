@@ -1,10 +1,10 @@
 {
-  "name": "f1-mobile-e2e",
+  "name": "@f1-app/mobile-app-e2e",
   "version": "0.0.1",
   "private": true,
   "nx": {
     "implicitDependencies": [
-      "f1-mobile"
+      "@f1-app/mobile-app"
     ]
   }
 }

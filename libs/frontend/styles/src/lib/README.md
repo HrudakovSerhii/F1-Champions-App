@@ -49,7 +49,7 @@ export default createTailwindConfig({
 For React Native, you'll need to use a library like `tailwind-rn` and import the theme:
 
 ```javascript
-// apps/f1-mobile/tailwind.config.js
+// apps/mobile-app/tailwind.config.js
 import { tailwindTheme } from '@f1-champions/styles';
 
 export default {
