@@ -14,7 +14,7 @@ import { ChampionsModule } from '../modules/champions/champions.module';
 import { RaceWinnersModule } from '../modules/race-winners/race-winners.module';
 import { HealthModule } from '../modules/health/health.module';
 
-// Legacy app components (can be removed later)
+// API Info components
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -52,7 +52,7 @@ import { THROTTLER_LENGTH, THROTTLER_LIMIT } from '../constants/constants';
     AppService,
     {
       provide: APP_GUARD,
-      useClass: Throttleruard,
+      useClass: ThrottlerGuard,
     },
   ],
 })

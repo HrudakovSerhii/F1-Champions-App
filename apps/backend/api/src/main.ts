@@ -36,6 +36,7 @@ async function bootstrap() {
     .setTitle('F1 Champions API')
     .setDescription('API for Formula 1 season champions and race winners data')
     .setVersion('1.0.0')
+    .addTag('API Info', 'General API information and metadata')
     .addTag('Champions', 'Operations related to Formula 1 season champions')
     .addTag('Race Winners', 'Operations related to Formula 1 race winners')
     .addTag('Health', 'Health check endpoints')
