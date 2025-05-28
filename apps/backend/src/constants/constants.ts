@@ -3,6 +3,13 @@ export const CORS_ORIGIN =
     ? ['https://hrudakovserhii.github.io']
     : ['http://localhost:3000', 'http://localhost:4200'];
 
+export const BASE_URL =
+  process.env.NODE_ENV === 'production'
+    ? 'https://your-production-domain.com/api/v1'
+    : 'http://localhost:4000/api/v1';
+
+export const DEFAULT_PORT = 4000;
+
 export const API_GLOBAL_PREFIX = 'api/v1';
 
 export const ERGAST_API = 'https://api.jolpi.ca/ergast/f1';

@@ -1,6 +1,35 @@
 # F1 App
 F1 Champions List App build for Web and Native devices. Using shared NX.Lib for Tailwind Theme 
 
+## Quick Start
+
+### Database Setup
+
+Set up the database with sample F1 data for testing and development:
+
+```bash
+# Complete database setup (first time)
+npm run db:setup
+
+# Reset database for testing
+npm run db:test:setup
+```
+
+📖 **[Complete Database Guide](infrastructure/DATABASE.md)** - Comprehensive database setup, seeding, and management documentation.
+
+### Development Servers
+
+```bash
+# Backend API server
+npm run dev:backend
+
+# Web application
+npm run dev:web-app
+
+# Mobile application  
+npm run dev:mobile-app
+```
+
 # Getting Started
 TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
 1.	Installation process

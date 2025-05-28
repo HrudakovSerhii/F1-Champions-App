@@ -5,6 +5,9 @@ dist
 tmp
 out-tsc
 /libs/shared/types/src/lib/generated-types.ts
+/apps/backend/prisma/seed-json.json
+/apps/backend/prisma/seed-mongodb.js
+/apps/backend/prisma/seed-prisma.ts
 
 # dependencies
 node_modules
@@ -118,3 +121,4 @@ static
 
 #env
 /apps/backend/.env
+

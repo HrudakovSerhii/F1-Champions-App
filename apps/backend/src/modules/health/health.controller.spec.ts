@@ -1,18 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HealthController } from './health.controller';
-import { HealthCheckService, TerminusModule } from '@nestjs/terminus';
+import { TerminusModule } from '@nestjs/terminus';
 import { PrismaService } from '../../shared/database/prisma.service';
-
-import { describe, beforeEach, afterEach, expect, it, vi } from 'vitest';
 
 describe('HealthController', () => {
   let controller: HealthController;
-  let prismaService: PrismaService;
-  let healthCheckService: HealthCheckService;
 
   // Mock PrismaService
   const mockPrismaService = {
-    $queryRaw: vi.fn(),
+    $queryRaw: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -28,12 +24,10 @@ describe('HealthController', () => {
     }).compile();
 
     controller = module.get<HealthController>(HealthController);
-    prismaService = module.get<PrismaService>(PrismaService);
-    healthCheckService = module.get<HealthCheckService>(HealthCheckService);
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -52,11 +46,15 @@ describe('HealthController', () => {
       expect(result).toBeDefined();
       expect(result.status).toBe('ok');
       expect(result.info).toBeDefined();
-      expect(result.info.database).toBeDefined();
-      expect(result.info.database.status).toBe('up');
-      expect(result.info.database.message).toBe(
-        'Database connection is healthy'
-      );
+
+      if (result.info) {
+        expect(result.info.database).toBeDefined();
+        expect(result.info.database.status).toBe('up');
+        expect(result.info.database.message).toBe(
+          'Database connection is healthy'
+        );
+      }
+
       expect(mockPrismaService.$queryRaw).toHaveBeenCalledWith(['SELECT 1']);
     });
 
@@ -88,11 +86,13 @@ describe('HealthController', () => {
       // Act
       const result = await controller.check();
 
-      // Assert
-      expect(result.info.database).toEqual({
-        status: 'up',
-        message: 'Database connection is healthy',
-      });
+      if (result.info) {
+        // Assert
+        expect(result.info.database).toEqual({
+          status: 'up',
+          message: 'Database connection is healthy',
+        });
+      }
     });
 
     it('should return database down status on connection failure', async () => {

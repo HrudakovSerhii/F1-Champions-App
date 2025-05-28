@@ -2,6 +2,9 @@
   "name": "@f1-app/backend",
   "version": "0.0.1",
   "private": true,
+  "prisma": {
+    "seed": "npx ts-node --project scripts/tsconfig.json prisma/seed-prisma.ts"
+  },
   "nx": {
     "targets": {
       "build": {

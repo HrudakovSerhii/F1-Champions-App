@@ -1,7 +1,7 @@
 import type {
   RaceWinnersResponse,
-  SeasonChampionsResponse
-} from '@f1-app/api-types' with { 'resolution-mode': 'import' };
+  SeasonChampionsResponse,
+} from '@f1-app/api-types';
 
 /**
  * Response type for Ergast API seasons endpoint

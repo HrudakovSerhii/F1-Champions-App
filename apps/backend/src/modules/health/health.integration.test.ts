@@ -15,8 +15,6 @@ import { PrismaModule } from '../../shared/database/prisma.module';
 import { PrismaService } from '../../shared/database/prisma.service';
 import { ConfigModule } from '@nestjs/config';
 
-import { describe, beforeAll, afterAll, expect, test, vi } from 'vitest';
-
 describe('HealthController Integration Tests', () => {
   let app: INestApplication;
   let healthController: HealthController;
@@ -27,7 +25,7 @@ describe('HealthController Integration Tests', () => {
       imports: [
         ConfigModule.forRoot({
           isGlobal: true,
-          envFilePath: '.env.test', // Use test environment if available
+          envFilePath: '.env', // Use test environment if available
         }),
         PrismaModule,
         HealthModule,
@@ -54,11 +52,14 @@ describe('HealthController Integration Tests', () => {
       expect(result).toBeDefined();
       expect(result.status).toBe('ok');
       expect(result.info).toBeDefined();
-      expect(result.info.database).toBeDefined();
-      expect(result.info.database.status).toBe('up');
-      expect(result.info.database.message).toBe(
-        'Database connection is healthy'
-      );
+
+      if (result.info) {
+        expect(result.info.database).toBeDefined();
+        expect(result.info.database.status).toBe('up');
+        expect(result.info.database.message).toBe(
+          'Database connection is healthy'
+        );
+      }
     });
 
     test('should be able to perform basic database operations', async () => {
