@@ -1,4 +1,4 @@
-# F1 Champions App - Backend Shared Library
+# F1 Champions App - Shared Types Library
 
 This library contains shared TypeScript types generated from the OpenAPI schema, serving as the single source of truth
 for API contracts across the entire application.
