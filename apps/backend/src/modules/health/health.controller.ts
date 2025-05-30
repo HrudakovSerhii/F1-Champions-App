@@ -37,8 +37,9 @@ export class HealthController {
   private async checkDatabase(): Promise<HealthIndicatorResult> {
     const key = 'database';
     try {
-      // Use Prisma's $queryRaw to test database connectivity
-      await this.prismaService.$queryRaw`SELECT 1`;
+      // Use a simple findFirst operation to test MongoDB connectivity
+      // This is compatible with MongoDB and doesn't require $queryRaw
+      await this.prismaService.driver.findFirst();
 
       return {
         [key]: {

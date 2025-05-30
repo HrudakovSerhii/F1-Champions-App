@@ -23,6 +23,14 @@ export interface ApiInfo {
   };
 }
 
+export interface HealthStatus {
+  status: string;
+  timestamp: string;
+  uptime: number;
+  environment: string;
+  database: string;
+}
+
 @Injectable()
 export class AppService {
   getApiInfo(): ApiInfo {
@@ -77,6 +85,16 @@ export class AppService {
         requests: 30,
         window: '1 minute',
       },
+    };
+  }
+
+  getHealth(): HealthStatus {
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+      database: 'connected', // TODO: Add actual database health check
     };
   }
 }

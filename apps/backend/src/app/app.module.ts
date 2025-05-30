@@ -52,7 +52,7 @@ import { THROTTLER_LENGTH, THROTTLER_LIMIT } from '../constants/constants';
     AppService,
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGard,
+      useClass: ThrottlerGuard,
     },
   ],
 })

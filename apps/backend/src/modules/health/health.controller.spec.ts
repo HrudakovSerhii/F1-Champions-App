@@ -8,7 +8,9 @@ describe('HealthController', () => {
 
   // Mock PrismaService
   const mockPrismaService = {
-    $queryRaw: jest.fn(),
+    driver: {
+      findFirst: jest.fn(),
+    },
   };
 
   beforeEach(async () => {
@@ -37,7 +39,7 @@ describe('HealthController', () => {
   describe('check', () => {
     it('should return healthy status when database is accessible', async () => {
       // Arrange
-      mockPrismaService.$queryRaw.mockResolvedValue([{ '1': 1 }]);
+      mockPrismaService.driver.findFirst.mockResolvedValue(null);
 
       // Act
       const result = await controller.check();
@@ -55,33 +57,33 @@ describe('HealthController', () => {
         );
       }
 
-      expect(mockPrismaService.$queryRaw).toHaveBeenCalledWith(['SELECT 1']);
+      expect(mockPrismaService.driver.findFirst).toHaveBeenCalled();
     });
 
     it('should return unhealthy status when database is not accessible', async () => {
       // Arrange
       const dbError = new Error('Connection refused');
-      mockPrismaService.$queryRaw.mockRejectedValue(dbError);
+      mockPrismaService.driver.findFirst.mockRejectedValue(dbError);
 
       // Act & Assert
       await expect(controller.check()).rejects.toThrow();
-      expect(mockPrismaService.$queryRaw).toHaveBeenCalledWith(['SELECT 1']);
+      expect(mockPrismaService.driver.findFirst).toHaveBeenCalled();
     });
 
     it('should handle unknown database errors gracefully', async () => {
       // Arrange
-      mockPrismaService.$queryRaw.mockRejectedValue('Unknown error');
+      mockPrismaService.driver.findFirst.mockRejectedValue('Unknown error');
 
       // Act & Assert
       await expect(controller.check()).rejects.toThrow();
-      expect(mockPrismaService.$queryRaw).toHaveBeenCalledWith(['SELECT 1']);
+      expect(mockPrismaService.driver.findFirst).toHaveBeenCalled();
     });
   });
 
   describe('checkDatabase (private method testing via check)', () => {
     it('should return database up status on successful connection', async () => {
       // Arrange
-      mockPrismaService.$queryRaw.mockResolvedValue([{ '1': 1 }]);
+      mockPrismaService.driver.findFirst.mockResolvedValue(null);
 
       // Act
       const result = await controller.check();
@@ -98,7 +100,7 @@ describe('HealthController', () => {
     it('should return database down status on connection failure', async () => {
       // Arrange
       const dbError = new Error('Database connection failed');
-      mockPrismaService.$queryRaw.mockRejectedValue(dbError);
+      mockPrismaService.driver.findFirst.mockRejectedValue(dbError);
 
       // Act & Assert
       try {
@@ -111,7 +113,7 @@ describe('HealthController', () => {
 
     it('should handle non-Error objects in database check', async () => {
       // Arrange
-      mockPrismaService.$queryRaw.mockRejectedValue('String error');
+      mockPrismaService.driver.findFirst.mockRejectedValue('String error');
 
       // Act & Assert
       try {
