@@ -1,19 +1,21 @@
 #!/usr/bin/env ts-node
 
+import {
+  SeedCircuit,
+  SeedDriver,
+  SeedRaceWinner,
+  SeedSeason,
+  SeedSeasonChampion,
+  SeedData,
+  SeedConstructor,
+} from '../types';
+
 const fs = require('fs');
 const path = require('path');
 
 // Import mock data
 const mockData = require('../src/assets/mock-data.json');
 
-// Import types from the shared types library
-import type {
-  Driver,
-  Constructor,
-  Circuit,
-  SeasonChampion,
-  RaceWinner,
-} from '@f1-app/api-types';
 
 /**
  * Seed data interfaces using the official API types
@@ -34,41 +36,6 @@ import type {
  * npx ts-node --project scripts/tsconfig.json scripts/generate-seed.ts [format] [output]
  */
 
-// Composed interfaces for seed data (based on API types but optimized for seeding)
-// These types are composed of the API types but are flattened for database seeding
-type SeedSeasonChampion = {
-  season: string;
-  round: string;
-  driverRef: string;
-  constructorRef: string;
-} & Pick<SeasonChampion, 'position' | 'positionText' | 'points' | 'wins'>;
-
-type SeedCircuit = Omit<Circuit, 'Location'>
-
-type SeedRaceWinner = {
-  winnerDetails: {
-    number: string;
-    position: string;
-    points: string;
-    laps: string;
-    time: {
-      millis: string;
-      time: string;
-    };
-  };
-  driverRef: string;
-  constructorRef: string;
-  circuitRef: string;
-} & Pick<RaceWinner, 'season' | 'round' | 'raceName' | 'date' | 'time' | 'url'>;
-
-interface SeedData {
-  drivers: Driver[];
-  constructors: Constructor[];
-  circuits: SeedCircuit[];
-  seasonChampions: SeedSeasonChampion[];
-  raceWinners: SeedRaceWinner[];
-  seasons: { year: string }[];
-}
 
 /**
  * CLI script to generate seed files for MongoDB
@@ -88,12 +55,12 @@ class SeedGenerator {
     const seasonsData = mockData.seasonsResponse.MRData.SeasonTable.Seasons;
 
     // Extract unique entities
-    const driversMap = new Map<string, Driver>();
-    const constructorsMap = new Map<string, Constructor>();
+    const driversMap = new Map<string, SeedDriver>();
+    const constructorsMap = new Map<string, SeedConstructor>();
     const circuitsMap = new Map<string, SeedCircuit>();
     const seasonChampions: SeedSeasonChampion[] = [];
     const raceWinners: SeedRaceWinner[] = [];
-    const seasons: { year: string }[] = [];
+    const seasons: SeedSeason[] = [];
 
     // Process race winners data
     raceWinnersData.forEach((race: any) => {
@@ -139,7 +106,7 @@ class SeedGenerator {
           position: race.Winner.position,
           points: race.Winner.points,
           laps: race.Winner.laps,
-          time: {
+          raceTime: {
             millis: race.Winner.Time.millis,
             time: race.Winner.Time.time,
           },
