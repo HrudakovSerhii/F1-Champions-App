@@ -16,12 +16,17 @@ This script now successfully uses the official API types from the shared types l
 
 ```bash
 # Run with proper type resolution
-npx ts-node --project scripts/tsconfig.json scripts/generate-seed.ts [format] [output-path]
+npx ts-node --project src/scripts/tsconfig.json src/scripts/generate-seed.ts [format] [output-path]
 
-# Examples
-npx ts-node --project scripts/tsconfig.json scripts/generate-seed.ts json
-npx ts-node --project scripts/tsconfig.json scripts/generate-seed.ts prisma
-npx ts-node --project scripts/tsconfig.json scripts/generate-seed.ts mongodb
+# Examples (from apps/backend directory)
+npx ts-node --project src/scripts/tsconfig.json src/scripts/generate-seed.ts json
+npx ts-node --project src/scripts/tsconfig.json src/scripts/generate-seed.ts prisma
+npx ts-node --project src/scripts/tsconfig.json src/scripts/generate-seed.ts mongodb
+
+# Or use npm scripts (from project root)
+npm run db:seed:generate
+npm run db:seed:generate:prisma
+npm run db:seed:generate:mongodb
 ```
 
 ### Supported Formats
@@ -32,7 +37,7 @@ npx ts-node --project scripts/tsconfig.json scripts/generate-seed.ts mongodb
 
 ### Type Configuration
 
-The script uses a dedicated `scripts/tsconfig.json` that:
+The script uses a dedicated `src/scripts/tsconfig.json` that:
 
 - Maps `@f1-app/api-types` to the built CommonJS types
 - Uses CommonJS module system for compatibility

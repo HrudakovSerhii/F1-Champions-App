@@ -14,7 +14,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Import mock data
-const mockData = require('../src/assets/mock-data.json');
+import mockData from '../assets/mock-data.json';
 
 
 /**

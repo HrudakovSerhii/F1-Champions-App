@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    "outDir": "../dist/scripts",
+    "types": [
+      "node"
+    ],
+    "module": "commonjs",
+    "moduleResolution": "node16",
+    "target": "es2021",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "composite": false,
+    "emitDeclarationOnly": false,
+    "declarationMap": false,
+    "lib": [
+      "es2021"
+    ],
+    "strict": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@f1-app/api-types": [
+        "../../../../libs/shared/types/dist/index.d.ts"
+      ]
+    },
+    "customConditions": []
+  },
+  "include": [
+    "**/*.ts",
+    "../types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ],
+  "ts-node": {
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  }
+}
