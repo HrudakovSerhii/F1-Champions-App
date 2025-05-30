@@ -93,23 +93,11 @@ export class RaceWinnersService {
           update: {
             circuitName: race.Circuit.circuitName,
             url: race.Circuit.url,
-            location: {
-              lat: race.Circuit.Location.lat,
-              long: race.Circuit.Location.long,
-              locality: race.Circuit.Location.locality,
-              country: race.Circuit.Location.country,
-            },
           },
           create: {
             circuitId: race.Circuit.circuitId,
             circuitName: race.Circuit.circuitName,
             url: race.Circuit.url,
-            location: {
-              lat: race.Circuit.Location.lat,
-              long: race.Circuit.Location.long,
-              locality: race.Circuit.Location.locality,
-              country: race.Circuit.Location.country,
-            },
           },
         });
 
@@ -247,12 +235,6 @@ export class RaceWinnersService {
               circuitId: race.circuit.circuitId,
               circuitName: race.circuit.circuitName,
               url: race.circuit.url,
-              Location: {
-                lat: race.circuit.location.lat,
-                long: race.circuit.location.long,
-                locality: race.circuit.location.locality,
-                country: race.circuit.location.country,
-              },
             },
             Winner: {
               number: race.winnerDetails.number,

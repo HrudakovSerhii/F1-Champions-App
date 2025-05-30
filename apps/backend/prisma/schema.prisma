@@ -52,9 +52,6 @@ model Circuit {
   circuitName String
   url         String
 
-  // Location embedded document
-  location CircuitLocation
-
   // Relations
   raceWinners RaceWinner[]
 
@@ -62,13 +59,6 @@ model Circuit {
   updatedAt DateTime @updatedAt
 
   @@map("circuits")
-}
-
-type CircuitLocation {
-  lat      String
-  long     String
-  locality String
-  country  String
 }
 
 model SeasonChampion {

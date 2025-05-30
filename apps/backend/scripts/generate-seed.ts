@@ -27,7 +27,7 @@ import type {
  * nested types like SeasonChampion and RaceWinner, we compose simplified interfaces
  * from the existing API types, optimized for database seeding.
  *
- * Note: Seed interfaces are composed from API types but flattened for database
+ * Note: Seed interfaces are composed of API types but flattened for database
  * seeding with reference IDs instead of nested objects.
  *
  * To run this script with proper type resolution:
@@ -35,13 +35,15 @@ import type {
  */
 
 // Composed interfaces for seed data (based on API types but optimized for seeding)
-// These types compose from the API types but are flattened for database seeding
+// These types are composed of the API types but are flattened for database seeding
 type SeedSeasonChampion = {
   season: string;
   round: string;
   driverRef: string;
   constructorRef: string;
 } & Pick<SeasonChampion, 'position' | 'positionText' | 'points' | 'wins'>;
+
+type SeedCircuit = Omit<Circuit, 'Location'>
 
 type SeedRaceWinner = {
   winnerDetails: {
@@ -62,7 +64,7 @@ type SeedRaceWinner = {
 interface SeedData {
   drivers: Driver[];
   constructors: Constructor[];
-  circuits: Circuit[];
+  circuits: SeedCircuit[];
   seasonChampions: SeedSeasonChampion[];
   raceWinners: SeedRaceWinner[];
   seasons: { year: string }[];
@@ -88,7 +90,7 @@ class SeedGenerator {
     // Extract unique entities
     const driversMap = new Map<string, Driver>();
     const constructorsMap = new Map<string, Constructor>();
-    const circuitsMap = new Map<string, Circuit>();
+    const circuitsMap = new Map<string, SeedCircuit>();
     const seasonChampions: SeedSeasonChampion[] = [];
     const raceWinners: SeedRaceWinner[] = [];
     const seasons: { year: string }[] = [];
@@ -122,12 +124,6 @@ class SeedGenerator {
         circuitId: circuit.circuitId,
         circuitName: circuit.circuitName,
         url: circuit.url,
-        Location: {
-          lat: circuit.Location.lat,
-          long: circuit.Location.long,
-          locality: circuit.Location.locality,
-          country: circuit.Location.country,
-        },
       });
 
       // Add race winner
@@ -324,7 +320,14 @@ async function main() {
 ${seedData.drivers
   .map(
     (driver) => `      prisma.driver.create({
-        data: ${JSON.stringify(driver, null, 10).replace(/^/gm, '        ')},
+        data: {
+          driverId: "${driver.driverId}",
+          givenName: "${driver.givenName}",
+          familyName: "${driver.familyName}",
+          dateOfBirth: new Date("${driver.dateOfBirth}"),
+          nationality: "${driver.nationality}",
+          url: "${driver.url}"
+        },
       })`
   )
   .join(',\n')}
@@ -336,10 +339,12 @@ ${seedData.drivers
 ${seedData.constructors
   .map(
     (constructor) => `      prisma.constructor.create({
-        data: ${JSON.stringify(constructor, null, 10).replace(
-          /^/gm,
-          '        '
-        )},
+        data: {
+          constructorId: "${constructor.constructorId}",
+          name: "${constructor.name}",
+          nationality: "${constructor.nationality}",
+          url: "${constructor.url}"
+        },
       })`
   )
   .join(',\n')}
@@ -351,7 +356,11 @@ ${seedData.constructors
 ${seedData.circuits
   .map(
     (circuit) => `      prisma.circuit.create({
-        data: ${JSON.stringify(circuit, null, 10).replace(/^/gm, '        ')},
+        data: {
+          circuitId: "${circuit.circuitId}",
+          circuitName: "${circuit.circuitName}",
+          url: "${circuit.url}"
+        },
       })`
   )
   .join(',\n')}
@@ -363,7 +372,9 @@ ${seedData.circuits
 ${seedData.seasons
   .map(
     (season) => `      prisma.season.create({
-        data: ${JSON.stringify(season, null, 10).replace(/^/gm, '        ')},
+        data: {
+          year: "${season.year}"
+        },
       })`
   )
   .join(',\n')}
@@ -432,17 +443,18 @@ ${seedData.seasons
   } catch (error) {
     console.error('❌ Error during seeding:', error);
     throw error;
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
 main()
-  .catch((e) => {
+  .then(async () => {
+    console.log('🎉 Seeding completed successfully!');
+  })
+  .catch(async (e) => {
     console.error('💥 Seeding failed:', e);
     process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-    console.log('🔌 Disconnected from database');
   });
 `;
 
