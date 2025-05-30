@@ -17,6 +17,9 @@ export * from './database.types';
 // API types (extensions of @f1-app/api-types)
 export * from './api.types';
 
+// External API types (Ergast API structures)
+export * from './ergast.api.types';
+
 // Seed operation types (based on API types)
 export * from './seed.types';
 
@@ -34,9 +37,6 @@ export type {
   RaceWinnersResponse,
   ErrorResponse,
 } from '@f1-app/api-types';
-
-// Legacy types from existing types.ts (for backward compatibility)
-export type { SeasonsResponse } from './types';
 
 // Common type utilities
 export type Nullable<T> = T | null;

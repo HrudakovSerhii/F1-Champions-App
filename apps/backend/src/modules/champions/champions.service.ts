@@ -3,7 +3,7 @@ import { PrismaService } from '../../shared/database/prisma.service';
 import { CacheService } from '../../shared/cache/cache.service';
 // import { JolpicaF1Service } from '../../shared/external-apis/jolpica-f1.service';
 
-import type { SeasonChampionsResponse } from '../../types/types';
+import type { SeasonChampionsResponse } from '../../types';
 
 @Injectable()
 export class ChampionsService {

@@ -3,10 +3,7 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 
-import type {
-  RaceWinnersResponse,
-  SeasonChampionsResponse,
-} from '../../types/types';
+import type { RaceWinnersResponse, SeasonChampionsResponse } from '../../types';
 
 import { ERGAST_API } from '../../constants/constants';
 
