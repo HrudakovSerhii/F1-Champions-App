@@ -9,6 +9,8 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ChampionsService } from './champions.service';
 import { GetChampionsDto } from './dto/get-champions.dto';
 
+import { DEFAULT_LIMIT, DEFAULT_OFFSET } from '../../constants/constants';
+
 @ApiTags('Champions')
 @Controller('f1/champions')
 export class ChampionsController {
@@ -36,9 +38,15 @@ export class ChampionsController {
   async getChampions(@Query() query: GetChampionsDto) {
     try {
       const { limit, offset, season } = query;
+
+      const takeLimit = limit ? parseInt(limit.toString(), 10) : DEFAULT_LIMIT;
+      const skipOffset = offset
+        ? parseInt(offset.toString(), 10)
+        : DEFAULT_OFFSET;
+
       const result = await this.championsService.getChampions(
-        limit,
-        offset,
+        takeLimit,
+        skipOffset,
         season
       );
 

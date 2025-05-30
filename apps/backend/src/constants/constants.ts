@@ -10,6 +10,9 @@ export const BASE_URL =
 
 export const DEFAULT_PORT = 4000;
 
+export const DEFAULT_LIMIT = 20;
+export const DEFAULT_OFFSET = 0;
+
 export const API_GLOBAL_PREFIX = 'api/v1';
 
 export const ERGAST_API = 'https://api.jolpi.ca/ergast/f1';
