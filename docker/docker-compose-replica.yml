@@ -1,0 +1,170 @@
+version: '3.8'
+
+services:
+  # MongoDB Primary Node
+  mongodb-primary:
+    image: mongo:7.0
+    container_name: f1-mongodb-primary
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: f1_champions_db
+      DOCKER_ENV: "true"
+      REPLICA_SET_NAME: "f1rs"
+      REPLICA_NODES: "3"
+      DATABASE_NAME: "f1_champions_db"
+    volumes:
+      - mongodb_primary_data:/data/db
+      - ./docker/mongodb/init/consolidated-init.js:/docker-entrypoint-initdb.d/01-consolidated-init.js
+    networks:
+      - f1-network
+    command: [ "mongod", "--replSet", "f1rs", "--bind_ip_all" ]
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # MongoDB Secondary Node 1
+  mongodb-secondary1:
+    image: mongo:7.0
+    container_name: f1-mongodb-secondary1
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_DATABASE: f1_champions_db
+    volumes:
+      - mongodb_secondary1_data:/data/db
+    networks:
+      - f1-network
+    command: [ "mongod", "--replSet", "f1rs", "--bind_ip_all" ]
+    depends_on:
+      - mongodb-primary
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # MongoDB Secondary Node 2
+  mongodb-secondary2:
+    image: mongo:7.0
+    container_name: f1-mongodb-secondary2
+    restart: unless-stopped
+    ports:
+      - "27019:27017"
+    environment:
+      MONGO_INITDB_DATABASE: f1_champions_db
+    volumes:
+      - mongodb_secondary2_data:/data/db
+    networks:
+      - f1-network
+    command: [ "mongod", "--replSet", "f1rs", "--bind_ip_all" ]
+    depends_on:
+      - mongodb-primary
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Backend NestJS Service
+  backend:
+    build:
+      context: .
+      dockerfile: ./docker/backend/Dockerfile
+      target: development
+    container_name: f1-backend
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=mongodb://mongodb-primary:27017,mongodb-secondary1:27017,mongodb-secondary2:27017/f1_champions_db?replicaSet=f1rs&readPreference=primary
+      - PORT=4000
+      - USE_SEED_DATA=${USE_SEED_DATA:-true}
+    volumes:
+      # Mount source code for development
+      - ./apps/backend:/app/apps/backend
+      - ./libs:/app/libs
+      - ./shared:/app/shared
+      - ./scripts:/app/scripts
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - ./nx.json:/app/nx.json
+      - ./tsconfig.base.json:/app/tsconfig.base.json
+      - ./tsconfig.json:/app/tsconfig.json
+      # Exclude node_modules to avoid conflicts
+      - /app/node_modules
+      - /app/apps/backend/node_modules
+    depends_on:
+      mongodb-primary:
+        condition: service_healthy
+      mongodb-secondary1:
+        condition: service_healthy
+      mongodb-secondary2:
+        condition: service_healthy
+    networks:
+      - f1-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:4000/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Frontend Web App Service
+  frontend:
+    build:
+      context: .
+      dockerfile: ./docker/frontend/Dockerfile
+      target: development
+    container_name: f1-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:4000
+      - VITE_API_BASE_URL=http://backend:4000
+    volumes:
+      # Mount source code for development
+      - ./apps/frontend/web-app:/app/apps/frontend/web-app
+      - ./libs:/app/libs
+      - ./shared:/app/shared
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - ./nx.json:/app/nx.json
+      - ./tsconfig.base.json:/app/tsconfig.base.json
+      - ./tsconfig.json:/app/tsconfig.json
+      # Exclude node_modules to avoid conflicts
+      - /app/node_modules
+      - /app/apps/frontend/web-app/node_modules
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - f1-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3000" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  mongodb_primary_data:
+    driver: local
+  mongodb_secondary1_data:
+    driver: local
+  mongodb_secondary2_data:
+    driver: local
+
+networks:
+  f1-network:
+    driver: bridge
