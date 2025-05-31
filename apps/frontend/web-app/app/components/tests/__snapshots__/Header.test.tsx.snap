@@ -1,0 +1,87 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Header should render correctly 1`] = `
+<DocumentFragment>
+  <header
+    class="app-header"
+  >
+    <nav
+      class="border-b-2 border-gray-300"
+    >
+      <div
+        class="flex flex-wrap items-center justify-between p-4"
+      >
+        <a
+          class="flex items-center"
+          href="https://www.formula1.com/"
+        >
+          <img
+            alt="F1 Logo"
+            class="h-12 mr-1"
+            src="/assets/f1-icon.png"
+          />
+          <div
+            class="flex flex-col"
+          >
+            <span
+              class="self-center text-2xl font-semibold whitespace-nowrap"
+            >
+              Champions
+            </span>
+            <span
+              class="text-xs"
+            >
+              Season 2005-2023
+            </span>
+          </div>
+        </a>
+        <div
+          class="w-auto"
+        >
+          <ul
+            class="font-medium text-lg flex flex-row space-x-8"
+          >
+            <li>
+              <a
+                aria-current="page"
+                class="hover:text-blue-700"
+                href="/"
+                title="Go to Home page"
+              >
+                Home
+              </a>
+            </li>
+            <li>
+              <a
+                class="hover:text-blue-700"
+                href="/seasons"
+                title="Go to Seasons page to view seasons full information"
+              >
+                Seasons
+              </a>
+            </li>
+            <li>
+              <a
+                class="hover:text-blue-700"
+                href="/about"
+                title="Go to About page to see SPA description and targets"
+              >
+                About
+              </a>
+            </li>
+            <li>
+              <a
+                class="hover:text-blue-700"
+                href="/contact"
+                title="Go to Contact page to check SPA author information and contacts"
+              >
+                Contact
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+</DocumentFragment>
+`;
