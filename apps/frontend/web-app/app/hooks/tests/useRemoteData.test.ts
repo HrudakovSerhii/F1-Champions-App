@@ -1,18 +1,28 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
+import {
+  beforeAll,
+  afterEach,
+  afterAll,
+  beforeEach,
+  describe,
+  it,
+  expect,
+  vi,
+} from 'vitest';
 
 import useRemoteData from '../useRemoteData';
 
 import DataFetcher from '../../utils/dataFetcher/DataFetcher';
 
-jest.mock('../../utils/dataFetcher/DataFetcher');
+vi.mock('../../utils/dataFetcher/DataFetcher');
 
 describe('useRemoteData hook', () => {
   const baseUrl = '/base-url';
   const testUrl = '/test';
-  let fetchSpy: jest.SpyInstance;
+  let fetchSpy: any;
 
   beforeAll(() => {
-    fetchSpy = jest.spyOn(DataFetcher.prototype, 'fetch');
+    fetchSpy = vi.spyOn(DataFetcher.prototype, 'fetch');
   });
 
   afterEach(() => {
@@ -24,7 +34,7 @@ describe('useRemoteData hook', () => {
   });
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it('should set hook states correctly after successful data fetch', async () => {

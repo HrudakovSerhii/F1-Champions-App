@@ -1,28 +1,32 @@
-export interface MRData {
-  limit: string;
-  offset: string;
-  series: string;
-  total: string;
-  url: string;
-  xmlns: string;
-}
+// Import shared types from the API types library
+import type {
+  Driver,
+  Constructor,
+  SeasonChampion,
+  SeasonChampionsResponse,
+  RaceWinner,
+  RaceWinnersResponse,
+  Circuit,
+  ErrorResponse,
+  components
+} from '@f1-app/api-types';
 
-export interface Driver {
-  url: string;
-  driverId: string;
-  givenName: string;
-  familyName: string;
-  dateOfBirth: string;
-  nationality: string;
-}
+// Re-export the imported types
+export type {
+  Driver,
+  Constructor,
+  SeasonChampion,
+  SeasonChampionsResponse,
+  RaceWinner,
+  RaceWinnersResponse,
+  Circuit,
+  ErrorResponse
+};
 
-export interface Constructor {
-  constructorId: string;
-  url: string;
-  name: string;
-  nationality: string;
-}
+// Create type alias for MRData from the shared library
+export type MRData = components['schemas']['MRData'];
 
+// Keep local types that don't exist in shared library
 export interface DriverStanding {
   position: string;
   positionText: string;

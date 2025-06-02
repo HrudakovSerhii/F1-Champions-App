@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 
 import { ABOUT, CONTACT, HOME, SEASONS, SEASONS_RANGE } from '../constants';

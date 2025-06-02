@@ -51,6 +51,9 @@
   "references": [
     {
       "path": "../../../libs/frontend/styles/tsconfig.lib.json"
+    },
+    {
+      "path": "../../../libs/shared/types"
     }
   ]
 }

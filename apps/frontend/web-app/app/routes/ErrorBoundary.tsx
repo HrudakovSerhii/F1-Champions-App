@@ -29,14 +29,14 @@ class ErrorBoundary extends React.Component<
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error, info: any) {
+  override componentDidCatch(error: Error, info: any) {
     if (isDevelopment || isTest) {
       console.info(info);
       console.error(error);
     }
   }
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       // You can render any custom fallback UI
       return this.props.fallback;
