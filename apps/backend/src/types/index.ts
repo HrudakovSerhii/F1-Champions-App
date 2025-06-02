@@ -14,29 +14,14 @@
 // Database entity types (built on API types)
 export * from './database.types';
 
-// API types (extensions of @f1-app/api-types)
-export * from './api.types';
-
 // External API types (Ergast API structures)
-export * from './ergast.api.types';
+export * from './jolpica.api.types';
 
 // Seed operation types (based on API types)
 export * from './seed.types';
 
 // Service layer types
 export * from './service.types';
-
-// Re-export base API types for convenience
-export type {
-  Driver as ApiDriver,
-  Constructor as ApiConstructor,
-  Circuit as ApiCircuit,
-  SeasonChampion as ApiSeasonChampion,
-  RaceWinner as ApiRaceWinner,
-  SeasonChampionsResponse,
-  RaceWinnersResponse,
-  ErrorResponse,
-} from '@f1-app/api-types';
 
 // Common type utilities
 export type Nullable<T> = T | null;

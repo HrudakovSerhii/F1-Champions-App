@@ -10,7 +10,7 @@ import type {
   Driver as ApiDriver,
   Constructor as ApiConstructor,
   Circuit as ApiCircuit,
-  SeasonChampion as ApiSeasonChampion,
+  SeasonWinner as ApiSeasonWinner,
   RaceWinner as ApiRaceWinner,
 } from '@f1-app/api-types';
 
@@ -30,24 +30,32 @@ export type DBDriver = Override<
   ApiDriver,
   {
     dateOfBirth: Date; // Converted from string to Date for database
+    constructorId: string; // Added current constructor relationship
   }
 > &
   BaseEntity;
 
 export type DBConstructor = ApiConstructor & BaseEntity;
 
-// Circuit without Location (removed as per schema update)
-export type DBCircuit = Omit<ApiCircuit, 'Location'> & BaseEntity;
+// Circuit with name field (aligned with OpenAPI)
+export type DBCircuit = Override<
+  ApiCircuit,
+  {
+    circuitId: string; // Keep for data integrity
+    url: string; // Keep for data integrity
+  }
+> & BaseEntity;
 
-// Season Champion for database (flattened from API structure)
-export type DBSeasonChampion = Omit<
-  ApiSeasonChampion,
-  'Driver' | 'Constructors'
-> & {
-  season: string; // Added for database
-  round: string; // Added for database
-  driverId: string; // Foreign key reference (replaces nested Driver object)
-  constructorId: string; // Foreign key reference (replaces nested Constructors array)
+// Season Winner for database (renamed from SeasonChampion)
+export type DBSeasonWinner = Omit<ApiSeasonWinner, 'winner'> & {
+  season: string; // Season year
+  position: string; // Championship position
+  positionText: string; // Championship position text
+  points: string; // Points earned
+  wins: string; // Wins in season (matches API string format)
+  round: string; // Final round of season
+  driverId: string; // Foreign key reference (replaces nested winner.driver object)
+  constructorId: string; // Foreign key reference (replaces nested winner.constructor object)
 } & BaseEntity;
 
 export interface DBSeason extends BaseEntity {
@@ -55,16 +63,20 @@ export interface DBSeason extends BaseEntity {
 }
 
 // Embedded types for RaceWinner (based on API Winner structure). Time prop. flattened from API structure
-export type DBWinnerDetails = Omit<
-  ApiRaceWinner['Winner'],
-  'Constructor' | 'Driver' | 'Time'
-> & {
-  raceTime: ApiRaceWinner['Winner']['Time'];
+export type DBWinnerDetails = {
+  number: string;
+  position: string;
+  points: string;
+  laps: string;
+  time: {
+    millis: string;
+    time: string;
+  };
 };
 
 // Race Winner for database (flattened from API structure)
 export type DBRaceWinner = Override<
-  Omit<ApiRaceWinner, 'Circuit' | 'Winner'>,
+  Omit<ApiRaceWinner, 'circuit' | 'winner'>,
   {
     date: Date; // Converted from string to Date for database
   }
@@ -92,7 +104,7 @@ export type ConstructorCreateInput = Omit<
 >;
 export type ConstructorUpdateInput = Partial<ConstructorCreateInput>;
 
-// Circuit entity types (without location)
+// Circuit entity types
 export type CircuitCreateInput = Omit<
   DBCircuit,
   'id' | 'createdAt' | 'updatedAt'
@@ -108,18 +120,18 @@ export type SeasonCreateInput = Omit<
 export type SeasonUpdateInput = Partial<SeasonCreateInput>;
 export type SeasonPublic = Omit<DBSeason, 'createdAt' | 'updatedAt'>;
 
-// Season Champion entity types
-export type SeasonChampionCreateInput = Omit<
-  DBSeasonChampion,
+// Season Winner entity types (renamed from SeasonChampion)
+export type SeasonWinnerCreateInput = Omit<
+  DBSeasonWinner,
   'id' | 'createdAt' | 'updatedAt'
 >;
-export type SeasonChampionUpdateInput = Partial<SeasonChampionCreateInput>;
-export type SeasonChampionPublic = Omit<
-  DBSeasonChampion,
+export type SeasonWinnerUpdateInput = Partial<SeasonWinnerCreateInput>;
+export type SeasonWinnerPublic = Omit<
+  DBSeasonWinner,
   'createdAt' | 'updatedAt'
 >;
 
-// Race Time embedded type
+// Race Winner entity types
 export type RaceWinnerCreateInput = Omit<
   DBRaceWinner,
   'id' | 'createdAt' | 'updatedAt'
@@ -127,8 +139,8 @@ export type RaceWinnerCreateInput = Omit<
 export type RaceWinnerPublic = Omit<DBRaceWinner, 'createdAt' | 'updatedAt'>;
 
 // Populated entity types (with relationships)
-export interface SeasonChampionWithRelations
-  extends Omit<DBSeasonChampion, 'driverId' | 'constructorId'> {
+export interface SeasonWinnerWithRelations
+  extends Omit<DBSeasonWinner, 'driverId' | 'constructorId'> {
   driver: DriverPublic;
   constructor: ConstructorPublic;
 }
@@ -137,6 +149,10 @@ export interface RaceWinnerWithRelations
   extends Omit<DBRaceWinner, 'circuitId' | 'driverId' | 'constructorId'> {
   circuit: CircuitPublic;
   driver: DriverPublic;
+  constructor: ConstructorPublic;
+}
+
+export interface DriverWithRelations extends Omit<DBDriver, 'constructorId'> {
   constructor: ConstructorPublic;
 }
 

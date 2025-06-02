@@ -1,16 +1,11 @@
 /**
  * Seed Types
  *
- * Types for database seeding operations based on @f1-app/api-types.
- * These types are optimized for data import/export and seed generation.
+ * Types for database seeding operations optimized for data import/export and seed generation.
+ * These types include original API identifiers for mapping purposes during seed operations.
  */
 
 import type {
-  SeasonChampion as ApiSeasonChampion,
-  RaceWinner as ApiRaceWinner,
-} from '@f1-app/api-types';
-
-import {
   DriverCreateInput,
   ConstructorCreateInput,
   CircuitCreateInput,
@@ -18,39 +13,38 @@ import {
   DBWinnerDetails,
 } from './database.types';
 
-// Seed data types based on API types but flattened for database seeding
-export type SeedDriver = DriverCreateInput;
-export type SeedConstructor = ConstructorCreateInput;
+import type { SeasonWinner, RaceWinner } from '@f1-app/api-types';
 
-// Circuit without Location (removed as per our schema update)
+export type SeedDriver = DriverCreateInput;
+
+export interface SeedConstructor extends ConstructorCreateInput {
+  constructorId: string;
+}
+
 export type SeedCircuit = CircuitCreateInput;
 export type SeedSeason = SeasonCreateInput;
 
-// Seed types with reference IDs instead of foreign keys (based on API structure)
-export type SeedSeasonChampion = Omit<
-  ApiSeasonChampion,
-  'Constructors' | 'Driver'
-> & {
+export interface SeedSeasonWinner extends Omit<SeasonWinner, 'winner'> {
+  driverRef: string;
+  constructorRef: string;
+}
+
+export interface SeedRaceWinner extends Omit<RaceWinner, 'constructor'> {
   season: string;
   round: string;
-  driverRef: string; // Reference to driverId (from API structure)
-  constructorRef: string; // Reference to constructorId (from API structure)
-};
+  raceName: string;
+  date: string;
+  winnerDetails: DBWinnerDetails;
+  driverRef: string;
+  constructorRef: string;
+  circuitRef: string;
+}
 
-// Seed types with reference IDs instead of foreign keys (based on API structure)
-export type SeedRaceWinner = Omit<ApiRaceWinner, 'Circuit' | 'Winner'> & {
-  winnerDetails: DBWinnerDetails; // Same as API structure
-  driverRef: string; // Reference to driverId (from API structure)
-  constructorRef: string; // Reference to constructorId (from API structure)
-  circuitRef: string; // Reference to circuitId (from API structure)
-};
-
-// Complete seed data structure (in case we want to build tests for seed operations)
 export interface SeedData {
   drivers: SeedDriver[];
   constructors: SeedConstructor[];
   circuits: SeedCircuit[];
   seasons: SeedSeason[];
-  seasonChampions: SeedSeasonChampion[];
+  seasonWinners: SeedSeasonWinner[];
   raceWinners: SeedRaceWinner[];
 }
