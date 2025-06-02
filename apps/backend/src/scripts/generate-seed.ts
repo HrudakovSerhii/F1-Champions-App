@@ -1,246 +1,66 @@
 #!/usr/bin/env ts-node
 
-import {
-  SeedCircuit,
-  SeedDriver,
-  SeedRaceWinner,
-  SeedSeason,
-  SeedSeasonChampion,
-  SeedData,
-  SeedConstructor,
-} from '../types';
+import { SeedData } from '../types/seed.types';
+import { TransformationService } from '../utils/api.utils';
 
 const fs = require('fs');
 const path = require('path');
-
-// Import mock data
 import mockData from '../assets/mock-data.json';
-
-
-/**
- * Seed data interfaces using the official API types
- *
- * ✅ SUCCESS: We now use the actual API types from @f1-app/api-types for consistency
- * and proper type safety. The types are resolved using a dedicated tsconfig.json
- * in the scripts directory that properly maps the @f1-app/api-types module.
- *
- * The Driver, Constructor, and Circuit types come directly from the shared types
- * library, ensuring perfect alignment with the API specification. For complex
- * nested types like SeasonChampion and RaceWinner, we compose simplified interfaces
- * from the existing API types, optimized for database seeding.
- *
- * Note: Seed interfaces are composed of API types but flattened for database
- * seeding with reference IDs instead of nested objects.
- *
- * To run this script with proper type resolution:
- * npx ts-node --project scripts/tsconfig.json scripts/generate-seed.ts [format] [output]
- */
-
 
 /**
  * CLI script to generate seed files for MongoDB
  * Usage: npm run seed:generate [format] [output-path]
- * Formats: json, mongodb, prisma
+ * Formats: mongodb, prisma
  */
 class SeedGenerator {
-  /**
-   * Extracts seed data from mock JSON
-   */
-  private extractSeedData(): SeedData {
-    console.log('Extracting seed data from mock JSON...');
+  private transformationService: TransformationService;
 
-    const raceWinnersData = mockData.raceWinnersResponse.MRData.RaceTable.Races;
-    const championsData =
-      mockData.seasonChampionsResponse.MRData.StandingsTable.StandingsLists;
-    const seasonsData = mockData.seasonsResponse.MRData.SeasonTable.Seasons;
-
-    // Extract unique entities
-    const driversMap = new Map<string, SeedDriver>();
-    const constructorsMap = new Map<string, SeedConstructor>();
-    const circuitsMap = new Map<string, SeedCircuit>();
-    const seasonChampions: SeedSeasonChampion[] = [];
-    const raceWinners: SeedRaceWinner[] = [];
-    const seasons: SeedSeason[] = [];
-
-    // Process race winners data
-    raceWinnersData.forEach((race: any) => {
-      const driver = race.Winner.Driver;
-      const constructor = race.Winner.Constructor;
-      const circuit = race.Circuit;
-
-      // Extract unique drivers
-      driversMap.set(driver.driverId, {
-        driverId: driver.driverId,
-        givenName: driver.givenName,
-        familyName: driver.familyName,
-        dateOfBirth: driver.dateOfBirth,
-        nationality: driver.nationality,
-        url: driver.url,
-      });
-
-      // Extract unique constructors
-      constructorsMap.set(constructor.constructorId, {
-        constructorId: constructor.constructorId,
-        name: constructor.name,
-        nationality: constructor.nationality,
-        url: constructor.url,
-      });
-
-      // Extract unique circuits
-      circuitsMap.set(circuit.circuitId, {
-        circuitId: circuit.circuitId,
-        circuitName: circuit.circuitName,
-        url: circuit.url,
-      });
-
-      // Add race winner
-      raceWinners.push({
-        season: race.season,
-        round: race.round,
-        raceName: race.raceName,
-        date: race.date,
-        time: race.time,
-        url: race.url,
-        winnerDetails: {
-          number: race.Winner.number,
-          position: race.Winner.position,
-          points: race.Winner.points,
-          laps: race.Winner.laps,
-          raceTime: {
-            millis: race.Winner.Time.millis,
-            time: race.Winner.Time.time,
-          },
-        },
-        driverRef: driver.driverId,
-        constructorRef: constructor.constructorId,
-        circuitRef: circuit.circuitId,
-      });
-    });
-
-    // Process champions data
-    championsData.forEach((standingsList: any) => {
-      standingsList.DriverStandings.forEach((standing: any) => {
-        const driver = standing.Driver;
-        const constructor = standing.Constructors[0];
-
-        // Add driver if not exists
-        driversMap.set(driver.driverId, {
-          driverId: driver.driverId,
-          givenName: driver.givenName,
-          familyName: driver.familyName,
-          dateOfBirth: driver.dateOfBirth,
-          nationality: driver.nationality,
-          url: driver.url,
-        });
-
-        // Add constructor if not exists
-        constructorsMap.set(constructor.constructorId, {
-          constructorId: constructor.constructorId,
-          name: constructor.name,
-          nationality: constructor.nationality,
-          url: constructor.url,
-        });
-
-        // Add season champion
-        seasonChampions.push({
-          season: standingsList.season,
-          position: standing.position,
-          positionText: standing.positionText,
-          points: standing.points,
-          wins: standing.wins,
-          round: standingsList.round,
-          driverRef: driver.driverId,
-          constructorRef: constructor.constructorId,
-        });
-      });
-    });
-
-    // Process seasons data
-    seasonsData.forEach((season: any) => {
-      seasons.push({
-        year: season.season,
-      });
-    });
-
-    return {
-      drivers: Array.from(driversMap.values()),
-      constructors: Array.from(constructorsMap.values()),
-      circuits: Array.from(circuitsMap.values()),
-      seasonChampions,
-      raceWinners,
-      seasons,
-    };
+  constructor() {
+    this.transformationService = new TransformationService();
   }
 
   /**
-   * Generates JSON seed file
+   * Extract and transform seed data from mock data
    */
-  private async generateJsonSeed(
-    seedData: SeedData,
-    outputPath: string
-  ): Promise<void> {
-    const jsonData = {
-      ...seedData,
-      metadata: {
-        generatedAt: new Date().toISOString(),
-        totalRecords: {
-          drivers: seedData.drivers.length,
-          constructors: seedData.constructors.length,
-          circuits: seedData.circuits.length,
-          seasonChampions: seedData.seasonChampions.length,
-          raceWinners: seedData.raceWinners.length,
-          seasons: seedData.seasons.length,
-        },
-      },
-    };
+  extractSeedData(): SeedData {
+    console.log('Extracting seed data using TransformationService...');
 
-    await this.ensureDirectoryExists(outputPath);
-    await fs.promises.writeFile(outputPath, JSON.stringify(jsonData, null, 2));
-    console.log(`✅ JSON seed file generated: ${outputPath}`);
+    const standingsData = mockData.seasonChampionsResponse;
+    const raceData = mockData.raceWinnersResponse;
+
+    const seedData = this.transformationService.transformJolpicaToSeedData(
+      standingsData,
+      raceData
+    );
+
+    console.log('✅ Seed data extracted successfully');
+    console.log(
+      `📊 Extracted: ${seedData.drivers.length} drivers, ${seedData.constructors.length} constructors, ${seedData.circuits.length} circuits, ${seedData.seasons.length} seasons, ${seedData.seasonWinners.length} season winners, ${seedData.raceWinners.length} race winners`
+    );
+
+    return seedData;
   }
 
-  /**
-   * Generates MongoDB shell script
-   */
   private async generateMongoSeed(
     seedData: SeedData,
     outputPath: string
   ): Promise<void> {
     const mongoScript = `// MongoDB Seed Script
 // Generated on ${new Date().toISOString()}
-// Run this script in MongoDB shell: mongosh your-database < ${path.basename(
-      outputPath
-    )}
 
-// Switch to your database
 use f1_champions_db;
 
-// Clear existing data (optional - uncomment if needed)
-// db.drivers.deleteMany({});
-// db.constructors.deleteMany({});
-// db.circuits.deleteMany({});
-// db.season_champions.deleteMany({});
-// db.race_winners.deleteMany({});
-// db.seasons.deleteMany({});
-
 // Insert drivers
-print("Inserting drivers...");
 db.drivers.insertMany(${JSON.stringify(seedData.drivers, null, 2)});
 
 // Insert constructors
-print("Inserting constructors...");
 db.constructors.insertMany(${JSON.stringify(seedData.constructors, null, 2)});
 
 // Insert circuits
-print("Inserting circuits...");
 db.circuits.insertMany(${JSON.stringify(seedData.circuits, null, 2)});
 
 // Insert seasons
-print("Inserting seasons...");
 db.seasons.insertMany(${JSON.stringify(seedData.seasons, null, 2)});
-
-// For season champions and race winners, you'll need to resolve references manually
-// or use the Prisma seed script which handles this automatically
 
 print("✅ Basic seed data inserted successfully!");
 print("📊 Total records:");
@@ -248,7 +68,7 @@ print("- Drivers: ${seedData.drivers.length}");
 print("- Constructors: ${seedData.constructors.length}");
 print("- Circuits: ${seedData.circuits.length}");
 print("- Seasons: ${seedData.seasons.length}");
-print("⚠️  Note: Season champions and race winners need reference resolution");
+print("⚠️  Note: Season winners and race winners need reference resolution");
 print("   Use the Prisma seed script for complete data insertion");
 `;
 
@@ -257,9 +77,6 @@ print("   Use the Prisma seed script for complete data insertion");
     console.log(`✅ MongoDB seed script generated: ${outputPath}`);
   }
 
-  /**
-   * Generates Prisma seed script
-   */
   private async generatePrismaSeed(
     seedData: SeedData,
     outputPath: string
@@ -272,40 +89,19 @@ async function main() {
   console.log('🚀 Starting database seeding...');
 
   try {
-    // Clear existing data (optional - comment out if you want to keep existing data)
     console.log('🧹 Clearing existing data...');
     await prisma.raceWinner.deleteMany({});
-    await prisma.seasonChampion.deleteMany({});
+    await prisma.seasonWinner.deleteMany({});
     await prisma.circuit.deleteMany({});
-    await prisma.constructor.deleteMany({});
     await prisma.driver.deleteMany({});
+    await prisma.constructor.deleteMany({});
     await prisma.season.deleteMany({});
 
-    // Insert drivers
-    console.log('👨‍🏁 Seeding drivers...');
-    const drivers = await Promise.all([
-${seedData.drivers
-  .map(
-    (driver) => `      prisma.driver.create({
-        data: {
-          driverId: "${driver.driverId}",
-          givenName: "${driver.givenName}",
-          familyName: "${driver.familyName}",
-          dateOfBirth: new Date("${driver.dateOfBirth}"),
-          nationality: "${driver.nationality}",
-          url: "${driver.url}"
-        },
-      })`
-  )
-  .join(',\n')}
-    ]);
-
-    // Insert constructors
     console.log('🏎️  Seeding constructors...');
     const constructors = await Promise.all([
 ${seedData.constructors
   .map(
-    (constructor) => `      prisma.constructor.create({
+    (constructor, index) => `      prisma.constructor.create({
         data: {
           constructorId: "${constructor.constructorId}",
           name: "${constructor.name}",
@@ -317,7 +113,33 @@ ${seedData.constructors
   .join(',\n')}
     ]);
 
-    // Insert circuits
+    const constructorIdToDbIdMap = new Map();
+${seedData.constructors
+  .map(
+    (constructor, index) =>
+      `    constructorIdToDbIdMap.set("${constructor.constructorId}", constructors[${index}].id);`
+  )
+  .join('\n')}
+
+    console.log('👨‍🏁 Seeding drivers...');
+    const drivers = await Promise.all([
+${seedData.drivers
+  .map(
+    (driver) => `      prisma.driver.create({
+        data: {
+          driverId: "${driver.driverId}",
+          givenName: "${driver.givenName}",
+          familyName: "${driver.familyName}",
+          dateOfBirth: new Date("${driver.dateOfBirth}"),
+          nationality: "${driver.nationality}",
+          url: "${driver.url}",
+          constructorId: constructorIdToDbIdMap.get("${driver.constructorId}")!
+        },
+      })`
+  )
+  .join(',\n')}
+    ]);
+
     console.log('🏁 Seeding circuits...');
     const circuits = await Promise.all([
 ${seedData.circuits
@@ -325,7 +147,7 @@ ${seedData.circuits
     (circuit) => `      prisma.circuit.create({
         data: {
           circuitId: "${circuit.circuitId}",
-          circuitName: "${circuit.circuitName}",
+          name: "${circuit.name}",
           url: "${circuit.url}"
         },
       })`
@@ -333,7 +155,6 @@ ${seedData.circuits
   .join(',\n')}
     ]);
 
-    // Insert seasons
     console.log('📅 Seeding seasons...');
     await Promise.all([
 ${seedData.seasons
@@ -347,36 +168,32 @@ ${seedData.seasons
   .join(',\n')}
     ]);
 
-    // Create lookup maps for references
     const driverMap = new Map(drivers.map((d: any) => [d.driverId, d.id]));
-    const constructorMap = new Map(constructors.map((c: any) => [c.constructorId, c.id]));
     const circuitMap = new Map(circuits.map((c: any) => [c.circuitId, c.id]));
 
-    // Insert season champions
-    console.log('🏆 Seeding season champions...');
-    const seasonChampionsData = ${JSON.stringify(
-      seedData.seasonChampions,
+    console.log('🏆 Seeding season winners...');
+    const seasonWinnersData = ${JSON.stringify(
+      seedData.seasonWinners,
       null,
       2
     )};
     await Promise.all(
-      seasonChampionsData.map((champion: any) =>
-        prisma.seasonChampion.create({
+      seasonWinnersData.map((winner: any) =>
+        prisma.seasonWinner.create({
           data: {
-            season: champion.season,
-            position: champion.position,
-            positionText: champion.positionText,
-            points: champion.points,
-            wins: champion.wins,
-            round: champion.round,
-            driverId: driverMap.get(champion.driverRef)!,
-            constructorId: constructorMap.get(champion.constructorRef)!,
+            season: winner.season,
+            position: winner.position,
+            positionText: winner.positionText,
+            points: winner.points,
+            wins: winner.wins,
+            round: winner.round,
+            driverId: driverMap.get(winner.driverRef)!,
+            constructorId: constructorIdToDbIdMap.get(winner.constructorRef)!,
           },
         })
       )
     );
 
-    // Insert race winners
     console.log('🥇 Seeding race winners...');
     const raceWinnersData = ${JSON.stringify(seedData.raceWinners, null, 2)};
     await Promise.all(
@@ -392,7 +209,7 @@ ${seedData.seasons
             winnerDetails: race.winnerDetails,
             circuitId: circuitMap.get(race.circuitRef)!,
             driverId: driverMap.get(race.driverRef)!,
-            constructorId: constructorMap.get(race.constructorRef)!,
+            constructorId: constructorIdToDbIdMap.get(race.constructorRef)!,
           },
         })
       )
@@ -404,7 +221,7 @@ ${seedData.seasons
     console.log('- Constructors:', constructors.length);
     console.log('- Circuits:', circuits.length);
     console.log('- Seasons:', ${seedData.seasons.length});
-    console.log('- Season Champions:', ${seedData.seasonChampions.length});
+    console.log('- Season Winners:', ${seedData.seasonWinners.length});
     console.log('- Race Winners:', ${seedData.raceWinners.length});
 
   } catch (error) {
@@ -430,25 +247,17 @@ main()
     console.log(`✅ Prisma seed script generated: ${outputPath}`);
   }
 
-  /**
-   * Ensures directory exists
-   */
   private async ensureDirectoryExists(filePath: string): Promise<void> {
     const dir = path.dirname(filePath);
     await fs.promises.mkdir(dir, { recursive: true });
   }
 
-  /**
-   * Main execution method
-   */
   async run(): Promise<void> {
     const args = process.argv.slice(2);
-    const format = (args[0] || 'json') as 'json' | 'mongodb' | 'prisma';
+    const format = (args[0] || 'prisma') as 'mongodb' | 'prisma';
     const outputPath =
       args[1] ||
-      `./prisma/seed-${format}.${
-        format === 'mongodb' ? 'js' : format === 'prisma' ? 'ts' : 'json'
-      }`;
+      `./prisma/seed-${format}.${format === 'mongodb' ? 'js' : 'ts'}`;
 
     console.log(`🎯 Generating ${format} seed file...`);
     console.log(`📁 Output path: ${outputPath}`);
@@ -457,9 +266,6 @@ main()
       const seedData = this.extractSeedData();
 
       switch (format) {
-        case 'json':
-          await this.generateJsonSeed(seedData, outputPath);
-          break;
         case 'mongodb':
           await this.generateMongoSeed(seedData, outputPath);
           break;
@@ -468,7 +274,7 @@ main()
           break;
         default:
           throw new Error(
-            `Unsupported format: ${format}. Use: json, mongodb, or prisma`
+            `Unsupported format: ${format}. Use: mongodb or prisma`
           );
       }
 
@@ -482,7 +288,7 @@ main()
           seedData.constructors.length +
           seedData.circuits.length +
           seedData.seasons.length +
-          seedData.seasonChampions.length +
+          seedData.seasonWinners.length +
           seedData.raceWinners.length
         } total`
       );
@@ -491,10 +297,20 @@ main()
       process.exit(1);
     }
   }
+
+  /**
+   * Public method to generate Prisma seed file at specified path
+   */
+  async generatePrismaSeedFile(outputPath: string): Promise<void> {
+    const seedData = this.extractSeedData();
+    await this.generatePrismaSeed(seedData, outputPath);
+  }
 }
 
-// Run the script if called directly
 if (require.main === module) {
   const generator = new SeedGenerator();
   generator.run();
 }
+
+// Export for use by other scripts
+export { SeedGenerator };

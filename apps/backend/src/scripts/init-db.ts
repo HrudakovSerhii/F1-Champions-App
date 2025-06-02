@@ -45,8 +45,8 @@ class DatabaseInitializer {
     console.log('🔌 Testing database connection...');
 
     try {
-      // Simple query to test connection
-      await this.prisma.$queryRaw`SELECT 1`;
+      // Test connection with MongoDB-compatible query
+      await this.prisma.$runCommandRaw({ ping: 1 });
       console.log('✅ Database connection successful');
     } catch (error) {
       console.error('❌ Database connection failed:', error);
@@ -112,28 +112,28 @@ class DatabaseInitializer {
             unique: true,
           },
           {
-            key: { 'location.country': 1 },
-            name: 'idx_circuit_country',
+            key: { name: 1 },
+            name: 'idx_circuit_name',
           },
         ],
       });
 
-      // Index for season champions
+      // Index for season winners
       await this.prisma.$runCommandRaw({
-        createIndexes: 'season_champions',
+        createIndexes: 'season_winners',
         indexes: [
           {
             key: { season: 1, driverId: 1 },
-            name: 'idx_champion_season_driver',
+            name: 'idx_season_winner_season_driver',
             unique: true,
           },
           {
             key: { season: 1 },
-            name: 'idx_champion_season',
+            name: 'idx_season_winner_season',
           },
           {
             key: { driverId: 1 },
-            name: 'idx_champion_driver',
+            name: 'idx_season_winner_driver,
           },
         ],
       });
@@ -195,17 +195,17 @@ class DatabaseInitializer {
     try {
       // Check if collections exist by trying to count documents
       const collections = [
-        { name: 'drivers', model: this.prisma.driver },
-        { name: 'constructors', model: this.prisma.constructor },
-        { name: 'circuits', model: this.prisma.circuit },
-        { name: 'seasons', model: this.prisma.season },
-        { name: 'season_champions', model: this.prisma.seasonChampion },
-        { name: 'race_winners', model: this.prisma.raceWinner },
+        { name: 'drivers', count: () => this.prisma.driver.count({}) },
+        { name: 'constructors', count: () => this.prisma.constructor.count({}) },
+        { name: 'circuits', count: () => this.prisma.circuit.count({}) },
+        { name: 'seasons', count: () => this.prisma.season.count({}) },
+        { name: 'season_winners', count: () => this.prisma.seasonWinner.count({}) },
+        { name: 'race_winners', count: () => this.prisma.raceWinner.count({}) }
       ];
 
       for (const collection of collections) {
         try {
-          const count = await collection.model.count();
+          const count = await collection.count();
           console.log(`✅ Collection '${collection.name}': ${count} documents`);
         } catch (error) {
           console.log(
@@ -229,17 +229,13 @@ class DatabaseInitializer {
     console.log('========================');
 
     try {
-      const stats = await this.prisma.$runCommandRaw({ dbStats: 1 });
-      console.log(`Database: ${stats.db}`);
-      console.log(`Collections: ${stats.collections}`);
-      console.log(`Data Size: ${(stats.dataSize / 1024 / 1024).toFixed(2)} MB`);
-      console.log(
-        `Storage Size: ${(stats.storageSize / 1024 / 1024).toFixed(2)} MB`
-      );
-      console.log(`Indexes: ${stats.indexes}`);
-      console.log(
-        `Index Size: ${(stats.indexSize / 1024 / 1024).toFixed(2)} MB`
-      );
+      const stats = await this.prisma.$runCommandRaw({ dbStats: 1 }) as any;
+      console.log(`Database: ${stats.db || 'Unknown'}`);
+      console.log(`Collections: ${stats.collections || 0}`);
+      console.log(`Data Size: ${stats.dataSize ? (stats.dataSize / 1024 / 1024).toFixed(2) : '0.00'} MB`);
+      console.log(`Storage Size: ${stats.storageSize ? (stats.storageSize / 1024 / 1024).toFixed(2) : '0.00'} MB`);
+      console.log(`Indexes: ${stats.indexes || 0}`);
+      console.log(`Index Size: ${stats.indexSize ? (stats.indexSize / 1024 / 1024).toFixed(2) : '0.00'} MB`);
     } catch (error) {
       console.log('ℹ️  Could not retrieve database statistics');
     }

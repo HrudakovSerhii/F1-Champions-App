@@ -4,7 +4,7 @@
   "include": [],
   "references": [
     {
-      "path": "../../libs/shared/types"
+      "path": "../../libs/shared/types/src"
     },
     {
       "path": "./tsconfig.app.json"

@@ -44,7 +44,8 @@ export type DBCircuit = Override<
     circuitId: string; // Keep for data integrity
     url: string; // Keep for data integrity
   }
-> & BaseEntity;
+> &
+  BaseEntity;
 
 // Season Winner for database (renamed from SeasonChampion)
 export type DBSeasonWinner = Omit<ApiSeasonWinner, 'winner'> & {
