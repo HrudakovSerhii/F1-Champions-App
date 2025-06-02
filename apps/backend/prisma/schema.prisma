@@ -19,9 +19,13 @@ model Driver {
   nationality String
   url         String
 
+  // Current constructor relationship (simplified from many-to-many)
+  constructorId String      @db.ObjectId
+  constructor   Constructor @relation(fields: [constructorId], references: [id])
+
   // Relations
-  seasonChampions SeasonChampion[]
-  raceWinners     RaceWinner[]
+  seasonWinners SeasonWinner[]
+  raceWinners   RaceWinner[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -30,15 +34,16 @@ model Driver {
 }
 
 model Constructor {
-  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
   constructorId String @unique
-  name          String
-  nationality   String
-  url           String
+  name        String
+  nationality String
+  url         String
 
   // Relations
-  seasonChampions SeasonChampion[]
-  raceWinners     RaceWinner[]
+  drivers       Driver[]
+  seasonWinners SeasonWinner[]
+  raceWinners   RaceWinner[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -47,10 +52,10 @@ model Constructor {
 }
 
 model Circuit {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  circuitId   String @unique
-  circuitName String
-  url         String
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  circuitId String @unique
+  name      String // Renamed from circuitName to align with OpenAPI
+  url       String
 
   // Relations
   raceWinners RaceWinner[]
@@ -61,13 +66,13 @@ model Circuit {
   @@map("circuits")
 }
 
-model SeasonChampion {
+model SeasonWinner {
   id           String @id @default(auto()) @map("_id") @db.ObjectId
   season       String
   position     String
   positionText String
   points       String
-  wins         String
+  wins String // Wins per season (stored as string to match API)
   round        String
 
   // Relations
@@ -81,7 +86,7 @@ model SeasonChampion {
   updatedAt DateTime @updatedAt
 
   @@unique([season, driverId])
-  @@map("season_champions")
+  @@map("season_winners") // Renamed from season_champions
 }
 
 model RaceWinner {
