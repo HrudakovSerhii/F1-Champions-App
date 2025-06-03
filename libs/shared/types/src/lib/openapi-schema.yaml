@@ -6,11 +6,11 @@ info:
   contact:
     name: F1 Champions App
 servers:
-  - url: /api
+  - url: /api/v1
     description: Main API server
 
 paths:
-  /seasons:
+  /v1/seasons:
     get:
       summary: Get seasons with winners
       description: Retrieve all F1 seasons with their respective championship winners
@@ -23,15 +23,41 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SeasonsApiResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/SeasonWinner'
+              examples:
+                success:
+                  value:
+                    - season: "2023"
+                      winner:
+                        wins: 15
+                        driver:
+                          familyName: "Verstappen"
+                          givenName: "Max"
+                          url: "https://example.com/drivers/max_verstappen"
+                          nationality: "Dutch"
+                          driverId: "max_verstappen"
+                        constructor:
+                          name: "Red Bull"
+                          url: "https://example.com/constructors/red_bull"
+                          nationality: "Austrian"
         '500':
           description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                error:
+                  value:
+                    success: false
+                    errorCode: "INTERNAL_ERROR"
+                    error:
+                      message: "Internal server error"
+                      code: "INTERNAL_ERROR"
 
-  /seasons/{season}/race-winners:
+  /v1/seasons/{seasonYear}/race-winners:
     get:
       summary: Get season race winners
       description: Retrieve all race winners for a specific F1 season
@@ -39,13 +65,15 @@ paths:
       tags:
         - Seasons
       parameters:
-        - name: season
+        - name: seasonYear
           in: path
           required: true
           description: The F1 season year (e.g., 2023)
           schema:
             type: string
             pattern: '^[0-9]{4}$'
+            minimum: 1950
+            maximum: 2050
             example: "2023"
       responses:
         '200':
@@ -53,21 +81,63 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SeasonRaceWinnersApiResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/SeasonRaceWinner'
+              examples:
+                success:
+                  value:
+                    - date: "2023-03-05"
+                      season: "2023"
+                      round: 1
+                      raceName: "Bahrain Grand Prix"
+                      circuit:
+                        name: "Bahrain International Circuit"
+                        country: "Bahrain"
+                        locality: "Sakhir"
+                      raceWinner:
+                        time: "1:31:12.258"
+                        laps: 57
+                        driver:
+                          familyName: "Verstappen"
+                          givenName: "Max"
+                          url: "https://example.com/drivers/max_verstappen"
+                          nationality: "Dutch"
+                          driverId: "max_verstappen"
+                        constructor:
+                          name: "Red Bull"
+                          url: "https://example.com/constructors/red_bull"
+                          nationality: "Austrian"
         '404':
           description: Season not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                error:
+                  value:
+                    success: false
+                    errorCode: "SEASON_NOT_FOUND"
+                    error:
+                      message: "Season not found"
+                      code: "SEASON_NOT_FOUND"
         '500':
           description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                error:
+                  value:
+                    success: false
+                    errorCode: "INTERNAL_ERROR"
+                    error:
+                      message: "Internal server error"
+                      code: "INTERNAL_ERROR"
 
-  /health:
+  /v1/health:
     get:
       summary: Get API health status
       description: Check the health status of the backend API server
@@ -81,80 +151,46 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HealthResponse'
+              examples:
+                healthy:
+                  value:
+                    success: true
+                    status: "healthy"
+                    timestamp: "2023-12-01T10:30:00Z"
+                    version: "1.0.0"
+                    uptime: 86400
+                    dependencies:
+                      database: "healthy"
+                      cache: "healthy"
         '503':
           description: API is unhealthy
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/HealthResponse'
+              examples:
+                unhealthy:
+                  value:
+                    success: false
+                    status: "unhealthy"
+                    timestamp: "2023-12-01T10:30:00Z"
+                    version: "1.0.0"
+                    uptime: 86400
+                    dependencies:
+                      database: "unhealthy"
+                      cache: "healthy"
 
 components:
   schemas:
-    SeasonWinner:
-      type: object
-      required:
-        - season
-        - winner
-      properties:
-        season:
-          type: string
-          description: The F1 season year
-          example: "2023"
-        winner:
-          $ref: '#/components/schemas/Driver'
-
-    SeasonRaceWinner:
-      type: object
-      required:
-        - url
-        - date
-        - season
-        - round
-        - raceName
-        - circuit
-        - winner
-      properties:
-        url:
-          type: string
-          format: uri
-          description: URL to the race information
-        date:
-          type: string
-          format: date
-          description: Race date
-          example: "2023-03-05"
-        season:
-          type: string
-          description: The F1 season year
-          example: "2023"
-        round:
-          type: integer
-          description: Round number in the season
-          example: 1
-        raceName:
-          type: string
-          description: Name of the race
-          example: "Bahrain Grand Prix"
-        circuit:
-          $ref: '#/components/schemas/Circuit'
-        winner:
-          $ref: '#/components/schemas/RaceWinner'
-
     Driver:
       type: object
       required:
-        - wins
         - familyName
         - givenName
         - url
         - nationality
         - driverId
-        - constructor
       properties:
-        wins:
-          type: integer
-          description: Number of wins in the season
-          example: 15
         familyName:
           type: string
           description: Driver's family name
@@ -175,51 +211,6 @@ components:
           type: string
           description: Unique driver identifier
           example: "max_verstappen"
-        constructor:
-          $ref: '#/components/schemas/Constructor'
-
-    RaceWinner:
-      type: object
-      required:
-        - nationality
-        - familyName
-        - givenName
-        - url
-        - driverId
-        - time
-        - laps
-        - constructor
-      properties:
-        nationality:
-          type: string
-          description: Driver's nationality
-          example: "Dutch"
-        familyName:
-          type: string
-          description: Driver's family name
-          example: "Verstappen"
-        givenName:
-          type: string
-          description: Driver's given name
-          example: "Max"
-        url:
-          type: string
-          format: uri
-          description: URL to driver information
-        driverId:
-          type: string
-          description: Unique driver identifier
-          example: "max_verstappen"
-        time:
-          type: string
-          description: Race completion time
-          example: "1:31:12.258"
-        laps:
-          type: integer
-          description: Number of laps completed
-          example: 57
-        constructor:
-          $ref: '#/components/schemas/Constructor'
 
     Constructor:
       type: object
@@ -261,83 +252,99 @@ components:
           description: City or locality of the circuit
           example: "Sakhir"
 
-    Meta:
+    Winner:
       type: object
       required:
-        - total
-        - cached
-        - lastUpdated
+        - wins
+        - driver
+        - constructor
       properties:
-        total:
+        wins:
           type: integer
-          description: Total number of records
-          example: 20
-        cached:
-          type: boolean
-          description: Whether the response was served from cache
-          example: true
-        lastUpdated:
+          description: Number of wins in the season
+          example: 15
+        driver:
+          $ref: '#/components/schemas/Driver'
+        constructor:
+          $ref: '#/components/schemas/Constructor'
+
+    RaceWinner:
+      type: object
+      required:
+        - time
+        - laps
+        - driver
+        - constructor
+      properties:
+        time:
           type: string
-          format: date-time
-          description: Timestamp of when the data was last updated
-          example: "2023-12-01T10:30:00Z"
+          description: Race completion time
+          example: "1:31:12.258"
+        laps:
+          type: integer
+          description: Number of laps completed
+          example: 57
+        driver:
+          $ref: '#/components/schemas/Driver'
+        constructor:
+          $ref: '#/components/schemas/Constructor'
 
-    SeasonMeta:
-      allOf:
-        - $ref: '#/components/schemas/Meta'
-        - type: object
-          required:
-            - season
-          properties:
-            season:
-              type: string
-              description: The F1 season year
-              example: "2023"
-
-    SeasonsApiResponse:
+    SeasonWinner:
       type: object
       required:
-        - success
-        - data
-        - meta
+        - season
+        - winner
       properties:
-        success:
-          type: boolean
-          description: Indicates if the request was successful
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/SeasonWinner'
-          description: Array of season winners
-        meta:
-          $ref: '#/components/schemas/Meta'
+        season:
+          type: string
+          description: The F1 season year
+          example: "2023"
+        winner:
+          $ref: '#/components/schemas/Winner'
 
-    SeasonRaceWinnersApiResponse:
+    SeasonRaceWinner:
       type: object
       required:
-        - success
-        - data
-        - meta
+        - date
+        - season
+        - round
+        - raceName
+        - circuit
+        - raceWinner
       properties:
-        success:
-          type: boolean
-          description: Indicates if the request was successful
-          example: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/SeasonRaceWinner'
-          description: Array of race winners for the season
-        meta:
-          $ref: '#/components/schemas/SeasonMeta'
+        date:
+          type: string
+          format: date
+          description: Race date
+          example: "2023-03-05"
+        season:
+          type: string
+          description: The F1 season year
+          example: "2023"
+        round:
+          type: integer
+          description: Round number in the season
+          example: 1
+        raceName:
+          type: string
+          description: Name of the race
+          example: "Bahrain Grand Prix"
+        circuit:
+          $ref: '#/components/schemas/Circuit'
+        raceWinner:
+          $ref: '#/components/schemas/RaceWinner'
 
     HealthResponse:
       type: object
       required:
+        - success
         - status
         - timestamp
       properties:
+        success:
+          type: boolean
+          description: Indicates if the request was successful
+          example: true
         status:
           type: string
           enum: [ healthy, unhealthy ]
@@ -373,12 +380,17 @@ components:
       type: object
       required:
         - success
+        - errorCode
         - error
       properties:
         success:
           type: boolean
           description: Always false for error responses
           example: false
+        errorCode:
+          type: string
+          description: Error code for programmatic handling
+          example: "SEASON_NOT_FOUND"
         error:
           type: object
           required:
