@@ -13,6 +13,7 @@ import type {
   SeasonWinner as ApiSeasonWinner,
   RaceWinner as ApiRaceWinner,
   SeasonRaceWinner as ApiSeasonRaceWinner,
+  Winner as ApiWinner,
 } from '@f1-app/api-types';
 
 type Override<T, U> = Omit<T, keyof U> & U;
@@ -32,6 +33,11 @@ export type DBCircuit = ApiCircuit & BaseEntity;
 export interface DBSeason extends BaseEntity {
   year: string;
 }
+
+export type DBWinner = Omit<ApiWinner, 'driver' | 'constructor'> & {
+  driverId: string; // ApiSeasonWinner.winner.driver.driverId
+  constructorId: string; // ApiSeasonWinner.winner.constructor.name OR DB id to constructor entity
+} & BaseEntity;
 
 export type DBSeasonWinner = Omit<ApiSeasonWinner, 'winner'> & {
   driverId: string; // ApiSeasonWinner.winner.driver.driverId
@@ -69,6 +75,10 @@ export type CircuitCreateInput = Omit<
 >;
 export type SeasonCreateInput = Omit<
   DBSeason,
+  'id' | 'createdAt' | 'updatedAt'
+>;
+export type WinnerCreateInput = Omit<
+  DBWinner,
   'id' | 'createdAt' | 'updatedAt'
 >;
 export type SeasonWinnerCreateInput = Omit<

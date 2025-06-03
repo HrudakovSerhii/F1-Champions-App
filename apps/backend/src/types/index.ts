@@ -20,7 +20,7 @@ export * from './jolpi.api.types';
 // Service layer types
 export * from './service.types';
 
-export * from './transformer.types';
+export * from './utils.types';
 
 // Common type utilities
 export type Nullable<T> = T | null;
