@@ -21,7 +21,8 @@ export type HealthPath = paths['/v1/health']['get'];
 
 // Operation types
 export type GetSeasonsWithWinnersOperation = paths['/v1/seasons']['get'];
-export type GetSeasonRaceWinnersOperation = paths['/v1/seasons/{seasonYear}/race-winners']['get'];
+export type GetSeasonRaceWinnersOperation =
+  paths['/v1/seasons/{seasonYear}/race-winners']['get'];
 export type GetHealthOperation = paths['/v1/health']['get'];
 
 // Request/Response types for operations
