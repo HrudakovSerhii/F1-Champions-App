@@ -14,14 +14,13 @@
 // Database entity types (built on API types)
 export * from './database.types';
 
-// External API types (Ergast API structures)
-export * from './jolpica.api.types';
-
-// Seed operation types (based on API types)
-export * from './seed.types';
+// External API types (Jolpi API structures)
+export * from './jolpi.api.types';
 
 // Service layer types
 export * from './service.types';
+
+export * from './transformer.types';
 
 // Common type utilities
 export type Nullable<T> = T | null;
