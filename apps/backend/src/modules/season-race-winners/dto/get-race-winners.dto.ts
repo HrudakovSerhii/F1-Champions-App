@@ -2,7 +2,7 @@ import { IsString, Matches } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
 
-export class GetRaceWinnersDto extends PaginationDto {
+export class GetSeasonRaceWinnersDto extends PaginationDto {
   @ApiProperty({
     description: 'The season year',
     pattern: '^[0-9]{4}$',

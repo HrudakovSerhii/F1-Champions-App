@@ -7,14 +7,16 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { RaceWinnersService } from './race-winners.service';
+import { SeasonRaceWinnersService } from './season-race-winners.service';
 
 import { PaginationDto } from '../../common/dto/pagination.dto';
 
 @ApiTags('Race Winners')
 @Controller('f1/seasons')
-export class RaceWinnersController {
-  constructor(private readonly raceWinnersService: RaceWinnersService) {}
+export class SeasonRaceWinnersController {
+  constructor(
+    private readonly seasonRaceWinnersService: SeasonRaceWinnersService
+  ) {}
 
   @Get(':season/race-winners')
   @ApiOperation({
@@ -44,7 +46,7 @@ export class RaceWinnersController {
     status: 500,
     description: 'Internal server error',
   })
-  async getRaceWinners(
+  async getSeasonRaceWinners(
     @Param('season') season: string,
     @Query() query: PaginationDto
   ) {
@@ -63,7 +65,7 @@ export class RaceWinnersController {
       }
 
       const { limit, offset } = query;
-      const result = await this.raceWinnersService.getRaceWinners(
+      const result = await this.seasonRaceWinnersService.getSeasonRaceWinners(
         season,
         limit,
         offset
