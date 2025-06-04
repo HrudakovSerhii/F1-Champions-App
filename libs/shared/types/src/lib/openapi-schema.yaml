@@ -57,11 +57,11 @@ paths:
                       message: "Internal server error"
                       code: "INTERNAL_ERROR"
 
-  /v1/seasons/{seasonYear}/race-winners:
+  /v1/seasons/{seasonYear}/winners:
     get:
-      summary: Get season race winners
+      summary: Get season winners
       description: Retrieve all race winners for a specific F1 season
-      operationId: getSeasonRaceWinners
+      operationId: getSeasonWinners
       tags:
         - Seasons
       parameters:

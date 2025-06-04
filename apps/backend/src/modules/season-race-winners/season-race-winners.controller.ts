@@ -18,9 +18,9 @@ export class SeasonRaceWinnersController {
     private readonly seasonRaceWinnersService: SeasonRaceWinnersService
   ) {}
 
-  @Get(':season/race-winners')
+  @Get(':season/winners')
   @ApiOperation({
-    summary: 'Get race winners for a season',
+    summary: 'Get winners for a season',
     description:
       'Returns a list of race winners for all races in a specific Formula 1 season',
   })
