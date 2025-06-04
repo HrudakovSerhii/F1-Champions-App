@@ -10,8 +10,6 @@ export type SeasonRaceWinner = components['schemas']['SeasonRaceWinner'];
 export type Driver = components['schemas']['Driver'];
 export type Constructor = components['schemas']['Constructor'];
 export type Circuit = components['schemas']['Circuit'];
-export type Winner = components['schemas']['Winner'];
-export type RaceWinner = components['schemas']['RaceWinner'];
 
 // Path types for type-safe API calls
 export type SeasonsPath = paths['/v1/seasons']['get'];

@@ -252,13 +252,18 @@ components:
           description: City or locality of the circuit
           example: "Sakhir"
 
-    Winner:
+    SeasonWinner:
       type: object
       required:
+        - season
         - wins
         - driver
         - constructor
       properties:
+        season:
+          type: string
+          description: The F1 season year
+          example: "2023"
         wins:
           type: integer
           description: Number of wins in the season
@@ -268,40 +273,6 @@ components:
         constructor:
           $ref: '#/components/schemas/Constructor'
 
-    RaceWinner:
-      type: object
-      required:
-        - time
-        - laps
-        - driver
-        - constructor
-      properties:
-        time:
-          type: string
-          description: Race completion time
-          example: "1:31:12.258"
-        laps:
-          type: integer
-          description: Number of laps completed
-          example: 57
-        driver:
-          $ref: '#/components/schemas/Driver'
-        constructor:
-          $ref: '#/components/schemas/Constructor'
-
-    SeasonWinner:
-      type: object
-      required:
-        - season
-        - winner
-      properties:
-        season:
-          type: string
-          description: The F1 season year
-          example: "2023"
-        winner:
-          $ref: '#/components/schemas/Winner'
-
     SeasonRaceWinner:
       type: object
       required:
@@ -310,7 +281,9 @@ components:
         - round
         - raceName
         - circuit
-        - raceWinner
+        - laps
+        - driver
+        - constructor
       properties:
         date:
           type: string
@@ -331,8 +304,18 @@ components:
           example: "Bahrain Grand Prix"
         circuit:
           $ref: '#/components/schemas/Circuit'
-        raceWinner:
-          $ref: '#/components/schemas/RaceWinner'
+        time:
+          type: string
+          description: Race completion time
+          example: "1:31:12.258"
+        laps:
+          type: integer
+          description: Number of laps completed
+          example: 57
+        driver:
+          $ref: '#/components/schemas/Driver'
+        constructor:
+          $ref: '#/components/schemas/Constructor'
 
     HealthResponse:
       type: object

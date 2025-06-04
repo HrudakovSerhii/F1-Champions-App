@@ -165,6 +165,7 @@ log_info "📤 Updating library exports..."
 cat > "libs/shared/types/src/index.ts" << 'EOF'
 // Export all generated API types
 export * from './lib/generated-types.js';
+export * from './lib/types.js';
 EOF
 
 log_success "Library exports updated"
