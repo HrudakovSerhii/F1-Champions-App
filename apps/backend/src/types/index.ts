@@ -3,12 +3,6 @@
  *
  * Centralized export of all backend type definitions.
  * All types are built upon the base types from @f1-app/api-types.
- *
- * Usage examples:
- * import { Driver, DriverCreateInput } from '../types';
- * import { SeasonChampionsResponse, ApiResponse } from '../types';
- * import { SeedData, SeedSeasonChampion } from '../types';
- * import { ServiceResult, CacheOptions } from '../types';
  */
 
 // Database entity types (built on API types)
@@ -20,7 +14,8 @@ export * from './jolpi.api.types';
 // Service layer types
 export * from './service.types';
 
-export * from './utils.types';
+// Data extractor types
+export * from './extractor.types';
 
 // Common type utilities
 export type Nullable<T> = T | null;

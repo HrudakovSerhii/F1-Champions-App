@@ -26,7 +26,7 @@ export type GetHealthOperation = paths['/v1/health']['get'];
 // Request/Response types for operations
 export type GetSeasonsResponse =
   GetSeasonsWithWinnersOperation['responses']['200']['content']['application/json'];
-export type GetRaceWinnersResponse =
+export type GetSeasonRaceWinnersResponse =
   GetSeasonRaceWinnersOperation['responses']['200']['content']['application/json'];
 export type GetHealthResponseSuccess =
   GetHealthOperation['responses']['200']['content']['application/json'];

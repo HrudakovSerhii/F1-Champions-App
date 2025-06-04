@@ -11,12 +11,8 @@ import type {
   Constructor as ApiConstructor,
   Circuit as ApiCircuit,
   SeasonWinner as ApiSeasonWinner,
-  RaceWinner as ApiRaceWinner,
   SeasonRaceWinner as ApiSeasonRaceWinner,
-  Winner as ApiWinner,
 } from '@f1-app/api-types';
-
-type Override<T, U> = Omit<T, keyof U> & U;
 
 export interface BaseEntity {
   id: string;
@@ -34,31 +30,18 @@ export interface DBSeason extends BaseEntity {
   year: string;
 }
 
-export type DBWinner = Omit<ApiWinner, 'driver' | 'constructor'> & {
-  driverId: string; // ApiSeasonWinner.winner.driver.driverId
-  constructorId: string; // ApiSeasonWinner.winner.constructor.name OR DB id to constructor entity
+export type DBSeasonWinner = Omit<ApiSeasonWinner, 'driver' | 'constructor'> & {
+  driverId: string; // ApiSeasonWinner.driver.driverId
+  constructorId: string; // ApiSeasonWinner.constructor.name OR DB id to constructor entity
 } & BaseEntity;
-
-export type DBSeasonWinner = Omit<ApiSeasonWinner, 'winner'> & {
-  driverId: string; // ApiSeasonWinner.winner.driver.driverId
-  constructorId: string; // ApiSeasonWinner.winner.constructor.name OR DB id to constructor entity
-} & BaseEntity;
-
-export type DBRaceWinner = Override<
-  Omit<ApiRaceWinner, 'constructor' | 'driver'>,
-  {
-    driverId: string; // ApiRaceWinner.driver.driverId OR DB id to driver entity
-    constructorId: string; // ApiRaceWinner.constructor.name OR DB id to constructor entity
-  }
-> &
-  BaseEntity;
 
 export type DBSeasonRaceWinner = Omit<
   ApiSeasonRaceWinner,
-  'raceWinner' | 'circuit'
+  'circuit' | 'constructor' | 'driver'
 > & {
   circuitId: string; // ApiSeasonRaceWinner.circuit.name OR DB id to circuit entity
-  raceWinnerId: string; // ApiSeasonRaceWinner.raceWinner.id <- relation to DB id
+  constructorId: string; // ApiSeasonRaceWinner.constructor.name OR DB id to constructor entity
+  driverId: string; // ApiSeasonRaceWinner.driver.driverId OR id to driver entity
 } & BaseEntity;
 
 export type DriverCreateInput = Omit<
@@ -77,16 +60,8 @@ export type SeasonCreateInput = Omit<
   DBSeason,
   'id' | 'createdAt' | 'updatedAt'
 >;
-export type WinnerCreateInput = Omit<
-  DBWinner,
-  'id' | 'createdAt' | 'updatedAt'
->;
 export type SeasonWinnerCreateInput = Omit<
   DBSeasonWinner,
-  'id' | 'createdAt' | 'updatedAt'
->;
-export type RaceWinnerCreateInput = Omit<
-  DBRaceWinner,
   'id' | 'createdAt' | 'updatedAt'
 >;
 export type SeasonRaceWinnerCreateInput = Omit<
@@ -100,7 +75,6 @@ export interface DatabaseData {
   circuits: CircuitCreateInput[];
   seasons: SeasonCreateInput[];
   seasonWinners: SeasonWinnerCreateInput[];
-  raceWinners: RaceWinnerCreateInput[];
   seasonRaceWinners: SeasonRaceWinnerCreateInput[];
 }
 
@@ -112,10 +86,6 @@ export interface DBSeasonWinnerWithRelations extends DBSeasonWinner {
 
 export interface DBSeasonRaceWinnerWithRelations extends DBSeasonRaceWinner {
   circuit: DBCircuit;
-  raceWinner: DBRaceWinnerWithRelations;
-}
-
-export interface DBRaceWinnerWithRelations extends DBRaceWinner {
-  driver: DBDriver;
   constructor: DBConstructor;
+  driver: DBDriver;
 }

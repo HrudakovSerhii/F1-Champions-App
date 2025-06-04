@@ -58,7 +58,7 @@ export interface Time {
 
 // Types for jolpi-driver-standing-mock-data.json
 
-export interface JolpiRaceTableMockData {
+export interface JolpiRaceTableMRData {
   MRData: MRDataRaceTable;
 }
 
@@ -76,7 +76,7 @@ export interface RaceTable {
   Races: Race[];
 }
 
-export interface JolpiDriverStandingMockData {
+export interface JolpiDriverStandingMRData {
   MRData: MRDataDriverStanding;
 }
 
