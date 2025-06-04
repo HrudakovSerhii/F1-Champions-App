@@ -8,11 +8,10 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { SeasonRaceWinnersService } from './season-race-winners.service';
+import { GetSeasonRaceWinnersDto } from './dto/get-season-race-winners.dto';
 
-import { PaginationDto } from '../../common/dto/pagination.dto';
-
-@ApiTags('Race Winners')
-@Controller('f1/seasons')
+@ApiTags('SeasonRaceWinners')
+@Controller('f1/season-winners')
 export class SeasonRaceWinnersController {
   constructor(
     private readonly seasonRaceWinnersService: SeasonRaceWinnersService
@@ -48,7 +47,7 @@ export class SeasonRaceWinnersController {
   })
   async getSeasonRaceWinners(
     @Param('season') season: string,
-    @Query() query: PaginationDto
+    @Query() query: GetSeasonRaceWinnersDto
   ) {
     try {
       // Validate season format

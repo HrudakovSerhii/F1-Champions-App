@@ -2,7 +2,7 @@ import { IsOptional, IsString, Matches } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
 
-export class GetChampionsDto extends PaginationDto {
+export class GetSeasonsWinnersDto extends PaginationDto {
   @ApiPropertyOptional({
     description:
       'Specific season year to filter by (optional - if omitted, returns all champions)',

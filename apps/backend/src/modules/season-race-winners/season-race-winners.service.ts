@@ -87,11 +87,6 @@ export class SeasonRaceWinnersService {
         return seasonRaceWinners;
       }
 
-      // If no data in database, fallback to external API
-      this.logger.log(
-        `No cached data found, fetching from external API for season ${season}`
-      );
-
       throw new Error(`No data available for season ${season}`);
     } catch (error) {
       this.logger.error(

@@ -6,22 +6,21 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { ChampionsService } from './champions.service';
-import { GetChampionsDto } from './dto/get-champions.dto';
+import { SeasonsWinnersService } from './seasons-winners.service';
+import { GetSeasonsWinnersDto } from './dto/get-seasons-winners.dto';
 
 import { DEFAULT_LIMIT, DEFAULT_OFFSET } from '../../constants/constants';
 
-@ApiTags('Champions')
-@Controller('f1/champions')
-export class ChampionsController {
-  constructor(private readonly championsService: ChampionsService) {}
+@ApiTags('SeasonsWinners')
+@Controller('f1/winners')
+export class SeasonsWinnersController {
+  constructor(private readonly championsService: SeasonsWinnersService) {}
 
   @Get()
   @ApiOperation({
-    summary: 'Get all season champions',
+    summary: 'Get all seasons champions',
     description: `Returns a list of Formula 1 season champions (drivers who won the championship each year).
-    Provides all championship winners from 1950 onwards in a single call.
-    Based on Ergast API endpoint: /driverStandings/1`,
+    Provides all championship winners from 1950 onwards in a single call.`,
   })
   @ApiResponse({
     status: 200,
@@ -35,19 +34,18 @@ export class ChampionsController {
     status: 500,
     description: 'Internal server error',
   })
-  async getChampions(@Query() query: GetChampionsDto) {
+  async getSeasonsWinners(@Query() query: GetSeasonsWinnersDto) {
     try {
-      const { limit, offset, season } = query;
+      const { limit, offset } = query;
 
       const takeLimit = limit ? parseInt(limit.toString(), 10) : DEFAULT_LIMIT;
       const skipOffset = offset
         ? parseInt(offset.toString(), 10)
         : DEFAULT_OFFSET;
 
-      const result = await this.championsService.getChampions(
+      const result = await this.championsService.getSeasonsWinners(
         takeLimit,
-        skipOffset,
-        season
+        skipOffset
       );
 
       if (!result) {

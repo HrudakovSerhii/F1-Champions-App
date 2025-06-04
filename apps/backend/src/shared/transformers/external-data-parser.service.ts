@@ -106,21 +106,6 @@ export class ExternalDataParserService implements DataExtractor {
     });
   }
 
-  extractAPIDataFromJolpiDriversStandings(
-    jolpicaData: JolpiRaceTableMRData
-  ): SeasonWinner[] {
-    return jolpicaData.MRData.RaceTable.Races.map((race) => {
-      const raceWinnerResult = race.Results[0];
-
-      return {
-        driver: raceWinnerResult.Driver,
-        constructor: raceWinnerResult.Constructor,
-        season: race.season,
-        wins: 0,
-      };
-    });
-  }
-
   extractDBDataFromJolpiDriversStandings(
     jolpicaData: JolpiDriverStandingMRData
   ): DatabaseData {

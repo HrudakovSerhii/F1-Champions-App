@@ -6,12 +6,11 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 
 // Shared modules
 import { PrismaModule } from '../shared/database/prisma.module';
-import { CacheModule } from '../shared/cache/cache.module';
 import { JolpicaF1Module } from '../shared/external-apis/jolpica-f1.module';
 
 // Feature modules
-import { ChampionsModule } from '../modules/champions/champions.module';
-import { RaceWinnersModule } from '../modules/race-winners/race-winners.module';
+import { SeasonsWinnersModule } from '../modules/seasons-winners/seasons-winners.module';
+import { SeasonRaceWinnersModule } from '../modules/season-race-winners/season-race-winners.module';
 import { HealthModule } from '../modules/health/health.module';
 
 // API Info components
@@ -39,12 +38,11 @@ import { THROTTLER_LENGTH, THROTTLER_LIMIT } from '../constants/constants';
 
     // Shared modules
     PrismaModule,
-    CacheModule,
     JolpicaF1Module,
 
     // Feature modules
-    ChampionsModule,
-    RaceWinnersModule,
+    SeasonsWinnersModule,
+    SeasonRaceWinnersModule,
     HealthModule,
   ],
   controllers: [AppController],
