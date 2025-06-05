@@ -87,7 +87,7 @@ export class DatabaseService {
       });
 
       const existingSeasons = [
-        ...new Set(existingRaceWinners.map((winner) => winner.season),
+        ...new Set(existingRaceWinners.map((winner) => winner.season)),
       ];
       const missingSeasons = yearsRange.filter(
         (year) => !existingSeasons.includes(year)
@@ -133,14 +133,14 @@ export class DatabaseService {
             season_driverId_constructorId: {
               season: seasonWinner.season,
               driverId: seasonWinner.driverId,
-              constructorId: seasonWinner.constructorId
-            }
+              constructorId: seasonWinner.constructorId,
+            },
           },
           update: {
             wins: seasonWinner.wins,
-            updatedAt: new Date()
+            updatedAt: new Date(),
           },
-          create: seasonWinner
+          create: seasonWinner,
         })
       )
     );
@@ -173,16 +173,16 @@ export class DatabaseService {
               round: seasonRaceWinner.round,
               season: seasonRaceWinner.season,
               driverId: seasonRaceWinner.driverId,
-              constructorId: seasonRaceWinner.constructorId
-            }
+              constructorId: seasonRaceWinner.constructorId,
+            },
           },
           update: {
             points: seasonRaceWinner.points,
             round: seasonRaceWinner.round,
             wins: seasonRaceWinner.wins,
-            updatedAt: new Date()
+            updatedAt: new Date(),
           },
-          create: seasonRaceWinner
+          create: seasonRaceWinner,
         })
       )
     );
@@ -209,9 +209,9 @@ export class DatabaseService {
             familyName: driver.familyName,
             nationality: driver.nationality,
             url: driver.url,
-            updatedAt: new Date()
+            updatedAt: new Date(),
           },
-          create: driver
+          create: driver,
         })
       )
     );
@@ -238,9 +238,9 @@ export class DatabaseService {
           update: {
             nationality: constructor.nationality,
             url: constructor.url,
-            updatedAt: new Date()
+            updatedAt: new Date(),
           },
-          create: constructor
+          create: constructor,
         })
       )
     );
