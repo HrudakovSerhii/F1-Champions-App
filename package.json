@@ -21,14 +21,19 @@
     "db:pull": "cd apps/backend && npx prisma db pull",
     "db:studio": "cd apps/backend && npx prisma studio",
     "db:seed:generate": "cd apps/backend && npx ts-node --project src/scripts/tsconfig.json src/scripts/generate-seed.ts",
-    "db:seed:generate:prisma": "cd apps/backend && npx ts-node --project src/scripts/tsconfig.json src/scripts/generate-seed.ts prisma",
-    "db:seed:generate:mongodb": "cd apps/backend && npx ts-node --project src/scripts/tsconfig.json src/scripts/generate-seed.ts mongodb",
     "db:seed:run": "cd apps/backend && npx prisma db seed",
     "db:reset": "cd apps/backend && npx prisma db push --force-reset",
     "db:init": "npm run db:generate && npm run db:push",
     "db:setup": "npm run db:init && npm run db:seed:generate:prisma && npm run db:seed:run",
     "db:dev:setup": "npm run db:setup",
-    "db:test:setup": "npm run db:reset && npm run db:seed:generate:prisma && npm run db:seed:run"
+    "db:test:setup": "npm run db:reset && npm run db:seed:generate:prisma && npm run db:seed:run",
+    "db:safety-check": "node scripts/db-safety-check.js",
+    "db:purge": "node scripts/db-purge.js",
+    "db:mongo:start": "node scripts/mongodb-manager.js start",
+    "db:mongo:stop": "node scripts/mongodb-manager.js stop",
+    "db:mongo:status": "node scripts/mongodb-manager.js status",
+    "db:mongo:setup": "node scripts/mongodb-setup.js",
+    "db:local:setup": "npm run db:mongo:start && sleep 3 && npm run db:mongo:setup"
   },
   "private": true,
   "dependencies": {

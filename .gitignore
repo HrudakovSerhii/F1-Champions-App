@@ -116,7 +116,11 @@ vitest.config.*.timestamp*
 
 /dependency-graph.html
 static
+mongodb
+mongodb/*
 
 #env
 /apps/backend/.env
+/apps/backend/.env.local
+/.env.local
 
