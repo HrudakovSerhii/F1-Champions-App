@@ -1,23 +1,34 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import SeasonWinnersTableRow from './SeasonWinnersTableRow';
 
 import type { SeasonRaceWinner } from '@f1-app/api-types';
+import usePreviousSeasonWinner from '../../../hooks/usePreviousSeasonWinner';
 
 type RacesWinnersTableProps = {
+  season: string;
   tableData: SeasonRaceWinner[] | undefined;
 };
 
-export const tableHeaderData = ['Driver', 'Points', 'Rounds', 'Wins', 'Constructor'];
+export const tableHeaderData = [
+  'Driver',
+  'Points',
+  'Rounds',
+  'Wins',
+  'Constructor',
+];
 
-/**
- * NOTE: Table structure can be dynamically assembled from data fields using config object.
- * This will make table more generic but more complex to support
- **/
 const SeasonWinnersTable: React.FC<RacesWinnersTableProps> = ({
+  season,
   tableData,
 }) => {
-  tableData?.sort((a, b) => a.points + b.points);
+  const { data: prevSeasonWinnerData } = usePreviousSeasonWinner(season);
+
+  const sortedTableData = useMemo(() => {
+    if (!tableData) return [];
+
+    return [...tableData].sort((a, b) => b.points - a.points);
+  }, [tableData]);
 
   return (
     <table className="w-full text-sm text-left">
@@ -31,9 +42,14 @@ const SeasonWinnersTable: React.FC<RacesWinnersTableProps> = ({
         </tr>
       </thead>
       <tbody>
-        {tableData?.map((tableRowData) => (
+        {sortedTableData?.map((tableRowData, index) => (
           <SeasonWinnersTableRow
-            key={tableRowData.season + tableRowData.round}
+            key={tableRowData.season + tableRowData.driver.driverId}
+            wasWinner={
+              prevSeasonWinnerData?.driver.driverId ===
+              tableRowData.driver.driverId
+            }
+            isWinner={index === 0}
             {...tableRowData}
           />
         ))}

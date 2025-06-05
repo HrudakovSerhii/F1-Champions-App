@@ -1,31 +1,27 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-import usePreviousSeasonWinner from '../../../hooks/usePreviousSeasonWinner';
-
 import type { SeasonRaceWinner } from '@f1-app/api-types';
 
-const SeasonWinnersTableRow: React.FC<SeasonRaceWinner> = ({
-  season,
+type SeasonWinnersTableRowProps = {
+  wasWinner: boolean;
+  isWinner: boolean;
+} & SeasonRaceWinner;
+
+const SeasonWinnersTableRow: React.FC<SeasonWinnersTableRowProps> = ({
   driver,
   points,
   round,
   wins,
   constructor,
+  wasWinner,
+  isWinner,
 }) => {
-  const { data: prevSeasonWinnerData } = usePreviousSeasonWinner(season);
+  const { url: driverUrl, familyName, givenName, nationality } = driver;
 
-  const {
-    url: driverUrl,
-    familyName,
-    givenName,
-    nationality,
-    driverId,
-  } = driver;
-
-  const isPrevSeasonWinner = driverId === prevSeasonWinnerData?.driver.driverId;
-
-  const winnerClassNae = isPrevSeasonWinner
+  const winnerClassName = isWinner
+    ? 'bg-lime-50 hver:bg-lime-100'
+    : wasWinner
     ? 'bg-amber-50 hover:bg-amber-100'
     : 'hover:bg-gray-50';
 

@@ -11,7 +11,6 @@ const SeasonWinnerCard: React.FC<SeasonWinner> = ({
   driver,
   constructor,
 }) => {
-  console.log(season, driver);
   const { familyName, givenName, url } = driver;
   const { name, url: constructorUrl } = constructor;
 
@@ -40,7 +39,7 @@ const SeasonWinnerCard: React.FC<SeasonWinner> = ({
       </a>
 
       <Link
-        to={SEASON.replace(':seasonId', season)}
+        to={SEASON.replace(':season', season)}
         className="inline-flex items-center mt-3 px-3 py-2 text-sm font-medium bg-blue-100 hover:bg-blue-200 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg"
       >
         Read more

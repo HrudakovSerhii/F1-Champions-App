@@ -21,7 +21,7 @@ export const MONTH_NAMES = [
 
 // App routing
 export const HOME = '/';
-export const SEASON = '/season/:seasonId';
+export const SEASON = '/season/:season';
 export const SEASONS = '/seasons';
 
 export const ABOUT = '/about';
