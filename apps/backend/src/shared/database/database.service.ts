@@ -25,8 +25,6 @@ export class DatabaseService {
    */
   async getMissingSeasonsWinners(yearsRange: string[]): Promise<string[]> {
     try {
-      this.logger.debug(`Checking for missing seasons in range: ${yearsRange}`);
-
       const existingWinners = await this.prisma.seasonWinner.findMany({
         where: {
           season: {
@@ -43,22 +41,10 @@ export class DatabaseService {
         (year) => !existingSeasons.includes(year)
       );
 
-      this.logger.debug(
-        `Missing seasons: ${
-          missingSeasons.length > 0 ? missingSeasons.join(', ') : 'none'
-        }`
-      );
-
       return missingSeasons;
     } catch (error) {
-      this.logger.error(
-        `Error checking for missing seasons in range ${yearsRange}:`,
-        error
-      );
-
-      throw new Error(
-        `Failed to check for missing seasons in range ${yearsRange}`
-      );
+      this.logger.error('Failed to check missing seasons:', error);
+      throw new Error('Failed to check missing seasons');
     }
   }
 
@@ -71,10 +57,6 @@ export class DatabaseService {
     yearsRange: string[]
   ): Promise<string[]> {
     try {
-      this.logger.debug(
-        `Checking for missing race winner seasons in range: ${yearsRange}`
-      );
-
       const existingRaceWinners = await this.prisma.seasonRaceWinner.findMany({
         where: {
           season: {
@@ -93,22 +75,10 @@ export class DatabaseService {
         (year) => !existingSeasons.includes(year)
       );
 
-      this.logger.debug(
-        `Missing race winner seasons: ${
-          missingSeasons.length > 0 ? missingSeasons.join(', ') : 'none'
-        }`
-      );
-
       return missingSeasons;
     } catch (error) {
-      this.logger.error(
-        `Error checking for missing race winner seasons in range ${yearsRange}:`,
-        error
-      );
-
-      throw new Error(
-        `Failed to check for missing race winner seasons in range ${yearsRange}`
-      );
+      this.logger.error('Failed to check missing race winner seasons:', error);
+      throw new Error('Failed to check missing race winner seasons');
     }
   }
 
@@ -119,12 +89,9 @@ export class DatabaseService {
   async storeSeasonsWinners(
     seasonsWinners: SeasonWinnerCreateInput[]
   ): Promise<void> {
-    if (seasonsWinners.length === 0) {
-      this.logger.warn('No seasons winners to store');
-      return;
-    }
+    if (seasonsWinners.length === 0) return;
 
-    this.logger.log(`🥇 Upserting ${seasonsWinners.length} seasons winners...`);
+    this.logger.log(`🥇 Upsert ${seasonsWinners.length} season winners`);
 
     await Promise.all(
       seasonsWinners.map((seasonWinner) =>
@@ -154,16 +121,9 @@ export class DatabaseService {
     yearsRange: string[],
     seasonRaceWinners: SeasonRaceWinnerCreateInput[]
   ): Promise<void> {
-    if (seasonRaceWinners.length === 0) {
-      this.logger.warn('No seasonRaceWinners to store');
-      return;
-    }
+    if (seasonRaceWinners.length === 0) return;
 
-    this.logger.log(
-      `🥇 Upserting ${
-        seasonRaceWinners.length
-      } race winners for seasons ${yearsRange.join(', ')}...`
-    );
+    this.logger.log(`🏁 Upserting ${seasonRaceWinners.length} race winners`);
 
     await Promise.all(
       seasonRaceWinners.map((seasonRaceWinner) =>
@@ -193,12 +153,9 @@ export class DatabaseService {
    * Handles duplicates gracefully without throwing constraint errors
    */
   async storeDrivers(drivers: DriverCreateInput[]): Promise<void> {
-    if (drivers.length === 0) {
-      this.logger.warn('No drivers to store');
-      return;
-    }
+    if (drivers.length === 0) return;
 
-    this.logger.log(`👨‍🏎️ Upserting ${drivers.length} drivers...`);
+    this.logger.log(`👨‍🏎️ Upserting ${drivers.length} drivers`);
 
     await Promise.all(
       drivers.map((driver) =>
@@ -224,12 +181,9 @@ export class DatabaseService {
   async storeConstructors(
     constructors: ConstructorCreateInput[]
   ): Promise<void> {
-    if (constructors.length === 0) {
-      this.logger.warn('No constructors to store');
-      return;
-    }
+    if (constructors.length === 0) return;
 
-    this.logger.log(`👨‍⚒️ Upserting ${constructors.length} constructors...`);
+    this.logger.log(`🏗️ Upserting ${constructors.length} constructors`);
 
     await Promise.all(
       constructors.map((constructor) =>
@@ -276,10 +230,9 @@ export class DatabaseService {
       });
     } catch (error) {
       this.logger.error(
-        `Error fetching race winners from database for season ${season}:`,
+        `Failed to fetch race winners for season ${season}:`,
         error
       );
-
       return [];
     }
   }
@@ -317,8 +270,7 @@ export class DatabaseService {
         skip: options.offset,
       });
     } catch (error) {
-      this.logger.error(`Error fetching seasons winners from database:`, error);
-
+      this.logger.error('Failed to fetch seasons winners:', error);
       return [];
     }
   }
