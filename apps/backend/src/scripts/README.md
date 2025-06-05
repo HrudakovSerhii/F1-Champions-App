@@ -8,7 +8,7 @@ The `generate-seed.ts` script generates database seed files from mock data with 
 
 This script now successfully uses the official API types from the shared types library:
 
-- `Driver`, `Constructor`, `Circuit` types are imported directly from `@f1-app/api-types`
+- `Driver`, `Constructor` types are imported directly from `@f1-app/api-types`
 - Full type safety and alignment with API specifications
 - CommonJS-compatible types library build
 
@@ -16,31 +16,18 @@ This script now successfully uses the official API types from the shared types l
 
 ```bash
 # Run with proper type resolution
-npx ts-node --project src/scripts/tsconfig.json src/scripts/generate-seed.ts [format] [output-path]
-
-# Examples (from apps/backend directory)
-npx ts-node --project src/scripts/tsconfig.json src/scripts/generate-seed.ts json
-npx ts-node --project src/scripts/tsconfig.json src/scripts/generate-seed.ts prisma
-npx ts-node --project src/scripts/tsconfig.json src/scripts/generate-seed.ts mongodb
+npx ts-node --project src/scripts/tsconfig.json src/scripts/generate-seed.ts
 
 # Or use npm scripts (from project root)
 npm run db:seed:generate
-npm run db:seed:generate:prisma
-npm run db:seed:generate:mongodb
 ```
-
-### Supported Formats
-
-- **json**: JSON seed file for general use
-- **prisma**: TypeScript seed script for Prisma ORM
-- **mongodb**: JavaScript seed script for MongoDB shell
 
 ### Type Configuration
 
 The script uses a dedicated `src/scripts/tsconfig.json` that:
 
 - Maps `@f1-app/api-types` to the built CommonJS types
-- Uses CommonJS module system for compatibility
+- Uses Node19 module system for compatibility
 - Provides proper path resolution for the types library
 
 ### Generated Data
@@ -49,9 +36,7 @@ The script extracts and generates:
 
 - **Drivers**: 2 drivers (Max Verstappen, Lewis Hamilton)
 - **Constructors**: 2 constructors (Red Bull, Mercedes)
-- **Circuits**: 2 circuits (Bahrain, Jeddah)
-- **Season Champions**: 4 champions (2020-2023)
-- **Race Winners**: 2 race winners
-- **Seasons**: 6 seasons
+- **Season Winners**: 4 champions (2020-2023)
+- **Season Race Winners**: 2 race winners
 
 All data is properly typed according to the API specifications. 

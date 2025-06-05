@@ -4,7 +4,7 @@
     "types": [
       "node"
     ],
-    "module": "commonjs",
+    "module": "Node16",
     "moduleResolution": "node16",
     "target": "es2021",
     "experimentalDecorators": true,
@@ -25,7 +25,7 @@
     "baseUrl": ".",
     "paths": {
       "@f1-app/api-types": [
-        "../../../../libs/shared/types/dist/index.d.ts"
+        "../../../../libs/shared/types/src/index.ts"
       ]
     },
     "customConditions": []
