@@ -18,7 +18,7 @@ import {
     ExternalDataParserService,
     DatabaseService,
     DataAggregationService,
-    ApiAdapterServic,
+    ApiAdapterService,
   ],
   exports: [SeasonsWinnersService],
 })

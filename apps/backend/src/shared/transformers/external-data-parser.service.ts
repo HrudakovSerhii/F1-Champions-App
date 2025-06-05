@@ -89,7 +89,7 @@ export class ExternalDataParserService implements DataExtractor {
             round: Number(standingsList.round),
             season: standingsList.season,
             constructorId: Constructors[0].name,
-            driverId: Driver.driverI,
+            driverId: Driver.driverId,
           });
         }
       );
@@ -144,7 +144,7 @@ export class ExternalDataParserService implements DataExtractor {
         driver,
         constructor,
         wins: Number(winner.wins),
-        season: standingsList.seaso,
+        season: standingsList.season,
       };
     });
   }

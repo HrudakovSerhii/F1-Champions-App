@@ -92,13 +92,11 @@ describe('HealthController Integration Tests', () => {
           name: 'constructors',
           count: () => prismaService.constructor.count(),
         },
-        { name: 'circuits', count: () => prismaService.circuit.count() },
-        { name: 'seasons', count: () => prismaService.season.count() },
         {
-          name: 'seasonChampions',
-          count: () => prismaService.seasonChampion.count(),
+          name: 'seasonsWinners',
+          count: () => prismaService.seasonWinner.count(),
         },
-        { name: 'raceWinners', count: () => prismaService.raceWinner.count() },
+        { name: 'seasonRaceWinners', count: () => prismaService.seasonRaceWinner.count() },
       ];
 
       for (const collection of collections) {
@@ -170,13 +168,11 @@ export async function manualHealthTest() {
     const collections = [
       { name: 'drivers', count: () => prismaService.driver.count() },
       { name: 'constructors', count: () => prismaService.constructor.count() },
-      { name: 'circuits', count: () => prismaService.circuit.count() },
-      { name: 'seasons', count: () => prismaService.season.count() },
       {
-        name: 'seasonChampions',
-        count: () => prismaService.seasonChampion.count(),
+        name: 'seasonsWinners',
+        count: () => prismaService.seasonWinner.count(),
       },
-      { name: 'raceWinners', count: () => prismaService.raceWinner.count() },
+      { name: 'seasonRaceWinners', count: () => prismaService.seasonRaceWinner.count() },
     ];
 
     for (const collection of collections) {
@@ -234,13 +230,11 @@ export const healthTestUtils = {
     const collections = [
       { name: 'drivers', count: () => prismaService.driver.count() },
       { name: 'constructors', count: () => prismaService.constructor.count() },
-      { name: 'circuits', count: () => prismaService.circuit.count() },
-      { name: 'seasons', count: () => prismaService.season.count() },
       {
-        name: 'seasonChampions',
-        count: () => prismaService.seasonChampion.count(),
+        name: 'seasonsWinners',
+        count: () => prismaService.seasonWinner.count(),
       },
-      { name: 'raceWinners', count: () => prismaService.raceWinner.count() },
+      { name: 'seasonRaceWinners', count: () => prismaService.seasonRaceWinner.count() },
     ];
 
     for (const collection of collections) {

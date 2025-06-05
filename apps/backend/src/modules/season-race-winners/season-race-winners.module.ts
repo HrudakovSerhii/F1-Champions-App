@@ -3,7 +3,7 @@ import { SeasonRaceWinnersController } from './season-race-winners.controller';
 import { SeasonRaceWinnersService } from './season-race-winners.service';
 import { JolpicaF1Module } from '../../shared/external-apis/jolpica-f1.module';
 import { DatabaseService } from '../../shared/database/database.service';
-import { ExternalDataParserService } from '../../shared/transformers/external-data-parser.service';
+import { ExternalDataParserService } from '../../shared/transformers';
 import {
   DataAggregationService,
   ApiAdapterService,
@@ -17,7 +17,7 @@ import {
     ExternalDataParserService,
     DatabaseService,
     DataAggregationService,
-    ApiAdapterSevice,
+    ApiAdapterService,
   ],
   exports: [SeasonRaceWinnersService],
 })
