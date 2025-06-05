@@ -3,22 +3,17 @@ import { Link } from 'react-router-dom';
 
 import usePreviousSeasonWinner from '../../../hooks/usePreviousSeasonWinner';
 
-import { getFormattedDate } from '../../../utils/renderUtils';
+import type { SeasonRaceWinner } from '@f1-app/api-types';
 
-import { Race } from '../../../types';
-
-type RacesWinnersListItemProps = Race;
-
-const SeasonWinnersTableRow: React.FC<RacesWinnersListItemProps> = ({
-  url: raceUrl,
-  date,
+const SeasonWinnersTableRow: React.FC<SeasonRaceWinner> = ({
   season,
-  raceName,
-  Results,
+  driver,
+  points,
+  round,
+  wins,
+  constructor,
 }) => {
-  const { data: seasonWinnerData } = usePreviousSeasonWinner(season);
-
-  const { Driver, Constructor, laps, Time } = Results[0];
+  const { data: prevSeasonWinnerData } = usePreviousSeasonWinner(season);
 
   const {
     url: driverUrl,
@@ -26,13 +21,11 @@ const SeasonWinnersTableRow: React.FC<RacesWinnersListItemProps> = ({
     givenName,
     nationality,
     driverId,
-  } = Driver;
+  } = driver;
 
-  const { time: raceTime } = Time;
+  const isPrevSeasonWinner = driverId === prevSeasonWinnerData?.driver.driverId;
 
-  const isWinner =
-    driverId === seasonWinnerData?.DriverStandings[0]?.Driver.driverId;
-  const winnerClassName = isWinner
+  const winnerClassNae = isPrevSeasonWinner
     ? 'bg-amber-50 hover:bg-amber-100'
     : 'hover:bg-gray-50';
 
@@ -55,12 +48,17 @@ const SeasonWinnersTableRow: React.FC<RacesWinnersListItemProps> = ({
       </th>
       <td className="px-6 py-4">
         <div className="flex">
-          <span>{laps}</span>
+          <span>{points}</span>
         </div>
       </td>
       <td className="px-6 py-4">
         <div className="flex">
-          <span>{raceTime}</span>
+          <span>{round}</span>
+        </div>
+      </td>
+      <td className="px-6 py-4">
+        <div className="flex">
+          <span>{wins}</span>
           <img
             src="/assets/chequered-flag-icon.png"
             className="h-4 ml-2"
@@ -68,25 +66,25 @@ const SeasonWinnersTableRow: React.FC<RacesWinnersListItemProps> = ({
           />
         </div>
       </td>
-      <td className="px-6 py-4">
-        <div className="flex flex-col">
-          <Link
-            to={raceUrl}
-            className="font-normal hover:text-blue-600 hover:underline"
-          >
-            {raceName}
-          </Link>
-          <span className="font-normal text-xs text-gray-500">
-            {getFormattedDate(date)}
-          </span>
-        </div>
-      </td>
+      {/*<td className="px-6 py-4">*/}
+      {/*  <div className="flex flex-col">*/}
+      {/*    <Link*/}
+      {/*      to={raceUrl}*/}
+      {/*      className="font-normal hover:text-blue-600 hover:underline"*/}
+      {/*    >*/}
+      {/*      {raceName}*/}
+      {/*    </Link>*/}
+      {/*    <span className="font-normal text-xs text-gray-500">*/}
+      {/*      {getFormattedDate(date)}*/}
+      {/*    </span>*/}
+      {/*  </div>*/}
+      {/*</td>*/}
       <td className="px-6 py-4">
         <Link
-          to={Constructor.url}
+          to={constructor.url}
           className="font-medium hover:text-blue-600 hover:underline"
         >
-          {Constructor.name}
+          {constructor.name}
         </Link>
       </td>
     </tr>

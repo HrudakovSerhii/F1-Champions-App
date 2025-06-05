@@ -2,10 +2,8 @@ import { MONTH_NAMES } from '../constants';
 
 import { StandingItem } from '../types';
 
-export const getSeasonsWinnersGroupedData = (
-  data: StandingItem[],
-  groupSize: number = 5
-) =>
+// TODO: Review if still used
+export const getSeasonsWinnersGroupedData = (data: StandingItem[], groupSize = 5) =>
   data?.reduce((groupedItems, standingItem, index) => {
     const groupIndex = Math.floor(index / groupSize);
 

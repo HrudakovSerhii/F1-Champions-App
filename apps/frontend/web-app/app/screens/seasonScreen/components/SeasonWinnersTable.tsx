@@ -1,20 +1,14 @@
 import React from 'react';
 
-import { Race } from '../../../types';
-
 import SeasonWinnersTableRow from './SeasonWinnersTableRow';
 
+import type { SeasonRaceWinner } from '@f1-app/api-types';
+
 type RacesWinnersTableProps = {
-  tableData: Race[] | undefined;
+  tableData: SeasonRaceWinner[] | undefined;
 };
 
-export const tableHeaderData = [
-  'Driver',
-  'Laps',
-  'Race Time',
-  'Race location',
-  'Constructor',
-];
+export const tableHeaderData = ['Driver', 'Points', 'Rounds', 'Wins', 'Constructor'];
 
 /**
  * NOTE: Table structure can be dynamically assembled from data fields using config object.
@@ -23,6 +17,8 @@ export const tableHeaderData = [
 const SeasonWinnersTable: React.FC<RacesWinnersTableProps> = ({
   tableData,
 }) => {
+  tableData?.sort((a, b) => a.points + b.points);
+
   return (
     <table className="w-full text-sm text-left">
       <thead className="sticky top-0 bg-gray-50 text-xs text-gray-700 uppercase">
@@ -37,7 +33,7 @@ const SeasonWinnersTable: React.FC<RacesWinnersTableProps> = ({
       <tbody>
         {tableData?.map((tableRowData) => (
           <SeasonWinnersTableRow
-            key={tableRowData.raceName + tableRowData.round}
+            key={tableRowData.season + tableRowData.round}
             {...tableRowData}
           />
         ))}

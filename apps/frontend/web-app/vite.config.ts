@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => ({
   cacheDir: '../../node_modules/.vite/apps/web-app',
   base: mode === 'production' ? '/F1-Champions-App/' : '/',
   server: {
-    port: 4200,
+    port: process.env.FRONTEND_PORT ? Number(process.env.FRONTEND_PORT) : 3000,
     host: 'localhost',
   },
   preview: {

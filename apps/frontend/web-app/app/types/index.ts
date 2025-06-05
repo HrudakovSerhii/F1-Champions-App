@@ -1,30 +1,14 @@
 // Import shared types from the API types library
-import type {
-  Driver,
-  Constructor,
-  SeasonChampion,
-  SeasonChampionsResponse,
-  RaceWinner,
-  RaceWinnersResponse,
-  Circuit,
-  ErrorResponse,
-  components
-} from '@f1-app/api-types';
+import type { Driver, Constructor } from '@f1-app/api-types';
 
-// Re-export the imported types
-export type {
-  Driver,
-  Constructor,
-  SeasonChampion,
-  SeasonChampionsResponse,
-  RaceWinner,
-  RaceWinnersResponse,
-  Circuit,
-  ErrorResponse
-};
-
-// Create type alias for MRData from the shared library
-export type MRData = components['schemas']['MRData'];
+interface MRData {
+  xmlns: '';
+  series: 'f1';
+  url: 'http://api.jolpi.ca/ergast/f1/1972/driverstandings/';
+  limit: '30';
+  offset: '0';
+  total: '42';
+}
 
 // Keep local types that don't exist in shared library
 export interface DriverStanding {

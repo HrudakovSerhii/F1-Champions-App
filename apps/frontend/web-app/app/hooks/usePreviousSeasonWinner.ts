@@ -6,10 +6,10 @@ import { selectWinnerBySeason } from '../utils/hooksUtils';
 
 import { SEASONS_RANGE } from '../constants';
 
-import { StandingItem } from '../types';
+import type { SeasonWinner } from '@f1-app/api-types';
 
 type UsePreviousSeasonWinner = {
-  data: StandingItem | undefined;
+  data: SeasonWinner | undefined;
 };
 
 /**
@@ -20,10 +20,11 @@ type UsePreviousSeasonWinner = {
  */
 const usePreviousSeasonWinner: (
   currentSeasonId: string
-) => UsePreviousSeasonWinner = (currentSeasonId: string) => {
+) => UsePreviousSeasonWinner = (currentSeasonId): UsePreviousSeasonWinner => {
   const winnersListItems = useSeasonsWinnersListLocal((state) => state.items);
+
   const [seasonWinnerData, setSeasonWinnerData] = useState<
-    StandingItem | undefined
+    SeasonWinner | undefined
   >();
 
   useEffect(() => {

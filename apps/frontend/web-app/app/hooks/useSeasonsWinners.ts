@@ -3,17 +3,15 @@ import { useEffect } from 'react';
 import useRemoteData, { RemoteData } from './useRemoteData';
 import { useSeasonsWinnersListLocal } from './useLocalState';
 
-import { filterWinnersBySeasonRange } from '../utils/hooksUtils';
-
 import {
   ALL_SEASON_WINNERS_PATH,
-  ROOT_ERGAST_API_PATH,
+  F1_CHAMPIONS_API_PATH,
 } from '../constants/ergastApiConstans';
 
-import { AllSeasonsData, StandingItem } from '../types';
+import type { SeasonWinner } from '@f1-app/api-types';
 
 type UseSeasonsWinners = Omit<
-  RemoteData<StandingItem[] | undefined>,
+  RemoteData<SeasonWinner[] | undefined>,
   'fetchRemoteData'
 >;
 
@@ -27,25 +25,17 @@ const useSeasonsWinners: () => UseSeasonsWinners = () => {
     update: state.update,
   }));
 
-  const { data, loading, error, fetchRemoteData } =
-    useRemoteData<AllSeasonsData>(ROOT_ERGAST_API_PATH);
+  const { data, loading, error, fetchRemoteData } = useRemoteData<
+    SeasonWinner[]
+  >(F1_CHAMPIONS_API_PATH);
 
   useEffect(() => {
-    fetchRemoteData(
-      ALL_SEASON_WINNERS_PATH,
-      new URLSearchParams({
-        limit: '1000',
-      }).toString()
-    );
+    fetchRemoteData(ALL_SEASON_WINNERS_PATH).finally();
   }, []);
 
   useEffect(() => {
-    if (data?.MRData.StandingsTable.StandingsLists) {
-      const updatedWinnersList = filterWinnersBySeasonRange(
-        data?.MRData.StandingsTable.StandingsLists
-      );
-
-      winnersListState.update(updatedWinnersList);
+    if (data?.length) {
+      winnersListState.update(data);
     }
   }, [data]);
 
