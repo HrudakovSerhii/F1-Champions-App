@@ -9,17 +9,17 @@ export type SeasonWinner = components['schemas']['SeasonWinner'];
 export type SeasonRaceWinner = components['schemas']['SeasonRaceWinner'];
 export type Driver = components['schemas']['Driver'];
 export type Constructor = components['schemas']['Constructor'];
-export type Circuit = components['schemas']['Circuit'];
 
 // Path types for type-safe API calls
-export type SeasonsPath = paths['/v1/seasons']['get'];
-export type RaceWinnersPath = paths['/v1/seasons/{seasonYear}/winners']['get'];
+export type SeasonsWinnersPath = paths['/v1/seasons-winners']['get'];
+export type SeasonWinnersPath = paths['/v1/season/{seasonYear}/winners']['get'];
 export type HealthPath = paths['/v1/health']['get'];
 
 // Operation types
-export type GetSeasonsWithWinnersOperation = paths['/v1/seasons']['get'];
+export type GetSeasonsWithWinnersOperation =
+  paths['/v1/seasons-winners']['get'];
 export type GetSeasonRaceWinnersOperation =
-  paths['/v1/seasons/{seasonYear}/winners']['get'];
+  paths['/v1/season/{seasonYear}/winners']['get'];
 export type GetHealthOperation = paths['/v1/health']['get'];
 
 // Request/Response types for operations
@@ -35,3 +35,9 @@ export type GetHealthResponseError =
 // Parameter types
 export type SeasonYearPathParam =
   GetSeasonRaceWinnersOperation['parameters']['path']['seasonYear'];
+
+// Query parameter types for seasons-winners endpoint
+export type SeasonsWinnersQueryParams =
+  GetSeasonsWithWinnersOperation['parameters']['query'];
+export type MinYearQueryParam = NonNullable<SeasonsWinnersQueryParams>['minYear'];
+export type MaxYearQueryParam = NonNullable<SeasonsWinnersQueryParams>['maxYear'];

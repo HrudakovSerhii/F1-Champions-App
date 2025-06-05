@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: F1 Champions API
-  description: API for retrieving Formula 1 championship data including season winners and race results
+  description: API for retrieving Formula 1 championship data including season winners and season race results
   version: 1.0.0
   contact:
     name: F1 Champions App
@@ -10,13 +10,34 @@ servers:
     description: Main API server
 
 paths:
-  /v1/seasons:
+  /v1/seasons-winners:
     get:
       summary: Get seasons with winners
       description: Retrieve all F1 seasons with their respective championship winners
       operationId: getSeasonsWithWinners
       tags:
         - Seasons
+      parameters:
+        - name: minYear
+          in: query
+          required: false
+          description: Minimum season year to filter from (inclusive)
+          schema:
+            type: string
+            pattern: '^[0-9]{4}$'
+            minimum: 1950
+            maximum: 2050
+            example: "2020"
+        - name: maxYear
+          in: query
+          required: false
+          description: Maximum season year to filter to (inclusive)
+          schema:
+            type: string
+            pattern: '^[0-9]{4}$'
+            minimum: 1950
+            maximum: 2050
+            example: "2023"
       responses:
         '200':
           description: Successfully retrieved seasons with winners
@@ -30,18 +51,18 @@ paths:
                 success:
                   value:
                     - season: "2023"
-                      winner:
-                        wins: 15
-                        driver:
-                          familyName: "Verstappen"
-                          givenName: "Max"
-                          url: "https://example.com/drivers/max_verstappen"
-                          nationality: "Dutch"
-                          driverId: "max_verstappen"
-                        constructor:
-                          name: "Red Bull"
-                          url: "https://example.com/constructors/red_bull"
-                          nationality: "Austrian"
+                    - wins: 15
+                    - driver:
+                        familyName: "Verstappen"
+                        givenName: "Max"
+                        url: "https://example.com/drivers/max_verstappen"
+                        nationality: "Dutch"
+                        driverId: "max_verstappen"
+                    - constructor:
+                        name: "Red Bull"
+                        url: "https://example.com/constructors/red_bull"
+                        nationality: "Austrian"
+
         '500':
           description: Internal server error
           content:
@@ -57,7 +78,7 @@ paths:
                       message: "Internal server error"
                       code: "INTERNAL_ERROR"
 
-  /v1/seasons/{seasonYear}/winners:
+  /v1/season/{seasonYear}/winners:
     get:
       summary: Get season winners
       description: Retrieve all race winners for a specific F1 season
@@ -87,27 +108,21 @@ paths:
               examples:
                 success:
                   value:
-                    - date: "2023-03-05"
-                      season: "2023"
-                      round: 1
-                      raceName: "Bahrain Grand Prix"
-                      circuit:
-                        name: "Bahrain International Circuit"
-                        country: "Bahrain"
-                        locality: "Sakhir"
-                      raceWinner:
-                        time: "1:31:12.258"
-                        laps: 57
-                        driver:
-                          familyName: "Verstappen"
-                          givenName: "Max"
-                          url: "https://example.com/drivers/max_verstappen"
-                          nationality: "Dutch"
-                          driverId: "max_verstappen"
-                        constructor:
-                          name: "Red Bull"
-                          url: "https://example.com/constructors/red_bull"
-                          nationality: "Austrian"
+                    - season: "2023"
+                    - round: 1
+                    - wins: 5
+                    - points: 347
+                    - driver:
+                        familyName: "Verstappen"
+                        givenName: "Max"
+                        url: "https://example.com/drivers/max_verstappen"
+                        nationality: "Dutch"
+                        driverId: "max_verstappen"
+                    - constructor:
+                        name: "Red Bull"
+                        url: "https://example.com/constructors/red_bull"
+                        nationality: "Austrian"
+
         '404':
           description: Season not found
           content:
@@ -232,26 +247,6 @@ components:
           description: Constructor's nationality
           example: "Austrian"
 
-    Circuit:
-      type: object
-      required:
-        - name
-        - country
-        - locality
-      properties:
-        name:
-          type: string
-          description: Circuit name
-          example: "Bahrain International Circuit"
-        country:
-          type: string
-          description: Country where the circuit is located
-          example: "Bahrain"
-        locality:
-          type: string
-          description: City or locality of the circuit
-          example: "Sakhir"
-
     SeasonWinner:
       type: object
       required:
@@ -266,8 +261,8 @@ components:
           example: "2023"
         wins:
           type: integer
-          description: Number of wins in the season
-          example: 15
+          description: Number of the wins
+          example: 5
         driver:
           $ref: '#/components/schemas/Driver'
         constructor:
@@ -276,20 +271,13 @@ components:
     SeasonRaceWinner:
       type: object
       required:
-        - date
         - season
         - round
-        - raceName
-        - circuit
-        - laps
+        - wins
+        - points
         - driver
         - constructor
       properties:
-        date:
-          type: string
-          format: date
-          description: Race date
-          example: "2023-03-05"
         season:
           type: string
           description: The F1 season year
@@ -298,20 +286,14 @@ components:
           type: integer
           description: Round number in the season
           example: 1
-        raceName:
-          type: string
-          description: Name of the race
-          example: "Bahrain Grand Prix"
-        circuit:
-          $ref: '#/components/schemas/Circuit'
-        time:
-          type: string
-          description: Race completion time
-          example: "1:31:12.258"
-        laps:
+        wins:
           type: integer
-          description: Number of laps completed
-          example: 57
+          description: Number of the wins
+          example: 5
+        points:
+          type: integer
+          description: Total points per season
+          example: 347
         driver:
           $ref: '#/components/schemas/Driver'
         constructor:
