@@ -67,6 +67,11 @@ export class SeasonsWinnersService {
             raceTableBDData.seasonWinners
           );
 
+          await this.databaseService.storeSeasonRaceWinnersWithDuplicateCheck(
+            yearsRange,
+            raceTableBDData.seasonRaceWinners
+          );
+
           // Set initial load to false after first successful load
           this.isInitialLoad = false;
 

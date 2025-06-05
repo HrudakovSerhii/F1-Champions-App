@@ -84,7 +84,7 @@ export class DataAggregationService {
     options: {
       limit?: number;
       offset?: number;
-      orderBy?: 'round' | 'date' | 'raceName';
+      orderBy?: 'season' | 'wins' | 'round';
       orderDirection?: 'asc' | 'desc';
     }
   ): Promise<SeasonRaceWinner[]> {

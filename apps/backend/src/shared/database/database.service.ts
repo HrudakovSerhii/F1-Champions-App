@@ -8,6 +8,7 @@ import {
   DBSeasonRaceWinner,
   DBSeasonWinner,
   DriverCreateInput,
+  SeasonRaceWinnerCreateInput,
   SeasonWinnerCreateInput,
 } from '../../types';
 
@@ -57,6 +58,24 @@ export class DatabaseService {
     }
   }
 
+  /**
+   * Check if SeasonRaceWinners data for provided season already exists to avoid duplicates
+   */
+  private async checkExistingSeasonRaceWinnersData(
+    yearsRange: string[]
+  ): Promise<boolean> {
+    const existingSeasonRaceWinners =
+      await this.prisma.seasonRaceWinner.findMany({
+        where: {
+          season: {
+            in: yearsRange,
+          },
+        },
+      });
+
+    return existingSeasonRaceWinners.length > 0;
+  }
+
   private async storeSeasonsWinners(seasonsWinners: SeasonWinnerCreateInput[]) {
     this.logger.log(`🥇 Storing seasons winners...`);
 
@@ -64,6 +83,21 @@ export class DatabaseService {
       seasonsWinners.map((seasonWinner) =>
         this.prisma.seasonWinner.create({
           data: seasonWinner,
+        })
+      )
+    );
+  }
+
+  private async storeSeasonRacesWinners(
+    yearsRange: string[],
+    seasonRaceWinners: SeasonRaceWinnerCreateInput[]
+  ) {
+    this.logger.log(`🥇 Storing seasons ${yearsRange} race winners...`);
+
+    await Promise.all(
+      seasonRaceWinners.map((seasonRaceWinner) =>
+        this.prisma.seasonRaceWinner.create({
+          data: seasonRaceWiner,
         })
       )
     );
@@ -119,6 +153,36 @@ export class DatabaseService {
   }
 
   /**
+   * Store race winners data with duplicate checking
+   * This is the main method to be used by the race-winners service
+   */
+  async storeSeasonRaceWinnersWithDuplicateCheck(
+    yearsRange: string[],
+    seasonRaceWinners: SeasonRaceWinnerCreateInput[]
+  ): Promise<void> {
+    if (seasonRaceWinners.length === 0) {
+      this.logger.warn('No seasonRaceWinners to store');
+
+      return;
+    }
+
+    // Check if data already exists
+    const dataExists = await this.checkExistingSeasonRaceWinnersData(
+      yearsRange
+    );
+
+    if (dataExists) {
+      this.logger.log(
+        `Data for seasons ${yearsRange} range already exists, skipping storage`
+      );
+
+      return;
+    }
+
+    await this.storeSeasonRacesWinners(yearsRange, seasonRaceWinners);
+  }
+
+  /**
    * Get season race winners data from database
    * @param season - The F1 season year (e.g., "2023")
    * @param options - Optional query parameters
@@ -133,7 +197,7 @@ export class DatabaseService {
     options: {
       limit?: number;
       offset?: number;
-      orderBy?: 'round' | 'date' | 'raceName';
+      orderBy?: 'season' | 'wins' | 'round';
       orderDirection?: 'asc' | 'desc';
     }
   ): Promise<DBSeasonRaceWinner[]> {
@@ -141,7 +205,7 @@ export class DatabaseService {
       return await this.prisma.seasonRaceWinner.findMany({
         where: { season },
         orderBy: {
-          [options.orderBy || 'round']: options.orderDirection || 'asc',
+          [options.orderBy || 'season']: options.orderDirection || 'asc',
         },
         take: options.limit,
         skip: options.offset,
