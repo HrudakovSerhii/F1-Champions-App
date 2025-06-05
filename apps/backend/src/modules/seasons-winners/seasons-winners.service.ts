@@ -13,7 +13,6 @@ import { generateYearRangeStrings } from '../../shared/utils';
 @Injectable()
 export class SeasonsWinnersService {
   private readonly logger = new Logger(SeasonsWinnersService.name);
-  private isInitialLoad = true;
 
   constructor(
     private readonly jolpicaF1Service: JolpicaF1Service,
@@ -28,18 +27,29 @@ export class SeasonsWinnersService {
   ): Promise<GetSeasonsWinnersResponse> {
     try {
       const yearsRange = generateYearRangeStrings(minYear, maxYear);
-      // TODO: add check in DB for records from provided years range. If missing, we need to fetch them from Jolpi API and save to DB
-      this.logger.warn(this.isInitialLoad);
-      const hasDataForThisRange =
-        await this.databaseService.checkExistingSeasonsWinnersData(yearsRange);
 
-      if (this.isInitialLoad && !hasDataForThisRange) {
+      // Check which season winners are missing from the database
+      const missingSeasonWinners =
+        await this.databaseService.getMissingSeasonsWinners(yearsRange);
+      const missingRaceWinnerSeasons =
+        await this.databaseService.getMissingSeasonsForRaceWinners(yearsRange);
+
+      // Combine missing seasons (union of both types)
+      const allMissingSeasons = [
+        ...new Set([...missingSeasonWinners, ...missingRaceWinnerSeasons]),
+      ];
+
+      this.logger.log(allMissingSeasons);
+
+      if (allMissingSeasons.length > 0) {
         this.logger.log(
-          'Initial load detected, fetching seasons winners from external Jolpica API'
+          `Missing data for seasons: ${allMissingSeasons.join(
+            ', '
+          )}. Fetching from external Jolpica API`
         );
 
         const externalData = await this.jolpicaF1Service.getSeasonsWinners(
-          yearsRange
+          allMissingSeasons
         );
 
         if (externalData) {
@@ -57,36 +67,28 @@ export class SeasonsWinnersService {
               standingsLists
             );
 
-          await this.databaseService.storeDBUniqData(
-            raceTableBDData.drivers,
+          // Store data using upsert - high performance approach
+          await this.databaseService.storeDrivers(raceTableBDData.drivers);
+          await this.databaseService.storeConstructors(
             raceTableBDData.constructors
           );
 
-          await this.databaseService.storeSeasonsWinnersWithDuplicateCheck(
-            yearsRange,
+          await this.databaseService.storeSeasonsWinners(
             raceTableBDData.seasonWinners
           );
 
-          await this.databaseService.storeSeasonRaceWinnersWithDuplicateCheck(
-            yearsRange,
+          await this.databaseService.storeSeasonRacesWinners(
+            allMissingSeasons,
             raceTableBDData.seasonRaceWinners
           );
-
-          // Set initial load to false after first successful load
-          this.isInitialLoad = false;
-
-          // TODO: review this return and check if this.dataAggregationService.getSeasonsWinners can be used outside of condition to return data
-          return this.externalDataParserService.extractSeasonsWinnersFromJolpiStandingsLists(
-            standingsLists
+        } else {
+          throw new Error(
+            `No data available for seasons winners from external API`
           );
         }
-
-        throw new Error(
-          `No data available for seasons winners from external API`
-        );
       }
 
-      // For subsequent calls, try to get from database first
+      // Always get data from database to ensure we have the complete requested range
       const seasonsWinners =
         await this.dataAggregationService.getSeasonsWinners(yearsRange, {
           orderBy: 'season',
@@ -94,8 +96,7 @@ export class SeasonsWinnersService {
         });
 
       if (seasonsWinners.length > 0) {
-        this.logger.debug(`Returning cached seasons winners from database`);
-
+        this.logger.debug(`Returning seasons winners from database`);
         return seasonsWinners;
       }
 

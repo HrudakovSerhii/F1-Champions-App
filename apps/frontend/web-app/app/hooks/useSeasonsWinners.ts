@@ -8,6 +8,8 @@ import {
   F1_CHAMPIONS_API_PATH,
 } from '../constants/apiConstants';
 
+import { SEASONS_RANGE } from '../constants';
+
 import type { SeasonWinner } from '@f1-app/api-types';
 
 type UseSeasonsWinners = Omit<
@@ -30,7 +32,15 @@ const useSeasonsWinners: () => UseSeasonsWinners = () => {
   >(F1_CHAMPIONS_API_PATH);
 
   useEffect(() => {
-    fetchRemoteData(ALL_SEASON_WINNERS_PATH).finally();
+    const [minYear, maxYear] = SEASONS_RANGE;
+    const queryParams = new URLSearchParams({
+      minYear: minYear.toString(),
+      maxYear: maxYear.toString(),
+    });
+
+    fetchRemoteData(
+      `${ALL_SEASON_WINNERS_PATH}?${queryParams.toString()}`
+    ).finally();
   }, []);
 
   useEffect(() => {
