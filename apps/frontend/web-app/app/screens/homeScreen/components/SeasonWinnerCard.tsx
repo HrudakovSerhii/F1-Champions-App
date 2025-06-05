@@ -15,7 +15,7 @@ const SeasonWinnerCard: React.FC<SeasonWinner> = ({
   const { name, url: constructorUrl } = constructor;
 
   return (
-    <div className="app-season-winner-card flex flex-grow flex-col w-full min-w-[190px] p-6 mr-4 last:mr-0 border border-gray-200 rounded-lg shadow">
+    <div className="app-season-winner-card flex flex-grow flex-col w-full p-6 border border-gray-200 rounded-lg shadow">
       <span className="text-2xl font-bold tracking-tight text-gray-900 ">
         {season}
       </span>

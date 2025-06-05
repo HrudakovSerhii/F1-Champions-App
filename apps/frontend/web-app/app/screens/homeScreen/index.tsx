@@ -17,15 +17,12 @@ const HomeScreen = () => {
       {!loading && data?.length && (
         <div className="flex flex-col items-center">
           <ScreenTitle title={pageTitle} />
-          <div className="flex flex-col w-full max-w-screen-xl">
-            {data?.map((seasonWinner, index) => (
-              <ul
-                className="seasons-winners-list flex overflow-scroll pb-6 px-4"
-                key={`seasons-group-ul-${index}`}
-              >
+          <div className="w-full max-w-screen-xl px-4">
+            <div className="grid grid-cols-[repeat(auto-fill,190px)] gap-4 justify-items-start justify-center">
+              {data?.map((seasonWinner) => (
                 <SeasonWinnerCard key={seasonWinner.season} {...seasonWinner} />
-              </ul>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       )}
