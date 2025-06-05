@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,133 +7,67 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Driver {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  driverId    String   @unique
-  givenName   String
-  familyName  String
-  dateOfBirth DateTime
-  nationality String
-  url         String
+// Base entity interface fields
+// All models will have these MongoDB ObjectId and timestamp fields
 
-  // Current constructor relationship (simplified from many-to-many)
-  constructorId String      @db.ObjectId
-  constructor   Constructor @relation(fields: [constructorId], references: [id])
-
-  // Relations
-  seasonWinners SeasonWinner[]
-  raceWinners   RaceWinner[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("drivers")
-}
-
+// Constructor model - maps directly to API Constructor type
 model Constructor {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  constructorId String @unique
-  name        String
-  nationality String
-  url         String
-
-  // Relations
-  drivers       Driver[]
-  seasonWinners SeasonWinner[]
-  raceWinners   RaceWinner[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   @unique // Constructor team name (e.g., "Red Bull")
+  nationality String // Constructor's nationality (e.g., "Austrian")
+  url         String // URL to constructor information
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("constructors")
 }
 
-model Circuit {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId
-  circuitId String @unique
-  name      String // Renamed from circuitName to align with OpenAPI
-  url       String
+// Driver model - maps to API Driver type
+// Note: API Driver has nested constructor, but we store constructor name as reference
+model Driver {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  driverId    String   @unique // Unique driver identifier (e.g., "max_verstappen")
+  givenName   String // Driver's given name (e.g., "Max")
+  familyName  String // Driver's family name (e.g., "Verstappen")
+  nationality String // Driver's nationality (e.g., "Dutch")
+  url         String // URL to driver information
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  // Relations
-  raceWinners RaceWinner[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("circuits")
+  @@map("drivers")
 }
 
+// SeasonWinner model - maps to API SeasonWinner type
+// API has nested 'driver' | 'constructor' objects, but we store their references
 model SeasonWinner {
-  id           String @id @default(auto()) @map("_id") @db.ObjectId
-  season       String
-  position     String
-  positionText String
-  points       String
-  wins String // Wins per season (stored as string to match API)
-  round        String
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  season        String // The F1 season year (e.g., "2023")
+  wins          Int // number of wins
+  driverId      String // Reference to driver.name (denormalized)
+  constructorId String // Reference to constructor.name (denormalized)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  // Relations
-  driverId String @db.ObjectId
-  driver   Driver @relation(fields: [driverId], references: [id])
+  @@unique([season, driverId, constructorId])
+  @@map("season_winners")
+}
 
-  constructorId String      @db.ObjectId
-  constructor   Constructor @relation(fields: [constructorId], references: [id])
+// RaceWinner model - maps to API SeasonRaceWinner type
+// API has nested 'circuit' | 'constructor' | 'driver' objects, but we store their references
+model SeasonRaceWinner {
+  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  // Main race info
+  season        String // The F1 season year (e.g., "2023")
+  points        Int // Number of laps driver made
+  round         Int // Round number in the season
+  wins          Int // Round number in the season
+  // References
+  driverId      String // Reference to driver.driverId (denormalized)
+  constructorId String // Reference to constructor.name (denormalized)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([season, driverId])
-  @@map("season_winners") // Renamed from season_champions
-}
-
-model RaceWinner {
-  id       String   @id @default(auto()) @map("_id") @db.ObjectId
-  season   String
-  round    String
-  raceName String
-  date     DateTime
-  time     String
-  url      String
-
-  // Winner details embedded
-  winnerDetails WinnerDetails
-
-  // Relations
-  circuitId String  @db.ObjectId
-  circuit   Circuit @relation(fields: [circuitId], references: [id])
-
-  driverId String @db.ObjectId
-  driver   Driver @relation(fields: [driverId], references: [id])
-
-  constructorId String      @db.ObjectId
-  constructor   Constructor @relation(fields: [constructorId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([season, round])
-  @@map("race_winners")
-}
-
-type WinnerDetails {
-  number   String
-  position String
-  points   String
-  laps     String
-  time     RaceTime
-}
-
-type RaceTime {
-  millis String
-  time   String
-}
-
-model Season {
-  id   String @id @default(auto()) @map("_id") @db.ObjectId
-  year String @unique
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("seasons")
+  @@unique([season, driverId, constructorId])
+  @@map("season_race_winners")
 }
