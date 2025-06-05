@@ -6,7 +6,7 @@ import { useSeasonsWinnersListLocal } from './useLocalState';
 import {
   ALL_SEASON_WINNERS_PATH,
   F1_CHAMPIONS_API_PATH,
-} from '../constants/ergastApiConstans';
+} from '../constants/apiConstants';
 
 import type { SeasonWinner } from '@f1-app/api-types';
 

@@ -5,7 +5,7 @@ import useRemoteData, { RemoteData } from './useRemoteData';
 import {
   F1_CHAMPIONS_API_PATH,
   SEASON_WINNERS_PATH,
-} from '../constants/ergastApiConstans';
+} from '../constants/apiConstants';
 
 import type { SeasonRaceWinner } from '@f1-app/api-types';
 
