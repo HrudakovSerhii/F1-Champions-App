@@ -5,7 +5,6 @@ dist
 tmp
 out-tsc
 /libs/shared/types/src/lib/generated-types.ts
-/apps/backend/src/scripts/seed-mongodb.js
 
 # dependencies
 node_modules
@@ -122,5 +121,6 @@ mongodb/*
 #env
 /apps/backend/.env
 /apps/backend/.env.local
+/.env
 /.env.local
 
