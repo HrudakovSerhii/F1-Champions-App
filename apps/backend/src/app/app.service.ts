@@ -31,55 +31,49 @@ export interface HealthStatus {
   database: string;
 }
 
+// TODO: check if endpoints.path param can be taken from generated types
+
 @Injectable()
 export class AppService {
   getApiInfo(): ApiInfo {
     return {
       name: 'F1 Champions API',
       version: '1.0.0',
-      description: 'API for Formula 1 season champions and race winners data',
+      description:
+        'API for retrieving Formula 1 championship data including season winners and season race results',
       documentation: `${BASE_URL}/docs`,
-      health: `${BASE_URL}/health`,
+      health: `${BASE_URL}/api/v1/health`,
       endpoints: [
         {
-          path: '/champions',
+          path: '/api/v1/f1/winners',
           method: 'GET',
-          description: 'Get Formula 1 season champions',
-          tag: 'Champions',
+          description:
+            'Get seasons with winners - retrieve all F1 seasons with their respective championship winners',
+          tag: 'Seasons',
         },
         {
-          path: '/champions/{year}',
+          path: '/api/v1/f1/season/{seasonYear}/winners',
           method: 'GET',
-          description: 'Get champion for specific year',
-          tag: 'Champions',
+          description:
+            'Get season race winners - retrieve all race winners for a specific F1 season',
+          tag: 'Seasons',
         },
         {
-          path: '/race-winners',
+          path: '/api/v1/health',
           method: 'GET',
-          description: 'Get Formula 1 race winners',
-          tag: 'Race Winners',
-        },
-        {
-          path: '/race-winners/{year}',
-          method: 'GET',
-          description: 'Get race winners for specific year',
-          tag: 'Race Winners',
-        },
-        {
-          path: '/health',
-          method: 'GET',
-          description: 'Health check endpoint',
+          description: 'Check the health status of the backend API server',
           tag: 'Health',
         },
       ],
       features: [
-        'Formula 1 Champions Data',
-        'Race Winners Information',
-        'Health Monitoring',
-        'Rate Limiting',
+        'Formula 1 Season Champions Data',
+        'Season Race Winners Information',
+        'Health Status Monitoring',
+        'Rate Limiting & Security',
         'CORS Support',
-        'Input Validation',
-        'Swagger Documentation',
+        'Request Validation',
+        'OpenAPI Documentation',
+        'Dependency Status Tracking',
       ],
       rateLimit: {
         requests: 30,

@@ -10,32 +10,27 @@ import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { SeasonRaceWinnersService } from './season-race-winners.service';
 import { GetSeasonRaceWinnersDto } from './dto/get-season-race-winners.dto';
 
-@ApiTags('SeasonRaceWinners')
-@Controller('f1/season-winners')
+@ApiTags('Seasons')
+@Controller('f1/season')
 export class SeasonRaceWinnersController {
   constructor(
     private readonly seasonRaceWinnersService: SeasonRaceWinnersService
   ) {}
 
-  @Get(':season/winners')
+  @Get(':seasonYear/winners')
   @ApiOperation({
-    summary: 'Get winners for a season',
-    description:
-      'Returns a list of race winners for all races in a specific Formula 1 season',
+    summary: 'Get season winners',
+    description: 'Retrieve all race winners for a specific F1 season',
   })
   @ApiParam({
-    name: 'season',
-    description: 'The season year',
+    name: 'seasonYear',
+    description: 'The F1 season year (e.g., 2023)',
     example: '2023',
     schema: { type: 'string', pattern: '^[0-9]{4}$' },
   })
   @ApiResponse({
     status: 200,
-    description: 'Successful response',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad request',
+    description: 'Successfully retrieved race winners for the specified season',
   })
   @ApiResponse({
     status: 404,
@@ -46,12 +41,12 @@ export class SeasonRaceWinnersController {
     description: 'Internal server error',
   })
   async getSeasonRaceWinners(
-    @Param('season') season: string,
+    @Param('seasonYear') seasonYear: string,
     @Query() query: GetSeasonRaceWinnersDto
   ) {
     try {
       // Validate season format
-      if (!/^[0-9]{4}$/.test(season)) {
+      if (!/^[0-9]{4}$/.test(seasonYear)) {
         throw new HttpException(
           {
             error: {
@@ -65,7 +60,7 @@ export class SeasonRaceWinnersController {
 
       const { limit, offset } = query;
       const result = await this.seasonRaceWinnersService.getSeasonRaceWinners(
-        season,
+        seasonYear,
         limit,
         offset
       );
@@ -75,7 +70,7 @@ export class SeasonRaceWinnersController {
           {
             error: {
               code: 'RACE_WINNERS_NOT_FOUND',
-              message: `Unable to fetch race winners data for season ${season}`,
+              message: `Unable to fetch race winners data for season ${seasonYear}`,
             },
           },
           HttpStatus.NOT_FOUND
@@ -92,7 +87,7 @@ export class SeasonRaceWinnersController {
         {
           error: {
             code: 'INTERNAL_ERROR',
-            message: `An unexpected error occurred while fetching race winners for season ${season}`,
+            message: `An unexpected error occurred while fetching race winners for season ${seasonYear}`,
             details: error instanceof Error ? error.message : 'Unknown error',
           },
         },

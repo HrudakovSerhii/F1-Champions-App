@@ -8,6 +8,7 @@ import {
 } from '../../shared/transformers';
 
 import { GetSeasonsWinnersResponse } from '@f1-app/api-types';
+import { generateYearRangeStrings } from '../../shared/utils';
 
 @Injectable()
 export class SeasonsWinnersService {
@@ -22,39 +23,56 @@ export class SeasonsWinnersService {
   ) {}
 
   async getSeasonsWinners(
-    limit?: number,
-    offset?: number
+    minYear: number,
+    maxYear: number
   ): Promise<GetSeasonsWinnersResponse> {
     try {
-      // If initial load or no cache, fetch from external API
-      if (this.isInitialLoad) {
+      const yearsRange = generateYearRangeStrings(minYear, maxYear);
+      // TODO: add check in DB for records from provided years range. If missing, we need to fetch them from Jolpi API and save to DB
+      this.logger.warn(this.isInitialLoad);
+      const hasDataForThisRange =
+        await this.databaseService.checkExistingSeasonsWinnersData(yearsRange);
+
+      if (this.isInitialLoad && !hasDataForThisRange) {
         this.logger.log(
           'Initial load detected, fetching seasons winners from external Jolpica API'
         );
+
         const externalData = await this.jolpicaF1Service.getSeasonsWinners(
-          limit,
-          offset
+          yearsRange
         );
 
         if (externalData) {
+          const standingsTables =
+            this.externalDataParserService.extractStandingsTables(externalData);
+
+          // Flatten standings lists using utility function
+          const standingsLists =
+            this.externalDataParserService.flattenStandingsLists(
+              standingsTables
+            );
+
           const raceTableBDData =
-            this.externalDataParserService.extractDBDataFromJolpiRaceTable(
-              externalData
+            this.externalDataParserService.extractDBDataFromJolpiDriversStandingList(
+              standingsLists
             );
 
           await this.databaseService.storeDBUniqData(
             raceTableBDData.drivers,
-            raceTableBDData.constructors,
-            raceTableBDData.circuits,
-            raceTableBDData.seasons
+            raceTableBDData.constructors
+          );
+
+          await this.databaseService.storeSeasonsWinnersWithDuplicateCheck(
+            yearsRange,
+            raceTableBDData.seasonWinners
           );
 
           // Set initial load to false after first successful load
           this.isInitialLoad = false;
 
           // TODO: review this return and check if this.dataAggregationService.getSeasonsWinners can be used outside of condition to return data
-          return this.externalDataParserService.extractSeasonsWinnersFromJolpiRaceTable(
-            externalData
+          return this.externalDataParserService.extractSeasonsWinnersFromJolpiStandingsLists(
+            standingsLists
           );
         }
 
@@ -65,9 +83,9 @@ export class SeasonsWinnersService {
 
       // For subsequent calls, try to get from database first
       const seasonsWinners =
-        await this.dataAggregationService.getSeasonsWinners({
-          limit,
-          offset,
+        await this.dataAggregationService.getSeasonsWinners(yearsRange, {
+          orderBy: 'season',
+          orderDirection: 'desc',
         });
 
       if (seasonsWinners.length > 0) {

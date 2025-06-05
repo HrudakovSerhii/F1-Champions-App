@@ -7,6 +7,7 @@ import { DatabaseService } from '../../shared/database/database.service';
 import {
   DataAggregationService,
   ExternalDataParserService,
+  ApiAdapterService,
 } from '../../shared/transformers';
 
 @Module({
@@ -17,6 +18,7 @@ import {
     ExternalDataParserService,
     DatabaseService,
     DataAggregationService,
+    ApiAdapterServic,
   ],
   exports: [SeasonsWinnersService],
 })

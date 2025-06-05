@@ -1,24 +1,28 @@
 import {
   JolpiDriverStandingMRData,
-  JolpiRaceTableMRData,
+  StandingsList,
+  StandingsTable,
 } from './jolpi.api.types';
+
 import { DatabaseData } from './database.types';
 import { SeasonRaceWinner, SeasonWinner } from '@f1-app/api-types';
 
 export interface DataExtractor {
-  extractDBDataFromJolpiRaceTable(
-    jolpicaData: JolpiRaceTableMRData
+  extractStandingsTables(
+    jolpiDriverStandingMRDataList: Array<JolpiDriverStandingMRData | null>
+  ): StandingsTable[];
+
+  flattenStandingsLists(standingsTables: StandingsTable[]): StandingsList[];
+
+  extractDBDataFromJolpiDriversStandingList(
+    standingsLists: Array<StandingsList>
   ): DatabaseData;
 
-  extractSeasonsWinnersFromJolpiRaceTable(
-    jolpicaData: JolpiRaceTableMRData
+  extractSeasonsWinnersFromJolpiStandingsLists(
+    jolpicaData: Array<StandingsList>
   ): SeasonWinner[];
 
-  extractDBDataFromJolpiDriversStandings(
-    jolpicaData: JolpiDriverStandingMRData
-  ): DatabaseData;
-
-  extractSeasonRaceWinnersFromJolpiDriversStandings(
-    jolpicaData: JolpiDriverStandingMRData
+  extractSeasonRaceWinnersFromJolpiStandingsLists(
+    standingsLists: Array<StandingsList>
   ): SeasonRaceWinner[];
 }

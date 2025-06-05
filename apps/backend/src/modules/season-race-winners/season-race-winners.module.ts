@@ -4,7 +4,10 @@ import { SeasonRaceWinnersService } from './season-race-winners.service';
 import { JolpicaF1Module } from '../../shared/external-apis/jolpica-f1.module';
 import { DatabaseService } from '../../shared/database/database.service';
 import { ExternalDataParserService } from '../../shared/transformers/external-data-parser.service';
-import { DataAggregationService } from '../../shared/transformers';
+import {
+  DataAggregationService,
+  ApiAdapterService,
+} from '../../shared/transformers';
 
 @Module({
   imports: [JolpicaF1Module],
@@ -14,6 +17,7 @@ import { DataAggregationService } from '../../shared/transformers';
     ExternalDataParserService,
     DatabaseService,
     DataAggregationService,
+    ApiAdapterSevice,
   ],
   exports: [SeasonRaceWinnersService],
 })

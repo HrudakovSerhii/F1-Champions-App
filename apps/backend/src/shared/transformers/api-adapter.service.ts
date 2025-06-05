@@ -4,9 +4,9 @@ import type {
   DBSeasonRaceWinner,
   DBDriver,
   DBConstructor,
-  DBCircuit,
 } from '../../types';
-import { SeasonWinner, SeasonRaceWinner } from '@f1-app/api-types';
+
+import type { SeasonWinner, SeasonRaceWinner } from '@f1-app/api-types';
 
 @Injectable()
 export class ApiAdapterService {
@@ -71,31 +71,14 @@ export class ApiAdapterService {
    * @param seasonRaceWinners - Raw season race winners from database
    * @param drivers - Related drivers data
    * @param constructors - Related constructors data
-   * @param circuits - Related circuits data
    * @returns Transformed SeasonRaceWinner[] for API response
    */
   transformSeasonRaceWinnersToApiFormat(
     seasonRaceWinners: DBSeasonRaceWinner[],
     drivers: DBDriver[],
-    constructors: DBConstructor[],
-    circuits: DBCircuit[]
+    constructors: DBConstructor[]
   ): SeasonRaceWinner[] {
     return seasonRaceWinners.map((raceWinner) => {
-      const winnerCircuit = circuits.find(
-        ({ name }) => name === raceWinner.circuitId
-      );
-      const winnerCircuitBDData = winnerCircuit
-        ? {
-            name: winnerCircuit.name,
-            country: winnerCircuit.country,
-            locality: winnerCircuit.locality,
-          }
-        : {
-            name: raceWinner.circuitId,
-            country: 'Unknown',
-            locality: 'Unknown',
-          };
-
       const winnerConstructor = constructors.find(
         ({ name }) => name === raceWinner.constructorId
       );
@@ -132,14 +115,11 @@ export class ApiAdapterService {
 
       return {
         driver: winnerDriverBDData,
-        circuit: winnerCircuitBDData,
         constructor: winnerConstructorBDData,
-        date: raceWinner.date,
-        time: raceWinner.time,
-        laps: raceWinner.laps,
-        raceName: raceWinner.raceName,
+        points: raceWinner.points,
         round: raceWinner.round,
         season: raceWinner.season,
+        wins: raceWinner.wins,
       };
     });
   }

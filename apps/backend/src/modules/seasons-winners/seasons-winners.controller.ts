@@ -9,7 +9,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { SeasonsWinnersService } from './seasons-winners.service';
 import { GetSeasonsWinnersDto } from './dto/get-seasons-winners.dto';
 
-import { DEFAULT_LIMIT, DEFAULT_OFFSET } from '../../constants/constants';
+import { DEFAULT_MAX_YEAR, DEFAULT_MIN_YEAR } from '../../constants/constants';
 
 @ApiTags('SeasonsWinners')
 @Controller('f1/winners')
@@ -18,8 +18,8 @@ export class SeasonsWinnersController {
 
   @Get()
   @ApiOperation({
-    summary: 'Get all seasons champions',
-    description: `Returns a list of Formula 1 season champions (drivers who won the championship each year).
+    summary: 'Get seasons champions',
+    description: `Returns a list of Formula 1 season champions.
     Provides all championship winners from 1950 onwards in a single call.`,
   })
   @ApiResponse({
@@ -36,16 +36,18 @@ export class SeasonsWinnersController {
   })
   async getSeasonsWinners(@Query() query: GetSeasonsWinnersDto) {
     try {
-      const { limit, offset } = query;
+      const { minYear, maxYear } = query;
 
-      const takeLimit = limit ? parseInt(limit.toString(), 10) : DEFAULT_LIMIT;
-      const skipOffset = offset
-        ? parseInt(offset.toString(), 10)
-        : DEFAULT_OFFSET;
+      const _minYear = minYear
+        ? parseInt(minYear.toString(), 10)
+        : DEFAULT_MIN_YEAR;
+      const _maxYear = maxYear
+        ? parseInt(maxYear.toString(), 10)
+        : DEFAULT_MAX_YEAR;
 
       const result = await this.championsService.getSeasonsWinners(
-        takeLimit,
-        skipOffset
+        _minYear,
+        _maxYear
       );
 
       if (!result) {

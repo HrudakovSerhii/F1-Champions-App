@@ -3,10 +3,7 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 
-import type {
-  JolpiRaceTableMRData,
-  JolpiDriverStandingMRData,
-} from '../../types';
+import type { JolpiDriverStandingMRData } from '../../types';
 
 import { JOLPI_API_BASE_URL } from '../../constants/constants';
 
@@ -26,47 +23,29 @@ export class JolpicaF1Service {
   }
 
   async getSeasonsWinners(
-    limit?: number,
-    offset?: number
-  ): Promise<JolpiRaceTableMRData | null> {
+    yearsRange: string[]
+  ): Promise<Array<JolpiDriverStandingMRData | null>> {
     try {
-      const params = new URLSearchParams();
-
-      if (limit) params.append('limit', limit.toString());
-      if (offset) params.append('offset', offset.toString());
-
-      // https://api.jolpi.ca/ergast/f1/results/
-      const url = `${this.baseUrl}/results`;
-
-      const response = await firstValueFrom(
-        this.httpService.get<JolpiRaceTableMRData>(url)
+      return await Promise.all(
+        yearsRange.map((year) => this.getSeasonWinners(year))
       );
-
-      return response.data;
     } catch (error) {
       this.logger.error(
         'Failed to fetch season champions from Jolpica F1 API:',
         error
       );
 
-      return null;
+      return [];
     }
   }
 
-  async getSeasonRaceWinners(
-    season: string,
-    limit?: number,
-    offset?: number
+  async getSeasonWinners(
+    season: string
   ): Promise<JolpiDriverStandingMRData | null> {
     try {
-      const params = new URLSearchParams();
-
-      if (limit) params.append('limit', limit.toString());
-      if (offset) params.append('offset', offset.toString());
-
       // https://api.jolpi.ca/ergast/f1/2024/driverstandings/
-      const url = `${this.baseUrl}${season}/driverstandings`;
-
+      const url = `${this.baseUrl}/${season}/driverstandings`;
+      this.logger.log(url);
       const response = await firstValueFrom(
         this.httpService.get<JolpiDriverStandingMRData>(url)
       );
@@ -74,7 +53,7 @@ export class JolpicaF1Service {
       return response.data;
     } catch (error) {
       this.logger.error(
-        `Failed to fetch race winners for season ${season} from Jolpica F1 API:`,
+        `Failed to season race winners for season ${season} from Jolpica F1 API:`,
         error
       );
 

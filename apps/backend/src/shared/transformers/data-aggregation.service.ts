@@ -14,6 +14,7 @@ export class DataAggregationService {
 
   /**
    * Get seasons winners data formatted for API response
+   * @param yearsRange - Range of years to get winners data
    * @param options - Optional query parameters
    * @param options.limit - Maximum number of records to return
    * @param options.offset - Number of records to skip
@@ -21,15 +22,17 @@ export class DataAggregationService {
    * @param options.orderDirection - Order results by field (default: ascending)
    * @returns Promise<SeasonWinner[]> - Array of season winners formatted for API
    */
-  async getSeasonsWinners(options: {
-    limit?: number;
-    offset?: number;
-    orderBy?: 'round' | 'date' | 'raceName';
-    orderDirection?: 'asc' | 'desc';
-  }): Promise<SeasonWinner[]> {
+  async getSeasonsWinners(
+    yearsRange: string[],
+    options: {
+      orderBy?: 'season' | 'wins';
+      orderDirection?: 'asc' | 'desc';
+    }
+  ): Promise<SeasonWinner[]> {
     try {
       // Get raw database data
       const seasonsWinners = await this.databaseService.getSeasonsWinners(
+        yearsRange,
         options
       );
 
@@ -99,10 +102,6 @@ export class DataAggregationService {
         ...new Set(seasonRaceWinners.map((raceWinner) => raceWinner.driverId)),
       ];
 
-      const circuitIds = [
-        ...new Set(seasonRaceWinners.map((raceWinner) => raceWinner.circuitId)),
-      ];
-
       const constructorIds = [
         ...new Set(
           seasonRaceWinners.map((raceWinner) => raceWinner.constructorId)
@@ -110,9 +109,8 @@ export class DataAggregationService {
       ];
 
       // Fetch related data in parallel
-      const [drivers, circuits, constructors] = await Promise.all([
+      const [drivers, constructors] = await Promise.all([
         this.databaseService.getDriversByDriverIds(driverIds),
-        this.databaseService.getCircuitsByCircuitIds(circuitIds),
         this.databaseService.getConstructorsByByName(constructorIds),
       ]);
 
@@ -120,8 +118,7 @@ export class DataAggregationService {
       return this.apiAdapterService.transformSeasonRaceWinnersToApiFormat(
         seasonRaceWinners,
         drivers,
-        constructors,
-        circuits
+        constructors
       );
     } catch (error) {
       this.logger.error(
