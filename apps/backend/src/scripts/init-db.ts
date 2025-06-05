@@ -146,7 +146,7 @@ class DatabaseInitializer {
           },
           {
             key: { driverId: 1 },
-            name: 'idx_season_race_winner_drive',
+            name: 'idx_season_race_winner_driver',
           },
           {
             key: { constructorId: 1 },
@@ -154,7 +154,7 @@ class DatabaseInitializer {
           },
           {
             key: { points: -1 },
-            name: 'idx_season_race_winner_points_desc,
+            name: 'idx_season_race_winner_points_desc',
           },
         ],
       });

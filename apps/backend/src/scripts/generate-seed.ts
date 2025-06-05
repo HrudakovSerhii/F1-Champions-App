@@ -39,7 +39,7 @@ class SeedGenerator {
       const constructors = await Promise.all(
         raceTableBDData.constructors.map((constructor) =>
           this.prisma.constructor.create({
-            data: constructo,
+            data: constructor,
           })
         )
       );
@@ -55,7 +55,7 @@ class SeedGenerator {
       const seasonRaceWinners = await Promise.all(
         raceTableBDData.seasonRaceWinners.map((seasonRaceWinner) =>
           this.prisma.seasonRaceWinner.create({
-            data: seasonRaceWinne,
+            data: seasonRaceWinner,
           })
         )
       );
