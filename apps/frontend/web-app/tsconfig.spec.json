@@ -3,7 +3,7 @@
   "compilerOptions": {
     "outDir": "./out-tsc/vitest",
     "module": "es2022",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "types": [
       "vitest/globals",
       "vitest/importMeta",

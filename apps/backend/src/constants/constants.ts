@@ -1,4 +1,8 @@
-export const CORS_ORIGIN = ['http://localhost:4000'];
+export const CORS_ORIGIN = [
+  'http://localhost:3000', // Frontend development
+  'http://frontend:3000', // Docker container communication
+  'http://f1-frontend:3000', // Docker container name from docker-compose
+];
 export const BASE_URL =
   process.env.NODE_ENV === 'production'
     ? 'https://your-production-domain.com/api/v1'

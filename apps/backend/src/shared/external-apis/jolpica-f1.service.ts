@@ -31,68 +31,72 @@ export class JolpicaF1Service {
   }
 
   /**
-   * Split array into chunks of specified size
-   * @param array - array to chunk
-   * @param chunkSize - size of each chunk
+   * Generate random delay between min and max milliseconds
+   * @param minMs - minimum milliseconds
+   * @param maxMs - maximum milliseconds
    */
-  private chunkArray<T>(array: T[], chunkSize: number): T[][] {
-    const chunks: T[][] = [];
-    for (let i = 0; i < array.length; i += chunkSize) {
-      chunks.push(array.slice(i, i + chunkSize));
-    }
-    return chunks;
+  private getRandomDelay(minMs: number, maxMs: number): number {
+    return Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
   }
 
   async getSeasonsWinners(
     yearsRange: string[]
   ): Promise<Array<JolpiDriverStandingMRData | null>> {
-    try {
-      const BATCH_SIZE = 2; // Max 2 requests per batch
-      const DELAY_BETWEEN_BATCHES_MS = 1000; // 1-second delay between batches
+    const MIN_DELAY_MS = 2000; // 2 seconds minimum
+    const MAX_DELAY_MS = 3000; // 3 seconds maximum
 
-      this.logger.log(
-        `Fetching data for ${yearsRange.length} seasons with rate limiting (${BATCH_SIZE} requests per second)`
-      );
+    this.logger.log(
+      `Fetching data for ${yearsRange.length} seasons with random rate limiting (${MIN_DELAY_MS}-${MAX_DELAY_MS}ms between requests)`
+    );
 
-      // Split years into batches of 2
-      const batches = this.chunkArray(yearsRange, BATCH_SIZE);
-      const allResults: Array<JolpiDriverStandingMRData | null> = [];
+    const allResults: Array<JolpiDriverStandingMRData | null> = [];
+    let successfulRequests = 0;
+    let failedRequests = 0;
+    let rateLimitedRequests = 0;
 
-      for (let i = 0; i < batches.length; i++) {
-        const batch = batches[i];
+    for (let i = 0; i < yearsRange.length; i++) {
+      const year = yearsRange[i];
 
-        this.logger.log(
-          `Processing batch ${i + 1}/${batches.length}: [${batch.join(', ')}]`
-        );
+      try {
+        // Process individual season request
+        const seasonResults = await this.getSeasonWinners(year);
 
-        // Process batch in parallel (max 2 requests)
-        const batchResults = await Promise.all(
-          batch.map((year) => this.getSeasonWinners(year))
-        );
-
-        allResults.push(...batchResults);
-
-        // Add delay between batches (except for the last batch)
-        if (i < batches.length - 1) {
-          this.logger.debug(
-            `Waiting ${DELAY_BETWEEN_BATCHES_MS}ms before next batch...`
+        if (seasonResults) {
+          allResults.push(seasonResults);
+          successfulRequests++;
+        } else {
+          allResults.push(null);
+          failedRequests++;
+        }
+      } catch (error: any) {
+        if (error?.response?.status === 429) {
+          this.logger.warn(
+            `Rate limit exceeded (429) for season ${year}. Continuing with remaining seasons...`
           );
-          await this.delay(DELAY_BETWEEN_BATCHES_MS);
+          rateLimitedRequests++;
+        } else {
+          this.logger.error(
+            `Failed to fetch data for season ${year}:`,
+            error?.message || error
+          );
+          throw error;
         }
       }
 
-      this.logger.log(
-        `Completed fetching data for ${yearsRange.length} seasons`
-      );
-      return allResults;
-    } catch (error) {
-      this.logger.error(
-        'Failed to fetch season champions from Jolpica F1 API:',
-        error
-      );
+      // Add random delay between requests (except for the last request)
+      if (i < yearsRange.length - 1) {
+        const randomDelay = this.getRandomDelay(MIN_DELAY_MS, MAX_DELAY_MS);
 
-      return [];
+        await this.delay(randomDelay);
+      }
     }
+
+    this.logger.log(
+      `Completed fetching data for ${yearsRange.length} seasons. ` +
+        `Success: ${successfulRequests}, Failed: ${failedRequests}, Rate Limited: ${rateLimitedRequests}`
+    );
+
+    return allResults;
   }
 
   async getSeasonWinners(

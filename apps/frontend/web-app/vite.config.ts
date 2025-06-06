@@ -15,9 +15,7 @@ export default defineConfig(({ mode }) => {
     cacheDir: '../../node_modules/.vite/apps/web-app',
 
     // More flexible base path configuration
-    base:
-      process.env.VITE_BASE_PATH ||
-      (mode === 'production' ? '/f1-champions-app/' : '/'),
+    base: process.env.VITE_BASE_PATH || '/',
 
     server: {
       port: process.env.PORT ? Number(process.env.PORT) : 3000,

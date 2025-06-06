@@ -41,7 +41,7 @@ RUN echo '#!/bin/bash' > /app/docker-entrypoint.sh && \
     echo 'if [ "$NODE_ENV" = "development" ]; then' >> /app/docker-entrypoint.sh && \
     echo '    echo "🔧 Development mode enabled"' >> /app/docker-entrypoint.sh && \
     echo '    echo "🌐 API_BASE_URL: ${API_BASE_URL:-not-set}"' >> /app/docker-entrypoint.sh && \
-    echo '    echo "🌐 VITE_API_URL: ${VITE_API_URL:-not-set}"' >> /app/docker-entrypoint.sh && \
+    echo '    echo "🌐 VITE_API_BASE_URL: ${VITE_API_BASE_URL:-not-set}"' >> /app/docker-entrypoint.sh && \
     echo 'fi' >> /app/docker-entrypoint.sh && \
     echo '' >> /app/docker-entrypoint.sh && \
     echo '# NOTE: Frontend is client-side, no need to wait for backend' >> /app/docker-entrypoint.sh && \
@@ -85,7 +85,7 @@ ENV NODE_ENV=$NODE_ENV
 # Display build environment (for debugging)
 RUN echo "🔧 Build environment:" && \
     echo "  NODE_ENV: $NODE_ENV" && \
-    echo "  VITE_API_URL: $VITE_API_URL" && \
+    echo "  VITE_API_BASE_URL: $VITE_API_BASE_URL" && \
     echo "  API_BASE_URL: $API_BASE_URL"
 
 # Ensure styles library is built
@@ -104,11 +104,11 @@ FROM nginx:alpine AS production
 # Install curl for health check
 RUN apk add --no-cache curl gettext
 
-# Copy nginx configuration template
-COPY ./docker/frontend/nginx.conf /etc/nginx/templates/default.conf.template
+# Copy nginx configuration
+COPY ./docker/frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy build output from build stage
-COPY --from=build /app/dist/apps/frontend/web-app /usr/share/nginx/html
+COPY --from=build /app/apps/frontend/web-app/dist /usr/share/nginx/html
 
 # Create dynamic health check script
 RUN echo '#!/bin/sh' > /usr/local/bin/healthcheck.sh && \
@@ -125,8 +125,7 @@ RUN echo '#!/bin/sh' > /docker-entrypoint.sh && \
     echo 'PORT=${PORT:-3000}' >> /docker-entrypoint.sh && \
     echo 'echo "📡 Nginx serving on port: $PORT"' >> /docker-entrypoint.sh && \
     echo '' >> /docker-entrypoint.sh && \
-    echo '# Process nginx configuration template' >> /docker-entrypoint.sh && \
-    echo 'envsubst < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf' >> /docker-entrypoint.sh && \
+    echo '# Nginx configuration already in place' >> /docker-entrypoint.sh && \
     echo '' >> /docker-entrypoint.sh && \
     echo '# Start nginx' >> /docker-entrypoint.sh && \
     echo 'echo "🎯 Starting nginx..."' >> /docker-entrypoint.sh && \
