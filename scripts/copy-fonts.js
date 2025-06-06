@@ -3,7 +3,7 @@ const path = require('path');
 
 // Directory paths
 const sourceDir = path.resolve(__dirname, '../public/fonts');
-const targetDir = path.resolve(__dirname, '../apps/f1-spa/dist/fonts');
+const targetDir = path.resolve(__dirname, '../dist/apps/frontend/web-app/fonts');
 
 // Create target directory if it doesn't exist
 if (!fs.existsSync(targetDir)) {

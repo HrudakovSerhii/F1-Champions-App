@@ -103,7 +103,7 @@ start_services() {
     log_info "📋 Service URLs:"
     echo "   • Frontend:  http://localhost:3000"
     echo "   • Backend:   http://localhost:4000"
-    echo "   • MongoDB:   mongodb://localhost:27017/f1_champions_db"
+    echo "   • MongoDB:   mongodb://localhost:27000/f1_champions_local_db"
     echo ""
     log_info "⏳ Services may take a few minutes to fully initialize..."
     log_info "   Use 'docker-compose logs -f' to monitor startup progress"

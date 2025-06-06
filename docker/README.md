@@ -70,7 +70,7 @@ docker-compose up -d
 
 | Variable        | Default                                   | Description                     |
 |-----------------|-------------------------------------------|---------------------------------|
-| `USE_SEED_DATA` | `true`                                    | Auto-seed database with F1 data |
+| `USE_SEED_DATA` | `false`                                   | if true - Auto-seed database with F1 data |
 | `NODE_ENV`      | `development`                             | Environment mode                |
 | `DATABASE_URL`  | `mongodb://mongodb:27017/f1_champions_db` | DB connection                   |
 
@@ -106,7 +106,7 @@ The containers start in this specific order:
 
 ### Automatic Seeding
 
-When `USE_SEED_DATA=true` (default), the backend will:
+When `USE_SEED_DATA=true` the backend will:
 
 1. Generate seed file from `apps/backend/src/scripts/generate-seed.ts`
 2. Use your existing mock data from `apps/backend/src/assets/mock-data.json`

@@ -7,25 +7,20 @@ services:
     container_name: f1-mongodb
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "27000:27017"
     environment:
-      MONGO_INITDB_DATABASE: f1_champions_db
+      MONGO_INITDB_DATABASE: f1_champions_local_db
       DOCKER_ENV: "true"
-      REPLICA_SET_NAME: "f1rs"
-      REPLICA_NODES: "1"
-      DATABASE_NAME: "f1_champions_db"
     volumes:
       - mongodb_data:/data/db
-      - ./mongodb/mongodb-init.js:/docker-entrypoint-initdb.d/01-mongodb-init.js
     networks:
       - f1-network
-    command: [ "mongod", "--replSet", "f1rs", "--bind_ip_all" ]
     healthcheck:
-      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 10s
 
   # Backend NestJS Service
   backend:
@@ -39,9 +34,12 @@ services:
       - "4000:4000"
     environment:
       - NODE_ENV=development
-      - DATABASE_URL=mongodb://mongodb:27017/f1_champions_db
+      - DATABASE_URL=mongodb://mongodb:27017/f1_champions_local_db
+      - MONGODB_DATABASE_PORT=27017
+      - MONGODB_DATABASE_NAME=f1_champions_local_db
+      - MONGODB_HOST_NAME=mongodb
       - PORT=4000
-      - USE_SEED_DATA=${USE_SEED_DATA:-true}
+      - USE_SEED_DATA=${USE_SEED_DATA:-false}
     volumes:
       # Mount source code for development
       - ./apps/backend:/app/apps/backend
@@ -62,7 +60,7 @@ services:
     networks:
       - f1-network
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:4000/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:4000/api/v1/health" ]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -107,7 +107,12 @@ export class DatabaseService {
             wins: seasonWinner.wins,
             updatedAt: new Date(),
           },
-          create: seasonWinner,
+          create: {
+            season: seasonWinner.season,
+            wins: seasonWinner.wins,
+            driverId: seasonWinner.driverId,
+            constructorId: seasonWinner.constructorId
+          },
         })
       )
     );
@@ -142,7 +147,14 @@ export class DatabaseService {
             wins: seasonRaceWinner.wins,
             updatedAt: new Date(),
           },
-          create: seasonRaceWinner,
+          create: {
+            season: seasonRaceWinner.season,
+            points: seasonRaceWinner.points,
+            round: seasonRaceWinner.round,
+            wins: seasonRaceWinner.wins,
+            driverId: seasonRaceWinner.driverId,
+            constructorId: seasonRaceWinner.constructorId
+          },
         })
       )
     );
@@ -168,7 +180,13 @@ export class DatabaseService {
             url: driver.url,
             updatedAt: new Date(),
           },
-          create: driver,
+          create: {
+            driverId: driver.driverId,
+            givenName: driver.givenName,
+            familyName: driver.familyName,
+            nationality: driver.nationality,
+            url: driver.url
+          },
         })
       )
     );
@@ -194,7 +212,11 @@ export class DatabaseService {
             url: constructor.url,
             updatedAt: new Date(),
           },
-          create: constructor,
+          create: {
+            name: constructor.name,
+            nationality: constructor.nationality,
+            url: constructor.url
+          },
         })
       )
     );
