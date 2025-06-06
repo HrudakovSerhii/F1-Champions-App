@@ -21,42 +21,30 @@ class F1MongoDBSetup {
     console.log('═'.repeat(60));
 
     const envPath = path.join(__dirname, '../.env');
-    console.log(`🔍 Loading environment from: ${envPath}`);
 
     if (!fs.existsSync(envPath)) {
       console.error('❌ .env file not found');
-      console.log('💡 Please create .env with MongoDB configuration');
       process.exit(1);
     }
 
     const envContent = fs.readFileSync(envPath, 'utf8');
     const envVars = {};
 
+    // Simplified env parsing
     envContent.split('\n').forEach((line) => {
       const trimmed = line.trim();
-      if (trimmed && !trimmed.startsWith('#')) {
-        const [key, ...valueParts] = trimmed.split('=');
-        if (key && valueParts.length > 0) {
-          const value = valueParts.join('=').replace(/"/g, '');
-          envVars[key.trim()] = value;
-        }
+      if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+        const [key, value] = trimmed.split('=', 2);
+        envVars[key.trim()] = value.replace(/"/g, '');
       }
     });
 
-    // Set configuration
     this.config = {
       port: envVars.MONGODB_DATABASE_PORT || '27000',
       dbName: envVars.MONGODB_DATABASE_NAME || 'f1_champions_local_db',
       replicaSet: envVars.MONGODB_REPLICA_SET_NAME || 'f1rs',
       host: envVars.MONGODB_HOST_NAME || 'localhost',
-      nodeCount: parseInt(envVars.MONGODB_REPLICA_NODES || '1'),
-      isDocker: envVars.DOCKER_ENV === 'true',
     };
-
-    console.log('📋 Configuration loaded:');
-    Object.entries(this.config).forEach(([key, value]) => {
-      console.log(`  ✅ ${key}: ${value}`);
-    });
 
     this.connectionString = `mongodb://${this.config.host}:${this.config.port}/?directConnection=true`;
     this.appConnectionString = `mongodb://${this.config.host}:${this.config.port}/${this.config.dbName}?replicaSet=${this.config.replicaSet}`;
@@ -64,7 +52,6 @@ class F1MongoDBSetup {
 
   async connectToMongoDB() {
     console.log('\n🔌 Connecting to MongoDB...');
-    console.log(`   Host: ${this.config.host}:${this.config.port}`);
 
     try {
       this.client = new MongoClient(this.connectionString);
@@ -85,14 +72,11 @@ class F1MongoDBSetup {
     console.log('\n🔧 Initializing replica set...');
 
     try {
-      // Check if replica set is already initialized
-      const status = await this.admin.command({ replSetGetStatus: 1 });
-      console.log('ℹ️  Replica set is already initialized');
+      await this.admin.command({ replSetGetStatus: 1 });
+      console.log('✅ Replica set already initialized');
       return true;
     } catch (error) {
-      if (error.message.includes('no replset config')) {
-        console.log('📦 Setting up new replica set...');
-      } else {
+      if (!error.message.includes('no replset config')) {
         throw error;
       }
     }
@@ -115,13 +99,7 @@ class F1MongoDBSetup {
 
       if (result.ok === 1) {
         console.log('✅ Replica set initialized successfully!');
-        console.log(`📊 Replica set: ${this.config.replicaSet}`);
-        console.log(`🔗 Member: ${this.config.host}:${this.config.port}`);
-
-        // Wait for replica set to stabilize
-        console.log('⏳ Waiting for replica set to stabilize...');
         await new Promise((resolve) => setTimeout(resolve, 3000));
-
         return true;
       } else {
         console.error('❌ Failed to initialize replica set:', result);
@@ -133,100 +111,52 @@ class F1MongoDBSetup {
     }
   }
 
+  async checkDatabaseExists() {
+    const db = this.client.db(this.config.dbName);
+    const collections = await db.listCollections().toArray();
+
+    if (collections.length > 0) {
+      console.log('\n⚠️  Database already exists with collections:');
+      collections.forEach((col) => console.log(`  - ${col.name}`));
+      console.log('\n💡 To recreate database, run: npm run db:purge');
+      return true;
+    }
+
+    return false;
+  }
+
   async setupDatabase() {
     console.log('\n🏎️  Setting up F1 Champions database...');
 
     const db = this.client.db(this.config.dbName);
-    console.log('📊 Creating collections and indexes if they don\'t exist...');
 
     try {
-      // Drivers collection
+      // Create collections and indexes
       const drivers = db.collection('drivers');
-      const driverIndexes = await drivers.listIndexes().toArray();
-      const driverIndexNames = driverIndexes.map(idx => Object.keys(idx.key)[0]);
-      
-      if (!driverIndexNames.includes('driverId')) {
-        await drivers.createIndex({ driverId: 1 }, { unique: true });
-        console.log('  - Created index on drivers.driverId');
-      }
-      
-      if (!driverIndexNames.includes('familyName')) {
-        await drivers.createIndex({ familyName: 1 });
-        console.log('  - Created index on drivers.familyName');
-      }
-      
-      if (!driverIndexNames.includes('nationality')) {
-        await drivers.createIndex({ nationality: 1 });
-        console.log('  - Created index on drivers.nationality');
-      }
+      await drivers.createIndex({ driverId: 1 }, { unique: true });
+      await drivers.createIndex({ familyName: 1 });
+      await drivers.createIndex({ nationality: 1 });
 
-      // Constructors collection
       const constructors = db.collection('constructors');
-      const constructorIndexes = await constructors.listIndexes().toArray();
-      const constructorIndexNames = constructorIndexes.map(idx => Object.keys(idx.key)[0]);
-      
-      if (!constructorIndexNames.includes('name')) {
-        await constructors.createIndex({ name: 1 }, { unique: true });
-        console.log('  - Created index on constructors.name');
-      }
-      
-      if (!constructorIndexNames.includes('nationality')) {
-        await constructors.createIndex({ nationality: 1 });
-        console.log('  - Created index on constructors.nationality');
-      }
+      await constructors.createIndex({ name: 1 }, { unique: true });
+      await constructors.createIndex({ nationality: 1 });
 
-      // Season Winners collection
       const seasonWinners = db.collection('season_winners');
-      const seasonWinnersIndexes = await seasonWinners.listIndexes().toArray();
-      const seasonWinnersCompoundIndex = seasonWinnersIndexes.find(idx => 
-        idx.key.season && idx.key.driverId && idx.key.constructorId
+      await seasonWinners.createIndex(
+        { season: 1, driverId: 1, constructorId: 1 },
+        { unique: true }
       );
-      
-      if (!seasonWinnersCompoundIndex) {
-        await seasonWinners.createIndex(
-          { season: 1, driverId: 1, constructorId: 1 },
-          { unique: true }
-        );
-        console.log('  - Created compound index on season_winners');
-      }
-      
-      if (!seasonWinnersIndexes.find(idx => idx.key.season && Object.keys(idx.key).length === 1)) {
-        await seasonWinners.createIndex({ season: 1 });
-        console.log('  - Created index on season_winners.season');
-      }
+      await seasonWinners.createIndex({ season: 1 });
 
-      // Season Race Winners collection
       const seasonRaceWinners = db.collection('season_race_winners');
-      const raceWinnersIndexes = await seasonRaceWinners.listIndexes().toArray();
-      const raceWinnersCompoundIndex = raceWinnersIndexes.find(idx => 
-        idx.key.season && idx.key.driverId && idx.key.constructorId
+      await seasonRaceWinners.createIndex(
+        { season: 1, round: 1, driverId: 1, constructorId: 1 },
+        { unique: true }
       );
-      
-      if (!raceWinnersCompoundIndex) {
-        await seasonRaceWinners.createIndex(
-          { season: 1, round: 1, driverId: 1, constructorId: 1 },
-          { unique: true }
-        );
-        console.log('  - Created compound index on season_race_winners');
-      }
-      
-      if (!raceWinnersIndexes.find(idx => idx.key.season && Object.keys(idx.key).length === 1)) {
-        await seasonRaceWinners.createIndex({ season: 1 });
-        console.log('  - Created index on season_race_winners.season');
-      }
-      
-      if (!raceWinnersIndexes.find(idx => idx.key.round && Object.keys(idx.key).length === 1)) {
-        await seasonRaceWinners.createIndex({ round: 1 });
-        console.log('  - Created index on season_race_winners.round');
-      }
+      await seasonRaceWinners.createIndex({ season: 1 });
+      await seasonRaceWinners.createIndex({ round: 1 });
 
       console.log('✅ Database schema setup completed!');
-      console.log('📋 Collections are ready:');
-      console.log('  - drivers');
-      console.log('  - constructors');
-      console.log('  - season_winners');
-      console.log('  - season_race_winners');
-      
     } catch (error) {
       console.error('❌ Error setting up database schema:', error.message);
       throw error;
@@ -240,11 +170,16 @@ class F1MongoDBSetup {
       const replicaSetReady = await this.initializeReplicaSet();
 
       if (replicaSetReady) {
-        await this.setupDatabase();
+        const dbExists = await this.checkDatabaseExists();
 
-        console.log('\n🎉 F1 Champions MongoDB setup completed successfully!');
-        console.log('🔗 Connection string for your application:');
-        console.log(`   ${this.appConnectionString}`);
+        if (!dbExists) {
+          await this.setupDatabase();
+          console.log(
+            '\n🎉 F1 Champions MongoDB setup completed successfully!'
+          );
+          console.log('🔗 Connection string for your application:');
+          console.log(`   ${this.appConnectionString}`);
+        }
       } else {
         console.error(
           '❌ Failed to set up replica set, skipping database setup'

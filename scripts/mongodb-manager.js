@@ -9,7 +9,7 @@ const { spawn, exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-class F1MongoDBManager {
+class MongoDBManager {
   constructor() {
     this.config = {};
     this.loadEnvironmentVariables();
@@ -32,8 +32,7 @@ class F1MongoDBManager {
       if (trimmed && !trimmed.startsWith('#')) {
         const [key, ...valueParts] = trimmed.split('=');
         if (key && valueParts.length > 0) {
-          const value = valueParts.join('=').replace(/"/g, '');
-          envVars[key.trim()] = value;
+          envVars[key.trim()] = valueParts.join('=').replace(/"/g, '');
         }
       }
     });
@@ -100,10 +99,9 @@ class F1MongoDBManager {
       });
 
       let startupComplete = false;
-      let startupTimeout;
 
       // Set timeout for startup
-      startupTimeout = setTimeout(() => {
+      const startupTimeout = setTimeout(() => {
         if (!startupComplete) {
           console.log('⏳ MongoDB startup taking longer than expected...');
           console.log(`🔍 Check logs for details: ${this.config.logPath}`);
@@ -171,7 +169,7 @@ class F1MongoDBManager {
     return new Promise((resolve) => {
       const checkCommand = `pgrep -f 'mongod.*--port ${this.config.port}'`;
 
-      exec(checkCommand, (error, stdout, stderr) => {
+      exec(checkCommand, (error, stdout) => {
         resolve(!error && stdout.trim());
       });
     });
@@ -183,33 +181,23 @@ class F1MongoDBManager {
     console.log(`📡 Stopping MongoDB on port: ${this.config.port}`);
 
     return new Promise((resolve, reject) => {
-      // First try to find process by port argument (old style)
       const killByPortCommand = `pkill -f 'mongod.*--port ${this.config.port}'`;
 
-      exec(killByPortCommand, (error, stdout, stderr) => {
+      exec(killByPortCommand, (error) => {
         if (error && error.code === 1) {
-          // No process found with port argument, try finding by config file or port usage
-          console.log(
-            '🔍 No process found with port argument, checking by port usage...'
-          );
-
-          // Find process using the port with lsof
+          // Try finding by port usage
           const findByPortCommand = `lsof -ti :${this.config.port}`;
 
-          exec(findByPortCommand, (error2, stdout2, stderr2) => {
+          exec(findByPortCommand, (error2, stdout2) => {
             if (error2 || !stdout2.trim()) {
-              console.log(
-                'ℹ️  No MongoDB process found running on port ' +
-                  this.config.port
-              );
+              console.log('ℹ️  No MongoDB process found');
               resolve();
             } else {
               const pids = stdout2.trim().split('\n');
               const killPidsCommand = `kill ${pids.join(' ')}`;
 
-              exec(killPidsCommand, (error3, stdout3, stderr3) => {
+              exec(killPidsCommand, (error3) => {
                 if (error3) {
-                  console.error('❌ Error stopping MongoDB:', error3.message);
                   reject(error3);
                 } else {
                   console.log('✅ MongoDB stopped successfully');
@@ -219,7 +207,6 @@ class F1MongoDBManager {
             }
           });
         } else if (error) {
-          console.error('❌ Error stopping MongoDB:', error.message);
           reject(error);
         } else {
           console.log('✅ MongoDB stopped successfully');
@@ -234,22 +221,20 @@ class F1MongoDBManager {
     console.log('═'.repeat(50));
 
     return new Promise((resolve) => {
-      // Check if MongoDB process is using the port
       const checkCommand = `lsof -ti :${this.config.port}`;
 
-      exec(checkCommand, (error, stdout, stderr) => {
+      exec(checkCommand, (error, stdout) => {
         if (error || !stdout.trim()) {
           console.log('❌ MongoDB is not running');
           console.log(`   Expected port: ${this.config.port}`);
           resolve(false);
         } else {
           const pids = stdout.trim().split('\n');
-          const mainPid = pids[0]; // Get the main process ID
+          const mainPid = pids[0];
 
-          // Get process details
           const psCommand = `ps -p ${mainPid} -o pid,command`;
 
-          exec(psCommand, (psError, psStdout, psStderr) => {
+          exec(psCommand, (psError, psStdout) => {
             console.log('✅ MongoDB is running');
             console.log(`   PID: ${mainPid}`);
             console.log(`   Port: ${this.config.port}`);
@@ -317,11 +302,11 @@ class F1MongoDBManager {
 
 // Run if called directly
 if (require.main === module) {
-  const manager = new F1MongoDBManager();
+  const manager = new MongoDBManager();
   manager.run().catch((error) => {
     console.error('Fatal error:', error);
     process.exit(1);
   });
 }
 
-module.exports = F1MongoDBManager;
+module.exports = MongoDBManager;
