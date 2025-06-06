@@ -1,4 +1,5 @@
-export const F1_CHAMPIONS_API_PATH = 'http://localhost:4000/api/v1';
+export const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:4000';
+export const F1_CHAMPIONS_API_PATH = API_BASE_URL + '/api/v1';
 
 export const ALL_SEASON_WINNERS_PATH = '/f1/winners';
 

@@ -5,7 +5,7 @@ import { firstValueFrom } from 'rxjs';
 
 import type { JolpiDriverStandingMRData } from '../../types';
 
-import { JOLPI_API_BASE_URL } from '../../constants/constants';
+import { DEFAULT_EXTERNAL_API_URL } from '../../constants/constants';
 
 @Injectable()
 export class JolpicaF1Service {
@@ -17,8 +17,8 @@ export class JolpicaF1Service {
     private readonly configService: ConfigService
   ) {
     this.baseUrl = this.configService.get<string>(
-      'JOLPI_API_BASE_URL',
-      JOLPI_API_BASE_URL
+      'EXTERNAL_API_URL',
+      DEFAULT_EXTERNAL_API_URL
     );
   }
 

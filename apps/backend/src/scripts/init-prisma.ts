@@ -32,8 +32,8 @@ class PrismaManager {
   private async testConnection(): Promise<void> {
     try {
       await this.prisma.$runCommandRaw({ ping: 1 });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.log(error);
       throw new Error(
         'Cannot connect to database. Check DATABASE_URL environment variable.'
       );
@@ -41,101 +41,68 @@ class PrismaManager {
   }
 
   private async createIndexes(): Promise<void> {
-    try {
-      // Drivers indexes
-      await this.prisma.$runCommandRaw({
-        createIndexes: 'drivers',
+    const indexConfigs = [
+      {
+        collection: 'drivers',
         indexes: [
-          {
-            key: { driverId: 1 },
-            name: 'idx_driver_driverId',
-            unique: true,
-          },
-          {
-            key: { nationality: 1 },
-            name: 'idx_driver_nationality',
-          },
-          {
-            key: { familyName: 1, givenName: 1 },
-            name: 'idx_driver_name',
-          },
+          { key: { driverId: 1 }, name: 'idx_driver_driverId', unique: true },
+          { key: { nationality: 1 }, name: 'idx_driver_nationality' },
+          { key: { familyName: 1, givenName: 1 }, name: 'idx_driver_name' },
         ],
-      });
-
-      // Constructors indexes
-      await this.prisma.$runCommandRaw({
-        createIndexes: 'constructors',
+      },
+      {
+        collection: 'constructors',
         indexes: [
-          {
-            key: { name: 1 },
-            name: 'idx_constructor_name',
-            unique: true,
-          },
-          {
-            key: { nationality: 1 },
-            name: 'idx_constructor_nationality',
-          },
+          { key: { name: 1 }, name: 'idx_constructor_name', unique: true },
+          { key: { nationality: 1 }, name: 'idx_constructor_nationality' },
         ],
-      });
-
-      // Season winners indexes
-      await this.prisma.$runCommandRaw({
-        createIndexes: 'season_winners',
+      },
+      {
+        collection: 'season_winners',
         indexes: [
           {
             key: { season: 1, driverId: 1, constructorId: 1 },
             name: 'idx_season_winner_unique',
             unique: true,
           },
-          {
-            key: { season: 1 },
-            name: 'idx_season_winner_season',
-          },
-          {
-            key: { driverId: 1 },
-            name: 'idx_season_winner_driver',
-          },
-          {
-            key: { constructorId: 1 },
-            name: 'idx_season_winner_constructor',
-          },
+          { key: { season: 1 }, name: 'idx_season_winner_season' },
+          { key: { driverId: 1 }, name: 'idx_season_winner_driver' },
+          { key: { constructorId: 1 }, name: 'idx_season_winner_constructor' },
         ],
-      });
-
-      // Race winners indexes
-      await this.prisma.$runCommandRaw({
-        createIndexes: 'season_race_winners',
+      },
+      {
+        collection: 'season_race_winners',
         indexes: [
           {
             key: { season: 1, driverId: 1, constructorId: 1 },
             name: 'idx_season_race_winner_unique',
             unique: true,
           },
-          {
-            key: { season: 1 },
-            name: 'idx_season_race_winner_season',
-          },
+          { key: { season: 1 }, name: 'idx_season_race_winner_season' },
           {
             key: { season: 1, round: 1 },
             name: 'idx_season_race_winner_season_round',
           },
-          {
-            key: { driverId: 1 },
-            name: 'idx_season_race_winner_driver',
-          },
+          { key: { driverId: 1 }, name: 'idx_season_race_winner_driver' },
           {
             key: { constructorId: 1 },
             name: 'idx_season_race_winner_constructor',
           },
-          {
-            key: { points: -1 },
-            name: 'idx_season_race_winner_points_desc',
-          },
+          { key: { points: -1 }, name: 'idx_season_race_winner_points_desc' },
         ],
-      });
+      },
+    ];
+
+    try {
+      for (const config of indexConfigs) {
+        await this.prisma.$runCommandRaw({
+          createIndexes: config.collection,
+          indexes: config.indexes,
+        });
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // Indexes might already exist, which is fine
-      console.log(error);
       console.log('ℹ️  Some indexes may already exist');
     }
   }
@@ -157,8 +124,8 @@ class PrismaManager {
     for (const collection of collections) {
       try {
         await collection.count();
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
-        console.log(error);
         console.log(`⚠️  Collection '${collection.name}' not accessible`);
       }
     }
@@ -188,8 +155,8 @@ class PrismaManager {
           stats.indexSize ? (stats.indexSize / 1024 / 1024).toFixed(2) : '0.00'
         } MB`
       );
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.log(error);
       console.log('ℹ️  Could not retrieve database statistics');
     }
   }
@@ -212,9 +179,7 @@ async function main() {
         await initializer.verifySchema();
         break;
       default:
-        console.log(
-          'Usage: npx ts-node prisma-db-initializer.ts [init|stats|verify]'
-        );
+        console.log('Usage: npx ts-node init-prisma.ts [init|stats|verify]');
         process.exit(1);
     }
   } catch (error) {
