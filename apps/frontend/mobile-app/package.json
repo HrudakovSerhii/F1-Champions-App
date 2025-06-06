@@ -4,5 +4,22 @@
   "private": true,
   "nx": {
     "name": "mobile-app"
+  },
+  "dependencies": {
+    "react-native": "~0.76.3"
+  },
+  "devDependencies": {
+    "@react-native-community/cli": "~15.0.1",
+    "@react-native-community/cli-platform-android": "~15.0.1",
+    "@react-native-community/cli-platform-ios": "~15.0.1",
+    "@react-native/babel-preset": "~0.76.3",
+    "@react-native/metro-config": "~0.76.3",
+    "@testing-library/jest-native": "~5.4.3",
+    "@testing-library/react-native": "~12.9.0",
+    "jest-react-native": "18.0.0",
+    "react-native-svg": "~15.8.0",
+    "react-native-svg-transformer": "~1.5.0",
+    "react-native-svg-web": "~1.0.9",
+    "react-native-web": "~0.19.13"
   }
 }
