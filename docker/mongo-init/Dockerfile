@@ -1,10 +1,12 @@
-FROM node:20-alpine
+FROM mongo:7.0
 
-# Install system dependencies
-RUN apk add --no-cache \
+# Install Node.js on the MongoDB image
+RUN apt-get update && apt-get install -y \
     curl \
-    bash \
-    mongodb-tools
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
@@ -12,34 +14,14 @@ WORKDIR /app
 # Copy package files and scripts
 COPY package*.json ./
 COPY scripts/mongodb-setup.js ./scripts/
-COPY .env.example ./.env
+COPY docker/mongo-init/init-replica-set.js ./scripts/
+COPY docker/mongo-init/entrypoint.sh ./entrypoint.sh
+# Environment variables will be passed via docker-compose
 
 # Install only the required dependencies
 RUN npm ci --only=production --omit=dev
 
-# Create and set permissions for the entrypoint script
-RUN echo '#!/bin/bash \n\
-set -e \n\
-\n\
-echo "🏁 Starting MongoDB Setup..." \n\
-\n\
-# Wait for MongoDB to be ready \n\
-echo "⏳ Waiting for MongoDB to start..." \n\
-until mongosh --host mongodb --port 27017 --eval "db.adminCommand({ping:1})" &>/dev/null; do \n\
-    echo "MongoDB not ready, waiting..." \n\
-    sleep 2 \n\
-done \n\
-\n\
-echo "✅ MongoDB is running!" \n\
-\n\
-# Run the setup script \n\
-echo "🔧 Running MongoDB setup script..." \n\
-node scripts/mongodb-setup.js \n\
-\n\
-echo "🎉 MongoDB setup completed!" \n\
-exit 0 \n\
-' > /app/entrypoint.sh
-
+# Set permissions for the entrypoint script
 RUN chmod +x /app/entrypoint.sh
 
 # Set entrypoint

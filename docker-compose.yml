@@ -7,20 +7,39 @@ services:
     container_name: f1-mongodb
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "27000:27017"
     environment:
-      MONGO_INITDB_DATABASE: f1_champions_db
+      MONGO_INITDB_DATABASE: f1_champions_local_db
       DOCKER_ENV: "true"
     volumes:
       - mongodb_data:/data/db
     networks:
       - f1-network
+    command: ["mongod", "--replSet", "f1rs", "--bind_ip_all"]
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
+
+  # MongoDB Initialization Service
+  mongo-init:
+    build:
+      context: .
+      dockerfile: ./docker/mongo-init/Dockerfile
+    container_name: f1-mongo-init
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - f1-network
+    environment:
+      - DOCKER_ENV=true
+      - MONGODB_DATABASE_PORT=27017
+      - MONGODB_DATABASE_NAME=f1_champions_local_db
+      - MONGODB_REPLICA_SET_NAME=f1rs
+      - MONGODB_HOST_NAME=mongodb
 
   # Backend NestJS Service
   backend:
@@ -32,11 +51,18 @@ services:
     restart: unless-stopped
     ports:
       - "4000:4000"
+      - "9229:9229"  # Node.js debugger port
     environment:
-      - DATABASE_URL="mongodb://localhost:27017/f1_champions_db?replicaSet=f1rs"
-      - EXTERNAL_API_URL="https://api.jolpi.ca/ergast/f1"
+      - DATABASE_URL=mongodb://mongodb:27017/f1_champions_local_db?replicaSet=f1rs
+      - EXTERNAL_API_URL=https://api.jolpi.ca/ergast/f1
       - NODE_ENV=development
       - PORT=4000
+      # MongoDB configuration (for compatibility with scripts)
+      - MONGODB_DATABASE_PORT=27017
+      - MONGODB_DATABASE_NAME=f1_champions_local_db
+      - MONGODB_REPLICA_SET_NAME=f1rs
+      - MONGODB_HOST_NAME=mongodb
+      - USE_SEED_DATA=false
     volumes:
       # Mount source code for development
       - ./apps/backend:/app/apps/backend
@@ -54,6 +80,8 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
+      mongo-init:
+        condition: service_completed_successfully
     networks:
       - f1-network
     healthcheck:
@@ -69,19 +97,21 @@ services:
       context: .
       dockerfile: ./docker/frontend/Dockerfile
       target: development
+      args:
+        - VITE_API_BASE_URL=http://localhost:4000
+        - API_BASE_URL=http://localhost:4000
+        - NODE_ENV=development
     container_name: f1-frontend
     restart: unless-stopped
     ports:
       - "3000:3000"
+      - "24678:24678"  # HMR WebSocket port
     environment:
       - DOCKER_ENV=true
       - HOST=0.0.0.0
       - PORT=3000
-      - NODE_ENV=production
-      -
       - NODE_ENV=development
-      - VITE_API_URL=http://localhost:4000
-      - VITE_API_BASE_URL=http://backend:4000
+      - VITE_API_BASE_URL=http://localhost:4000
       - API_BASE_URL=http://localhost:4000
     volumes:
       # Mount source code for development

@@ -32,11 +32,13 @@
         ],
         "options": {
           "buildTarget": "@f1-app/backend:build",
-          "runBuildTargetDependencies": false
+          "runBuildTargetDependencies": false,
+          "inspect": false
         },
         "configurations": {
           "development": {
-            "buildTarget": "@f1-app/backend:build:development"
+            "buildTarget": "@f1-app/backend:build:development",
+            "inspect": false
           },
           "production": {
             "buildTarget": "@f1-app/backend:build:production"

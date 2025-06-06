@@ -15,7 +15,6 @@ COPY nx.json ./
 COPY tsconfig*.json ./
 COPY libs/ ./libs/
 COPY scripts/ ./scripts/
-COPY .env.example ./.env
 
 # Install only necessary dependencies
 RUN npm ci

@@ -21,23 +21,27 @@ class F1MongoDBSetup {
     console.log('═'.repeat(60));
 
     const envPath = path.join(__dirname, '../.env');
+    let envVars = {};
 
-    if (!fs.existsSync(envPath)) {
-      console.error('❌ .env file not found');
-      process.exit(1);
+    // Check if running in Docker (environment variables) or locally (.env file)
+    if (process.env.DOCKER_ENV === 'true' || !fs.existsSync(envPath)) {
+      console.log('🐳 Running in Docker mode, using environment variables');
+      // Use environment variables directly
+      envVars = process.env;
+    } else {
+      console.log('📄 Running locally, reading .env file');
+      // Read from .env file
+      const envContent = fs.readFileSync(envPath, 'utf8');
+
+      // Simplified env parsing
+      envContent.split('\n').forEach((line) => {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+          const [key, value] = trimmed.split('=', 2);
+          envVars[key.trim()] = value.replace(/"/g, '');
+        }
+      });
     }
-
-    const envContent = fs.readFileSync(envPath, 'utf8');
-    const envVars = {};
-
-    // Simplified env parsing
-    envContent.split('\n').forEach((line) => {
-      const trimmed = line.trim();
-      if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
-        const [key, value] = trimmed.split('=', 2);
-        envVars[key.trim()] = value.replace(/"/g, '');
-      }
-    });
 
     this.config = {
       port: envVars.MONGODB_DATABASE_PORT || '27000',
@@ -45,6 +49,8 @@ class F1MongoDBSetup {
       replicaSet: envVars.MONGODB_REPLICA_SET_NAME || 'f1rs',
       host: envVars.MONGODB_HOST_NAME || 'localhost',
     };
+
+    console.log(`📡 MongoDB Config: ${this.config.host}:${this.config.port}/${this.config.dbName} (${this.config.replicaSet})`);
 
     this.connectionString = `mongodb://${this.config.host}:${this.config.port}/?directConnection=true`;
     this.appConnectionString = `mongodb://${this.config.host}:${this.config.port}/${this.config.dbName}?replicaSet=${this.config.replicaSet}`;

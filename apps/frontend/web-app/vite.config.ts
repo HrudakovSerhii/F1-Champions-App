@@ -30,7 +30,10 @@ export default defineConfig(({ mode }) => {
       hmr: isDevelopment
         ? {
             port: process.env.HMR_PORT ? Number(process.env.HMR_PORT) : 24678,
-            host: isDocker ? '0.0.0.0' : 'localhost',
+            host: '0.0.0.0',
+            clientPort: process.env.HMR_PORT
+              ? Number(process.env.HMR_PORT)
+              : 24678,
           }
         : false,
     },
@@ -41,6 +44,11 @@ export default defineConfig(({ mode }) => {
     },
 
     plugins: [react()],
+
+    // Define environment variables for the browser
+    define: {
+      __DEV__: isDevelopment,
+    },
 
     resolve: {
       alias: {
