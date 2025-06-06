@@ -96,36 +96,20 @@ services:
     build:
       context: .
       dockerfile: ./docker/frontend/Dockerfile
-      target: development
+      target: production
       args:
         - VITE_API_BASE_URL=http://localhost:4000
         - API_BASE_URL=http://localhost:4000
-        - NODE_ENV=development
+        - NODE_ENV=production
     container_name: f1-frontend
     restart: unless-stopped
     ports:
       - "3000:3000"
-      - "24678:24678"  # HMR WebSocket port
     environment:
       - DOCKER_ENV=true
-      - HOST=0.0.0.0
       - PORT=3000
-      - NODE_ENV=development
       - VITE_API_BASE_URL=http://localhost:4000
       - API_BASE_URL=http://localhost:4000
-    volumes:
-      # Mount source code for development
-      - ./apps/frontend/web-app:/app/apps/frontend/web-app
-      - ./libs:/app/libs
-      - ./shared:/app/shared
-      - ./package.json:/app/package.json
-      - ./package-lock.json:/app/package-lock.json
-      - ./nx.json:/app/nx.json
-      - ./tsconfig.base.json:/app/tsconfig.base.json
-      - ./tsconfig.json:/app/tsconfig.json
-      # Exclude node_modules to avoid conflicts
-      - /app/node_modules
-      - /app/apps/frontend/web-app/node_modules
     #    depends_on:
     #      backend:
     #        condition: service_healthy
