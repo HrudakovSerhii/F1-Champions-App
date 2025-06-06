@@ -20,12 +20,12 @@ class F1MongoDBSetup {
     console.log('🏎️  F1 Champions - MongoDB Setup');
     console.log('═'.repeat(60));
 
-    const envPath = path.join(__dirname, '../.env.local');
+    const envPath = path.join(__dirname, '../.env');
     console.log(`🔍 Loading environment from: ${envPath}`);
 
     if (!fs.existsSync(envPath)) {
-      console.error('❌ .env.local file not found');
-      console.log('💡 Please create .env.local with MongoDB configuration');
+      console.error('❌ .env file not found');
+      console.log('💡 Please create .env with MongoDB configuration');
       process.exit(1);
     }
 
@@ -137,49 +137,100 @@ class F1MongoDBSetup {
     console.log('\n🏎️  Setting up F1 Champions database...');
 
     const db = this.client.db(this.config.dbName);
+    console.log('📊 Creating collections and indexes if they don\'t exist...');
 
-    console.log('📊 Creating collections and indexes...');
+    try {
+      // Drivers collection
+      const drivers = db.collection('drivers');
+      const driverIndexes = await drivers.listIndexes().toArray();
+      const driverIndexNames = driverIndexes.map(idx => Object.keys(idx.key)[0]);
+      
+      if (!driverIndexNames.includes('driverId')) {
+        await drivers.createIndex({ driverId: 1 }, { unique: true });
+        console.log('  - Created index on drivers.driverId');
+      }
+      
+      if (!driverIndexNames.includes('familyName')) {
+        await drivers.createIndex({ familyName: 1 });
+        console.log('  - Created index on drivers.familyName');
+      }
+      
+      if (!driverIndexNames.includes('nationality')) {
+        await drivers.createIndex({ nationality: 1 });
+        console.log('  - Created index on drivers.nationality');
+      }
 
-    // Drivers collection
-    const drivers = db.collection('drivers');
-    await drivers.createIndex({ driverId: 1 }, { unique: true });
-    await drivers.createIndex({ familyName: 1 });
-    await drivers.createIndex({ nationality: 1 });
+      // Constructors collection
+      const constructors = db.collection('constructors');
+      const constructorIndexes = await constructors.listIndexes().toArray();
+      const constructorIndexNames = constructorIndexes.map(idx => Object.keys(idx.key)[0]);
+      
+      if (!constructorIndexNames.includes('name')) {
+        await constructors.createIndex({ name: 1 }, { unique: true });
+        console.log('  - Created index on constructors.name');
+      }
+      
+      if (!constructorIndexNames.includes('nationality')) {
+        await constructors.createIndex({ nationality: 1 });
+        console.log('  - Created index on constructors.nationality');
+      }
 
-    // Constructors collection
-    const constructors = db.collection('constructors');
-    await constructors.createIndex({ name: 1 }, { unique: true });
-    await constructors.createIndex({ nationality: 1 });
+      // Season Winners collection
+      const seasonWinners = db.collection('season_winners');
+      const seasonWinnersIndexes = await seasonWinners.listIndexes().toArray();
+      const seasonWinnersCompoundIndex = seasonWinnersIndexes.find(idx => 
+        idx.key.season && idx.key.driverId && idx.key.constructorId
+      );
+      
+      if (!seasonWinnersCompoundIndex) {
+        await seasonWinners.createIndex(
+          { season: 1, driverId: 1, constructorId: 1 },
+          { unique: true }
+        );
+        console.log('  - Created compound index on season_winners');
+      }
+      
+      if (!seasonWinnersIndexes.find(idx => idx.key.season && Object.keys(idx.key).length === 1)) {
+        await seasonWinners.createIndex({ season: 1 });
+        console.log('  - Created index on season_winners.season');
+      }
 
-    // Season Winners collection
-    const seasonWinners = db.collection('season_winners');
-    await seasonWinners.createIndex(
-      { season: 1, driverId: 1, constructorId: 1 },
-      { unique: true }
-    );
-    await seasonWinners.createIndex({ season: 1 });
+      // Season Race Winners collection
+      const seasonRaceWinners = db.collection('season_race_winners');
+      const raceWinnersIndexes = await seasonRaceWinners.listIndexes().toArray();
+      const raceWinnersCompoundIndex = raceWinnersIndexes.find(idx => 
+        idx.key.season && idx.key.driverId && idx.key.constructorId
+      );
+      
+      if (!raceWinnersCompoundIndex) {
+        await seasonRaceWinners.createIndex(
+          { season: 1, round: 1, driverId: 1, constructorId: 1 },
+          { unique: true }
+        );
+        console.log('  - Created compound index on season_race_winners');
+      }
+      
+      if (!raceWinnersIndexes.find(idx => idx.key.season && Object.keys(idx.key).length === 1)) {
+        await seasonRaceWinners.createIndex({ season: 1 });
+        console.log('  - Created index on season_race_winners.season');
+      }
+      
+      if (!raceWinnersIndexes.find(idx => idx.key.round && Object.keys(idx.key).length === 1)) {
+        await seasonRaceWinners.createIndex({ round: 1 });
+        console.log('  - Created index on season_race_winners.round');
+      }
 
-    // Season Race Winners collection
-    const seasonRaceWinners = db.collection('season_race_winners');
-    await seasonRaceWinners.createIndex(
-      { season: 1, driverId: 1, constructorId: 1 },
-      { unique: true }
-    );
-    await seasonRaceWinners.createIndex({ season: 1 });
-    await seasonRaceWinners.createIndex({ round: 1 });
-
-    console.log('✅ Database setup completed!');
-    console.log('📋 Created collections (matching Prisma schema):');
-    console.log(
-      '  - drivers (with indexes on driverId, familyName, nationality)'
-    );
-    console.log('  - constructors (with indexes on name, nationality)');
-    console.log(
-      '  - season_winners (with indexes on season+driverId+constructorId, season)'
-    );
-    console.log(
-      '  - season_race_winners (with indexes on season+driverId+constructorId, season, round)'
-    );
+      console.log('✅ Database schema setup completed!');
+      console.log('📋 Collections are ready:');
+      console.log('  - drivers');
+      console.log('  - constructors');
+      console.log('  - season_winners');
+      console.log('  - season_race_winners');
+      
+    } catch (error) {
+      console.error('❌ Error setting up database schema:', error.message);
+      throw error;
+    }
   }
 
   async run() {

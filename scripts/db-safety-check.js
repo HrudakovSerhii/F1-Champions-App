@@ -9,7 +9,7 @@ const path = require('path');
 const fs = require('fs');
 
 function loadEnvFile() {
-  const envPath = path.join(__dirname, '../apps/backend/.env.local');
+  const envPath = path.join(__dirname, '../apps/backend/.env');
   if (fs.existsSync(envPath)) {
     const envContent = fs.readFileSync(envPath, 'utf8');
     const envVars = {};

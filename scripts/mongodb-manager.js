@@ -16,11 +16,11 @@ class F1MongoDBManager {
   }
 
   loadEnvironmentVariables() {
-    const envPath = path.join(__dirname, '../.env.local');
+    const envPath = path.join(__dirname, '../.env');
 
     if (!fs.existsSync(envPath)) {
-      console.error('❌ .env.local file not found');
-      console.log('💡 Please create .env.local with MongoDB configuration');
+      console.error('❌ .env file not found');
+      console.log('💡 Please create .env with MongoDB configuration');
       process.exit(1);
     }
 

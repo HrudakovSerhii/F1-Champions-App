@@ -9,11 +9,44 @@ Set up the database with sample F1 data for testing and development:
 
 ```bash
 # Complete database setup (first time)
-npm run db:setup
+npm run prisma:setup
 
 # Reset database for testing
-npm run db:test:setup
+npm run prisma:test:setup
 ```
+
+#### Prisma Commands
+
+| Command | Description |
+|---------|-------------|
+| `prisma:init` | Initialize database indexes and structure |
+| `prisma:generate` | Generate Prisma client from schema |
+| `prisma:push` | Push schema changes to database |
+| `prisma:pull` | Pull database schema into Prisma |
+| `prisma:reset` | Reset database (force-reset) |
+| `prisma:seed` | Seed database with sample F1 data |
+| `prisma:studio` | Open Prisma Studio GUI |
+| `prisma:setup` | Complete setup: init + push + seed |
+| `prisma:test:setup` | Reset and seed database for testing |
+| `prisma:stats` | Display database statistics |
+| `prisma:verify` | Verify database schema and structure |
+
+#### MongoDB Commands
+
+| Command | Description |
+|---------|-------------|
+| `db:mongo:start` | Start MongoDB server |
+| `db:mongo:stop` | Stop MongoDB server |
+| `db:mongo:status` | Check MongoDB server status |
+| `db:mongo:setup` | Set up MongoDB with replica set |
+| `db:local:setup` | Start MongoDB and run setup |
+
+#### For New Developers
+
+First-time setup sequence:
+1. `npm run db:mongo:start` - Start MongoDB server
+2. `npm run prisma:setup` - Initialize, push schema, and seed data
+3. `npm run prisma:stats` - Verify database is set up correctly
 
 📖 **[Complete Database Guide](infrastructure/DATABASE.md)** - Comprehensive database setup, seeding, and management documentation.
 

@@ -4,70 +4,45 @@ import { PrismaClient } from '@prisma/client';
 import * as console from 'node:console';
 
 /**
- * Database initialization script
- * Sets up indexes, constraints, and initial configuration for MongoDB
+ * Database initialization script with Prisma
+ * Sets up indexes and configuration for MongoDB
  */
-class DatabaseInitializer {
+class PrismaManager {
   private prisma: PrismaClient;
 
   constructor() {
     this.prisma = new PrismaClient();
   }
 
-  /**
-   * Initialize database with indexes and constraints
-   */
   async initialize(): Promise<void> {
     try {
-      console.log('🚀 Starting database initialization...');
-
-      // Test database connection
+      console.log('🚀 Initializing database...');
       await this.testConnection();
-
-      // Create indexes for better performance
       await this.createIndexes();
-
-      // Verify schema
       await this.verifySchema();
-
-      console.log('✅ Database initialization completed successfully!');
+      console.log('✅ Database initialized successfully');
     } catch (error) {
-      console.error('❌ Database initialization failed:', error);
+      console.error('❌ Error:', error);
       throw error;
     } finally {
       await this.prisma.$disconnect();
     }
   }
 
-  /**
-   * Test database connection
-   */
   private async testConnection(): Promise<void> {
-    console.log('🔌 Testing database connection...');
-
     try {
-      // Test connection with MongoDB-compatible query
       await this.prisma.$runCommandRaw({ ping: 1 });
-      console.log('✅ Database connection successful');
     } catch (error) {
-      console.error('❌ Database connection failed:', error);
+      console.log(error);
       throw new Error(
-        'Cannot connect to database. Please check your DATABASE_URL environment variable.'
+        'Cannot connect to database. Check DATABASE_URL environment variable.'
       );
     }
   }
 
-  /**
-   * Create database indexes for optimal performance
-   */
   private async createIndexes(): Promise<void> {
-    console.log('📊 Creating database indexes...');
-
     try {
-      // Note: Prisma with MongoDB automatically creates indexes based on schema
-      // But we can create additional custom indexes using raw queries
-
-      // Index for drivers
+      // Drivers indexes
       await this.prisma.$runCommandRaw({
         createIndexes: 'drivers',
         indexes: [
@@ -87,7 +62,7 @@ class DatabaseInitializer {
         ],
       });
 
-      // Index for constructors
+      // Constructors indexes
       await this.prisma.$runCommandRaw({
         createIndexes: 'constructors',
         indexes: [
@@ -103,7 +78,7 @@ class DatabaseInitializer {
         ],
       });
 
-      // Index for season winners
+      // Season winners indexes
       await this.prisma.$runCommandRaw({
         createIndexes: 'season_winners',
         indexes: [
@@ -127,7 +102,7 @@ class DatabaseInitializer {
         ],
       });
 
-      // Index for season race winners
+      // Race winners indexes
       await this.prisma.$runCommandRaw({
         createIndexes: 'season_race_winners',
         indexes: [
@@ -158,68 +133,41 @@ class DatabaseInitializer {
           },
         ],
       });
-
-      console.log('✅ Database indexes created successfully');
     } catch (error) {
       // Indexes might already exist, which is fine
       console.log(error);
-      console.log('ℹ️  Some indexes may already exist (this is normal)');
-      console.log('✅ Index creation completed');
+      console.log('ℹ️  Some indexes may already exist');
     }
   }
 
-  /**
-   * Verify database schema and collections
-   */
   async verifySchema(): Promise<void> {
-    console.log('🔍 Verifying database schema...');
+    const collections = [
+      { name: 'drivers', count: () => this.prisma.driver.count({}) },
+      { name: 'constructors', count: () => this.prisma.constructor.count({}) },
+      {
+        name: 'season_winners',
+        count: () => this.prisma.seasonWinner.count({}),
+      },
+      {
+        name: 'season_race_winners',
+        count: () => this.prisma.seasonRaceWinner.count({}),
+      },
+    ];
 
-    try {
-      // Check if collections exist by trying to count documents
-      const collections = [
-        { name: 'drivers', count: () => this.prisma.driver.count({}) },
-        {
-          name: 'constructors',
-          count: () => this.prisma.constructor.count({})
-        },
-        {
-          name: 'season_winners',
-          count: () => this.prisma.seasonWinner.count({})
-        },
-        {
-          name: 'season_race_winners',
-          count: () => this.prisma.seasonRaceWinner.count({})
-        }
-      ];
-
-      for (const collection of collections) {
-        try {
-          const count = await collection.count();
-          console.log(`✅ Collection '${collection.name}': ${count} documents`);
-        } catch (error) {
-          console.log(
-            `⚠️  Collection '${collection.name}': Not accessible or doesn't exist yet`,
-            error
-          );
-        }
+    for (const collection of collections) {
+      try {
+        await collection.count();
+      } catch (error) {
+        console.log(error);
+        console.log(`⚠️  Collection '${collection.name}' not accessible`);
       }
-
-      console.log('✅ Schema verification completed');
-    } catch (error) {
-      console.error('❌ Schema verification failed:', error);
-      throw error;
     }
   }
 
-  /**
-   * Get database statistics
-   */
   async getStats(): Promise<void> {
-    console.log('📊 Database Statistics:');
-    console.log('========================');
-
     try {
       const stats = (await this.prisma.$runCommandRaw({ dbStats: 1 })) as any;
+      console.log('📊 Database Statistics:');
       console.log(`Database: ${stats.db || 'Unknown'}`);
       console.log(`Collections: ${stats.collections || 0}`);
       console.log(
@@ -247,14 +195,10 @@ class DatabaseInitializer {
   }
 }
 
-/**
- * Main execution
- */
 async function main() {
   const args = process.argv.slice(2);
   const command = args[0] || 'init';
-
-  const initializer = new DatabaseInitializer();
+  const initializer = new PrismaManager();
 
   try {
     switch (command) {
@@ -268,20 +212,17 @@ async function main() {
         await initializer.verifySchema();
         break;
       default:
-        console.log('Usage: npm run db:init [command]');
-        console.log('Commands:');
-        console.log('  init   - Initialize database with indexes (default)');
-        console.log('  stats  - Show database statistics');
-        console.log('  verify - Verify database schema');
+        console.log(
+          'Usage: npx ts-node prisma-db-initializer.ts [init|stats|verify]'
+        );
         process.exit(1);
     }
   } catch (error) {
-    console.error('💥 Operation failed:', error);
+    console.error('💥 Error:', error);
     process.exit(1);
   }
 }
 
-// Run if called directly
 if (require.main === module) {
-  main().finally();
+  main().catch(console.error);
 }
