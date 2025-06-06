@@ -7,9 +7,9 @@ services:
     container_name: f1-mongodb
     restart: unless-stopped
     ports:
-      - "27000:27017"
+      - "27017:27017"
     environment:
-      MONGO_INITDB_DATABASE: f1_champions_local_db
+      MONGO_INITDB_DATABASE: f1_champions_db
       DOCKER_ENV: "true"
     volumes:
       - mongodb_data:/data/db
@@ -33,13 +33,10 @@ services:
     ports:
       - "4000:4000"
     environment:
+      - DATABASE_URL="mongodb://localhost:27017/f1_champions_db?replicaSet=f1rs"
+      - EXTERNAL_API_URL="https://api.jolpi.ca/ergast/f1"
       - NODE_ENV=development
-      - DATABASE_URL=mongodb://mongodb:27017/f1_champions_local_db
-      - MONGODB_DATABASE_PORT=27017
-      - MONGODB_DATABASE_NAME=f1_champions_local_db
-      - MONGODB_HOST_NAME=mongodb
       - PORT=4000
-      - USE_SEED_DATA=${USE_SEED_DATA:-false}
     volumes:
       # Mount source code for development
       - ./apps/backend:/app/apps/backend
@@ -77,9 +74,15 @@ services:
     ports:
       - "3000:3000"
     environment:
+      - DOCKER_ENV=true
+      - HOST=0.0.0.0
+      - PORT=3000
+      - NODE_ENV=production
+      -
       - NODE_ENV=development
       - VITE_API_URL=http://localhost:4000
       - VITE_API_BASE_URL=http://backend:4000
+      - API_BASE_URL=http://localhost:4000
     volumes:
       # Mount source code for development
       - ./apps/frontend/web-app:/app/apps/frontend/web-app
@@ -93,9 +96,9 @@ services:
       # Exclude node_modules to avoid conflicts
       - /app/node_modules
       - /app/apps/frontend/web-app/node_modules
-    depends_on:
-      backend:
-        condition: service_healthy
+    #    depends_on:
+    #      backend:
+    #        condition: service_healthy
     networks:
       - f1-network
     healthcheck:
