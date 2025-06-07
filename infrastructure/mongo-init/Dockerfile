@@ -14,8 +14,8 @@ WORKDIR /app
 # Copy package files and scripts
 COPY package*.json ./
 COPY scripts/mongodb-setup.js ./scripts/
-COPY docker/mongo-init/init-replica-set.js ./scripts/
-COPY docker/mongo-init/entrypoint.sh ./entrypoint.sh
+COPY infrastructure/mongo-init/init-replica-set.js ./scripts/
+COPY infrastructure/mongo-init/entrypoint.sh ./entrypoint.sh
 # Environment variables will be passed via docker-compose
 
 # Install only the required dependencies

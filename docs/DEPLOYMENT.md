@@ -258,9 +258,10 @@ When you add a new application to your monorepo:
    ```
 
 3. **Deployment conflicts**
-  - Check concurrency groups in workflows
-  - Ensure unique artifact names
-  - Verify environment protection rules
+
+- Check concurrency groups in workflows
+- Ensure unique artifact names
+- Verify environment protection rules
 
 ## Next Steps
 

@@ -97,7 +97,6 @@ services:
       # Mount source code for development
       - ./apps/backend:/app/apps/backend
       - ./libs:/app/libs
-      - ./shared:/app/shared
       - ./scripts:/app/scripts
       - ./package.json:/app/package.json
       - ./package-lock.json:/app/package-lock.json
@@ -141,7 +140,6 @@ services:
       # Mount source code for development
       - ./apps/frontend/web-app:/app/apps/frontend/web-app
       - ./libs:/app/libs
-      - ./shared:/app/shared
       - ./package.json:/app/package.json
       - ./package-lock.json:/app/package-lock.json
       - ./nx.json:/app/nx.json

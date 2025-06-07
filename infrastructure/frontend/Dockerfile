@@ -105,7 +105,7 @@ FROM nginx:alpine AS production
 RUN apk add --no-cache curl gettext
 
 # Copy nginx configuration
-COPY ./docker/frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY ./infrastructure/frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy build output from build stage
 COPY --from=build /app/apps/frontend/web-app/dist /usr/share/nginx/html

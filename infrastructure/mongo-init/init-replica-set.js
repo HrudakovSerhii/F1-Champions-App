@@ -41,33 +41,33 @@ class ReplicaSetInitializer {
 
   async initializeReplicaSet() {
     console.log('🔧 Initializing replica set...');
-    
+
     const replicaSetConfig = {
       _id: this.replicaSetName,
       members: [
         {
           _id: 0,
           host: 'mongodb:27017',
-          priority: 1
-        }
-      ]
+          priority: 1,
+        },
+      ],
     };
 
     try {
       const admin = this.client.db().admin();
       const result = await admin.command({
-        replSetInitiate: replicaSetConfig
+        replSetInitiate: replicaSetConfig,
       });
 
       if (result.ok === 1) {
         console.log('✅ Replica set initialized successfully!');
         console.log(`📊 Replica set: ${this.replicaSetName}`);
         console.log('🔗 Member: mongodb:27017');
-        
+
         // Wait for replica set to stabilize
         console.log('⏳ Waiting for replica set to stabilize...');
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+
         // Verify the setup
         await this.verifyReplicaSet();
         return true;
@@ -85,13 +85,17 @@ class ReplicaSetInitializer {
     try {
       const admin = this.client.db().admin();
       const status = await admin.command({ replSetGetStatus: 1 });
-      
-      const primary = status.members.find(member => member.stateStr === 'PRIMARY');
+
+      const primary = status.members.find(
+        (member) => member.stateStr === 'PRIMARY'
+      );
       if (primary) {
         console.log('✅ Replica set verification successful');
         console.log(`🎯 Primary node: ${primary.name}`);
       } else {
-        console.log('⚠️  No primary found yet, replica set still stabilizing...');
+        console.log(
+          '⚠️  No primary found yet, replica set still stabilizing...'
+        );
       }
     } catch (error) {
       console.log('⚠️  Replica set verification pending:', error.message);
@@ -101,18 +105,17 @@ class ReplicaSetInitializer {
   async run() {
     try {
       await this.connect();
-      
+
       const isInitialized = await this.checkReplicaSetStatus();
-      
+
       if (!isInitialized) {
         const success = await this.initializeReplicaSet();
         if (!success) {
           throw new Error('Failed to initialize replica set');
         }
       }
-      
+
       console.log('🎉 Replica set setup completed successfully!');
-      
     } catch (error) {
       console.error('💥 Replica set initialization failed:', error.message);
       process.exit(1);
@@ -127,10 +130,10 @@ class ReplicaSetInitializer {
 // Run if called directly
 if (require.main === module) {
   const initializer = new ReplicaSetInitializer();
-  initializer.run().catch(error => {
+  initializer.run().catch((error) => {
     console.error('Fatal error:', error);
     process.exit(1);
   });
 }
 
-module.exports = ReplicaSetInitializer; 
+module.exports = ReplicaSetInitializer;
