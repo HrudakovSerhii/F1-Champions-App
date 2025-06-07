@@ -1,0 +1,35 @@
+{
+  "name": "@f1-champions-app/styles",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/frontend/styles/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/vite:build",
+      "outputs": [
+        "{options.outputPath}"
+      ],
+      "options": {
+        "outputPath": "libs/frontend/styles/dist"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": [
+        "{options.reportsDirectory}"
+      ],
+      "options": {
+        "passWithNoTests": true,
+        "reportsDirectory": "libs/frontend/styles/test-output/vitest"
+      }
+    }
+  },
+  "tags": [
+    "type:lib",
+    "scope:frontend",
+    "domain:styles"
+  ]
+}
