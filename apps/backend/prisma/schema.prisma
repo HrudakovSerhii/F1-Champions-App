@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// Base entity interface fields
+// All models will have these MongoDB ObjectId and timestamp fields
+
+// Constructor model - maps directly to API Constructor type
+model Constructor {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   @unique // Constructor team name (e.g., "Red Bull")
+  nationality String // Constructor's nationality (e.g., "Austrian")
+  url         String // URL to constructor information
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("constructors")
+}
+
+// Driver model - maps to API Driver type
+// Note: API Driver has nested constructor, but we store constructor name as reference
+model Driver {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  driverId    String   @unique // Unique driver identifier (e.g., "max_verstappen")
+  givenName   String // Driver's given name (e.g., "Max")
+  familyName  String // Driver's family name (e.g., "Verstappen")
+  nationality String // Driver's nationality (e.g., "Dutch")
+  url         String // URL to driver information
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("drivers")
+}
+
+// SeasonWinner model - maps to API SeasonWinner type
+// API has nested 'driver' | 'constructor' objects, but we store their references
+model SeasonWinner {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  season        String // The F1 season year (e.g., "2023")
+  wins          Int // number of wins
+  driverId      String // Reference to driver.name (denormalized)
+  constructorId String // Reference to constructor.name (denormalized)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([season, driverId, constructorId])
+  @@map("season_winners")
+}
+
+// RaceWinner model - maps to API SeasonRaceWinner type
+// API has nested 'circuit' | 'constructor' | 'driver' objects, but we store their references
+model SeasonRaceWinner {
+  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  // Main race info
+  season        String // The F1 season year (e.g., "2023")
+  points        Int // Number of laps driver made
+  round         Int // Round number in the season
+  wins          Int // Round number in the season
+  // References
+  driverId      String // Reference to driver.driverId (denormalized)
+  constructorId String // Reference to constructor.name (denormalized)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([season, round, driverId, constructorId])
+  @@map("season_race_winners")
+}

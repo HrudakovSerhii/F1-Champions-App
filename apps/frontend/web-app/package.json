@@ -1,5 +1,5 @@
 {
-  "name": "f1-spa",
+  "name": "@f1-app/web-app",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,17 +12,24 @@
   },
   "sideEffects": false,
   "nx": {
-    "name": "f1-spa"
+    "name": "web-app"
   },
   "dependencies": {
+    "zustand": "^4.3.7",
+    "web-vitals": "^2.1.4",
+    "@react-router/node": "^7.2.0",
+    "@react-router/serve": "^7.2.0",
+    "axios": "^1.6.0",
     "isbot": "^4.4.0",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "react-router-dom": "^6.20.0"
+    "react-router": "^7.2.0",
+    "react-router-dom": "^7.6.0"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "@types/react": "~18.3.12",
-    "@types/react-dom": "~18.3.1"
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "16.1.0",
+    "@testing-library/user-event": "^13.5.0",
+    "history": "^5.3.0",
+    "serve": "^14.2.0",
+    "@react-router/dev": "^7.2.0"
   }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "@f1-champions-app/styles",
+  "name": "@f1-app/frontend-styles",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -14,15 +14,10 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "./lib/fonts.css": "./src/lib/fonts.css",
-    "./f1-style-theme": {
-      "development": "./src/lib/theme.cjs",
-      "require": "./src/lib/theme.cjs",
-      "default": "./src/lib/theme.cjs"
-    }
+    "./lib/fonts.css": "./src/lib/fonts.css"
   },
   "nx": {
-    "name": "styles"
+    "name": "frontend-styles"
   },
   "dependencies": {
     "tslib": "^2.3.0"

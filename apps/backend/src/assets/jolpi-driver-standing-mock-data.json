@@ -1,0 +1,66 @@
+{
+  "MRData": {
+    "xmlns": "",
+    "series": "f1",
+    "url": "http://api.jolpi.ca/ergast/f1/1972/driverstandings/",
+    "limit": "30",
+    "offset": "0",
+    "total": "42",
+    "StandingsTable": {
+      "season": "1972",
+      "round": "12",
+      "StandingsLists": [
+        {
+          "season": "1972",
+          "round": "12",
+          "DriverStandings": [
+            {
+              "position": "1",
+              "positionText": "1",
+              "points": "61",
+              "wins": "5",
+              "Driver": {
+                "driverId": "emerson_fittipaldi",
+                "url": "http://en.wikipedia.org/wiki/Emerson_Fittipaldi",
+                "givenName": "Emerson",
+                "familyName": "Fittipaldi",
+                "dateOfBirth": "1946-12-12",
+                "nationality": "Brazilian"
+              },
+              "Constructors": [
+                {
+                  "constructorId": "team_lotus",
+                  "url": "http://en.wikipedia.org/wiki/Team_Lotus",
+                  "name": "Team Lotus",
+                  "nationality": "British"
+                }
+              ]
+            },
+            {
+              "position": "2",
+              "positionText": "2",
+              "points": "45",
+              "wins": "4",
+              "Driver": {
+                "driverId": "stewart",
+                "url": "http://en.wikipedia.org/wiki/Jackie_Stewart",
+                "givenName": "Jackie",
+                "familyName": "Stewart",
+                "dateOfBirth": "1939-06-11",
+                "nationality": "British"
+              },
+              "Constructors": [
+                {
+                  "constructorId": "tyrrell",
+                  "url": "http://en.wikipedia.org/wiki/Tyrrell_Racing",
+                  "name": "Tyrrell",
+                  "nationality": "British"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

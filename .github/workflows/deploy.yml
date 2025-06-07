@@ -1,10 +1,15 @@
-name: Deploy to GitHub Pages
+name: Deploy to GitHub Pages (Legacy)
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
+    inputs:
+      app:
+        description: 'Application to deploy'
+        required: true
+        default: 'web-app'
+        type: choice
+        options:
+          - web-app
 
 permissions:
   contents: read
@@ -22,29 +27,29 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build
-        run: npx nx build web-app
-      
+        run: npx nx build f1-spa
+
       - name: Copy font files
         run: node scripts/copy-fonts.js
-      
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
-      
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './apps/frontend/web-app/dist'
+          path: './apps/f1-spa/dist'
 
   deploy:
     environment:
@@ -55,4 +60,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4 
+        uses: actions/deploy-pages@v4

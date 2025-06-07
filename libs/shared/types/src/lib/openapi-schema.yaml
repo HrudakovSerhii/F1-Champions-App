@@ -1,0 +1,382 @@
+openapi: 3.0.3
+info:
+  title: F1 Champions API
+  description: API for retrieving Formula 1 championship data including season winners and season race results
+  version: 1.0.0
+  contact:
+    name: F1 Champions App
+servers:
+  - url: /api/v1
+    description: Main API server
+
+paths:
+  /v1/seasons-winners:
+    get:
+      summary: Get seasons with winners
+      description: Retrieve all F1 seasons with their respective championship winners
+      operationId: getSeasonsWithWinners
+      tags:
+        - Seasons
+      parameters:
+        - name: minYear
+          in: query
+          required: false
+          description: Minimum season year to filter from (inclusive)
+          schema:
+            type: string
+            pattern: '^[0-9]{4}$'
+            minimum: 1950
+            maximum: 2050
+            example: "2020"
+        - name: maxYear
+          in: query
+          required: false
+          description: Maximum season year to filter to (inclusive)
+          schema:
+            type: string
+            pattern: '^[0-9]{4}$'
+            minimum: 1950
+            maximum: 2050
+            example: "2023"
+      responses:
+        '200':
+          description: Successfully retrieved seasons with winners
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SeasonWinner'
+              examples:
+                success:
+                  value:
+                    - season: "2023"
+                    - wins: 15
+                    - driver:
+                        familyName: "Verstappen"
+                        givenName: "Max"
+                        url: "https://example.com/drivers/max_verstappen"
+                        nationality: "Dutch"
+                        driverId: "max_verstappen"
+                    - constructor:
+                        name: "Red Bull"
+                        url: "https://example.com/constructors/red_bull"
+                        nationality: "Austrian"
+
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                error:
+                  value:
+                    success: false
+                    errorCode: "INTERNAL_ERROR"
+                    error:
+                      message: "Internal server error"
+                      code: "INTERNAL_ERROR"
+
+  /v1/season/{seasonYear}/winners:
+    get:
+      summary: Get season winners
+      description: Retrieve all race winners for a specific F1 season
+      operationId: getSeasonWinners
+      tags:
+        - Seasons
+      parameters:
+        - name: seasonYear
+          in: path
+          required: true
+          description: The F1 season year (e.g., 2023)
+          schema:
+            type: string
+            pattern: '^[0-9]{4}$'
+            minimum: 1950
+            maximum: 2050
+            example: "2023"
+      responses:
+        '200':
+          description: Successfully retrieved race winners for the specified season
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SeasonRaceWinner'
+              examples:
+                success:
+                  value:
+                    - season: "2023"
+                    - round: 1
+                    - wins: 5
+                    - points: 347
+                    - driver:
+                        familyName: "Verstappen"
+                        givenName: "Max"
+                        url: "https://example.com/drivers/max_verstappen"
+                        nationality: "Dutch"
+                        driverId: "max_verstappen"
+                    - constructor:
+                        name: "Red Bull"
+                        url: "https://example.com/constructors/red_bull"
+                        nationality: "Austrian"
+
+        '404':
+          description: Season not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                error:
+                  value:
+                    success: false
+                    errorCode: "SEASON_NOT_FOUND"
+                    error:
+                      message: "Season not found"
+                      code: "SEASON_NOT_FOUND"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                error:
+                  value:
+                    success: false
+                    errorCode: "INTERNAL_ERROR"
+                    error:
+                      message: "Internal server error"
+                      code: "INTERNAL_ERROR"
+
+  /v1/health:
+    get:
+      summary: Get API health status
+      description: Check the health status of the backend API server
+      operationId: getHealth
+      tags:
+        - Health
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              examples:
+                healthy:
+                  value:
+                    success: true
+                    status: "healthy"
+                    timestamp: "2023-12-01T10:30:00Z"
+                    version: "1.0.0"
+                    uptime: 86400
+                    dependencies:
+                      database: "healthy"
+                      cache: "healthy"
+        '503':
+          description: API is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              examples:
+                unhealthy:
+                  value:
+                    success: false
+                    status: "unhealthy"
+                    timestamp: "2023-12-01T10:30:00Z"
+                    version: "1.0.0"
+                    uptime: 86400
+                    dependencies:
+                      database: "unhealthy"
+                      cache: "healthy"
+
+components:
+  schemas:
+    Driver:
+      type: object
+      required:
+        - familyName
+        - givenName
+        - url
+        - nationality
+        - driverId
+      properties:
+        familyName:
+          type: string
+          description: Driver's family name
+          example: "Verstappen"
+        givenName:
+          type: string
+          description: Driver's given name
+          example: "Max"
+        url:
+          type: string
+          format: uri
+          description: URL to driver information
+        nationality:
+          type: string
+          description: Driver's nationality
+          example: "Dutch"
+        driverId:
+          type: string
+          description: Unique driver identifier
+          example: "max_verstappen"
+
+    Constructor:
+      type: object
+      required:
+        - name
+        - url
+        - nationality
+      properties:
+        name:
+          type: string
+          description: Constructor team name
+          example: "Red Bull"
+        url:
+          type: string
+          format: uri
+          description: URL to constructor information
+        nationality:
+          type: string
+          description: Constructor's nationality
+          example: "Austrian"
+
+    SeasonWinner:
+      type: object
+      required:
+        - season
+        - wins
+        - driver
+        - constructor
+      properties:
+        season:
+          type: string
+          description: The F1 season year
+          example: "2023"
+        wins:
+          type: integer
+          description: Number of the wins
+          example: 5
+        driver:
+          $ref: '#/components/schemas/Driver'
+        constructor:
+          $ref: '#/components/schemas/Constructor'
+
+    SeasonRaceWinner:
+      type: object
+      required:
+        - season
+        - round
+        - wins
+        - points
+        - driver
+        - constructor
+      properties:
+        season:
+          type: string
+          description: The F1 season year
+          example: "2023"
+        round:
+          type: integer
+          description: Round number in the season
+          example: 1
+        wins:
+          type: integer
+          description: Number of the wins
+          example: 5
+        points:
+          type: integer
+          description: Total points per season
+          example: 347
+        driver:
+          $ref: '#/components/schemas/Driver'
+        constructor:
+          $ref: '#/components/schemas/Constructor'
+
+    HealthResponse:
+      type: object
+      required:
+        - success
+        - status
+        - timestamp
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the request was successful
+          example: true
+        status:
+          type: string
+          enum: [ healthy, unhealthy ]
+          description: Current health status of the API
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when health check was performed
+          example: "2023-12-01T10:30:00Z"
+        version:
+          type: string
+          description: API version
+          example: "1.0.0"
+        uptime:
+          type: integer
+          description: Server uptime in seconds
+          example: 86400
+        dependencies:
+          type: object
+          description: Status of external dependencies
+          properties:
+            database:
+              type: string
+              enum: [ healthy, unhealthy ]
+              example: "healthy"
+            cache:
+              type: string
+              enum: [ healthy, unhealthy ]
+              example: "healthy"
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - errorCode
+        - error
+      properties:
+        success:
+          type: boolean
+          description: Always false for error responses
+          example: false
+        errorCode:
+          type: string
+          description: Error code for programmatic handling
+          example: "SEASON_NOT_FOUND"
+        error:
+          type: object
+          required:
+            - message
+            - code
+          properties:
+            message:
+              type: string
+              description: Human-readable error message
+              example: "Season not found"
+            code:
+              type: string
+              description: Error code for programmatic handling
+              example: "SEASON_NOT_FOUND"
+            details:
+              type: object
+              description: Additional error details
+              additionalProperties: true
+
+tags:
+  - name: Seasons
+    description: Operations related to F1 seasons and race data
+  - name: Health
+    description: API health monitoring endpoints

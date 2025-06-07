@@ -1,0 +1,130 @@
+version: '3.8'
+
+services:
+  # MongoDB Database Service
+  mongodb:
+    image: mongo:7.0
+    container_name: f1-mongodb
+    restart: unless-stopped
+    ports:
+      - "27000:27017"
+    environment:
+      MONGO_INITDB_DATABASE: f1_champions_local_db
+      DOCKER_ENV: "true"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - f1-network
+    command: ["mongod", "--replSet", "f1rs", "--bind_ip_all"]
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # MongoDB Initialization Service
+  mongo-init:
+    build:
+      context: .
+      dockerfile: ./infrastructure/mongo-init/Dockerfile
+    container_name: f1-mongo-init
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - f1-network
+    environment:
+      - DOCKER_ENV=true
+      - MONGODB_DATABASE_PORT=27017
+      - MONGODB_DATABASE_NAME=f1_champions_local_db
+      - MONGODB_REPLICA_SET_NAME=f1rs
+      - MONGODB_HOST_NAME=mongodb
+
+  # Backend NestJS Service
+  backend:
+    build:
+      context: .
+      dockerfile: ./infrastructure/backend/Dockerfile
+      target: development
+    container_name: f1-backend
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+      - "9229:9229"  # Node.js debugger port
+    environment:
+      - DATABASE_URL=mongodb://mongodb:27017/f1_champions_local_db?replicaSet=f1rs
+      - EXTERNAL_API_URL=https://api.jolpi.ca/ergast/f1
+      - NODE_ENV=development
+      - PORT=4000
+      # MongoDB configuration (for compatibility with scripts)
+      - MONGODB_DATABASE_PORT=27017
+      - MONGODB_DATABASE_NAME=f1_champions_local_db
+      - MONGODB_REPLICA_SET_NAME=f1rs
+      - MONGODB_HOST_NAME=mongodb
+      - USE_SEED_DATA=false
+    volumes:
+      # Mount source code for development
+      - ./apps/backend:/app/apps/backend
+      - ./libs:/app/libs
+      - ./scripts:/app/scripts
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - ./nx.json:/app/nx.json
+      - ./tsconfig.base.json:/app/tsconfig.base.json
+      - ./tsconfig.json:/app/tsconfig.json
+      # Exclude node_modules to avoid conflicts
+      - /app/node_modules
+      - /app/apps/backend/node_modules
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      mongo-init:
+        condition: service_completed_successfully
+    networks:
+      - f1-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:4000/api/v1/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Frontend Web App Service
+  frontend:
+    build:
+      context: .
+      dockerfile: ./infrastructure/frontend/Dockerfile
+      target: production
+      args:
+        - VITE_API_BASE_URL=http://localhost:4000
+        - API_BASE_URL=http://localhost:4000
+        - NODE_ENV=production
+    container_name: f1-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - DOCKER_ENV=true
+      - PORT=3000
+      - VITE_API_BASE_URL=http://localhost:4000
+      - API_BASE_URL=http://localhost:4000
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - f1-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3000" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  mongodb_data:
+    driver: local
+
+networks:
+  f1-network:
+    driver: bridge
