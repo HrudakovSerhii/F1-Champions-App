@@ -7,13 +7,13 @@ services:
     container_name: f1-mongodb-primary
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "27000:27017"
     environment:
-      MONGO_INITDB_DATABASE: f1_champions_db
+      MONGO_INITDB_DATABASE: f1_champions_local_db
       DOCKER_ENV: "true"
       REPLICA_SET_NAME: "f1rs"
       REPLICA_NODES: "3"
-      DATABASE_NAME: "f1_champions_db"
+      DATABASE_NAME: "f1_champions_local_db"
     volumes:
       - mongodb_primary_data:/data/db
       - ./docker/mongodb/init/consolidated-init.js:/docker-entrypoint-initdb.d/01-consolidated-init.js
@@ -33,9 +33,9 @@ services:
     container_name: f1-mongodb-secondary1
     restart: unless-stopped
     ports:
-      - "27018:27017"
+      - "27001:27017"
     environment:
-      MONGO_INITDB_DATABASE: f1_champions_db
+      MONGO_INITDB_DATABASE: f1_champions_local_db
     volumes:
       - mongodb_secondary1_data:/data/db
     networks:
@@ -56,9 +56,9 @@ services:
     container_name: f1-mongodb-secondary2
     restart: unless-stopped
     ports:
-      - "27019:27017"
+      - "27002:27017"
     environment:
-      MONGO_INITDB_DATABASE: f1_champions_db
+      MONGO_INITDB_DATABASE: f1_champions_local_db
     volumes:
       - mongodb_secondary2_data:/data/db
     networks:
@@ -85,14 +85,18 @@ services:
       - "4000:4000"
     environment:
       - NODE_ENV=development
-      - DATABASE_URL=mongodb://mongodb-primary:27017,mongodb-secondary1:27017,mongodb-secondary2:27017/f1_champions_db?replicaSet=f1rs&readPreference=primary
+      - DATABASE_URL=mongodb://mongodb-primary:27017,mongodb-secondary1:27017,mongodb-secondary2:27017/f1_champions_local_db?replicaSet=f1rs&readPreference=primary
+      - MONGODB_DATABASE_PORT=27000
+      - MONGODB_DATABASE_NAME=f1_champions_local_db
+      - MONGODB_REPLICA_SET_NAME=f1rs
+      - MONGODB_REPLICA_NODES=3
+      - MONGODB_HOST_NAME=mongodb-primary
       - PORT=4000
       - USE_SEED_DATA=${USE_SEED_DATA:-true}
     volumes:
       # Mount source code for development
       - ./apps/backend:/app/apps/backend
       - ./libs:/app/libs
-      - ./shared:/app/shared
       - ./scripts:/app/scripts
       - ./package.json:/app/package.json
       - ./package-lock.json:/app/package-lock.json
@@ -136,7 +140,6 @@ services:
       # Mount source code for development
       - ./apps/frontend/web-app:/app/apps/frontend/web-app
       - ./libs:/app/libs
-      - ./shared:/app/shared
       - ./package.json:/app/package.json
       - ./package-lock.json:/app/package-lock.json
       - ./nx.json:/app/nx.json

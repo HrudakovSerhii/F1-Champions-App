@@ -68,6 +68,6 @@ model SeasonRaceWinner {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([season, driverId, constructorId])
+  @@unique([season, round, driverId, constructorId])
   @@map("season_race_winners")
 }

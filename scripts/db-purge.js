@@ -13,12 +13,11 @@ const { validateSafetyConditions } = require('./db-safety-check');
 function runCommand(command, cwd = process.cwd()) {
   try {
     console.log(`📋 Running: ${command}`);
-    const result = execSync(command, {
+    execSync(command, {
       cwd,
       stdio: 'inherit',
       env: { ...process.env },
     });
-    return result;
   } catch (error) {
     console.error(`❌ Command failed: ${command}`);
     console.error(error.message);
@@ -45,49 +44,39 @@ function confirmAction() {
 }
 
 async function purgeDatabase() {
-  console.log('🗑️  F1 Champions Database Purge Script');
-  console.log('═'.repeat(50));
+  console.log('🗑️  F1 Champions Database Purge');
 
-  // Step 1: Run safety checks
   validateSafetyConditions();
 
-  // Step 2: Get user confirmation
   const confirmed = await confirmAction();
   if (!confirmed) {
-    console.log('\n❌ Operation cancelled by user.');
+    console.log('❌ Operation cancelled by user.');
     process.exit(0);
   }
 
-  console.log('\n🚀 Starting database purge process...\n');
-
+  console.log('🚀 Starting database purge...');
   const backendDir = path.join(__dirname, '../apps/backend');
 
   try {
-    // Step 3: Drop and recreate database
-    console.log('📦 Step 1: Resetting database...');
+    console.log('📦 Resetting database...');
     runCommand('npx prisma db push --force-reset --skip-generate', backendDir);
 
-    // Step 4: Generate Prisma client
-    console.log('🔧 Step 2: Generating Prisma client...');
+    console.log('🔧 Generating Prisma client...');
     runCommand('npx prisma generate', backendDir);
 
-    // Step 5: Apply schema
-    console.log('📋 Step 3: Applying database schema...');
+    console.log('📋 Applying database schema...');
     runCommand('npx prisma db push', backendDir);
 
-    console.log('\n✅ Database purge completed successfully!');
-    console.log('═'.repeat(50));
-    console.log('📊 Database is now empty and ready for fresh data.');
-    console.log('💡 You can now run seed scripts to populate test data.');
-    console.log('🔧 Use "npm run db:studio" to view the database.');
+    console.log('✅ Database purge completed successfully!');
+    console.log(
+      '💡 Database is ready for fresh data. Use "npm run db:studio" to view.'
+    );
   } catch (error) {
-    console.error('\n❌ Database purge failed!');
-    console.error('Error:', error.message);
+    console.error('❌ Database purge failed:', error.message);
     process.exit(1);
   }
 }
 
-// Run if called directly
 if (require.main === module) {
   purgeDatabase().catch((error) => {
     console.error('Fatal error:', error);

@@ -1,11 +1,11 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 
-import { StandingItem } from '../types';
+import type { SeasonWinner } from '@f1-app/api-types';
 
 type SeasonsWinnersListLocal = {
-  items: StandingItem[];
-  update: (items: StandingItem[]) => void;
+  items: SeasonWinner[];
+  update: (items: SeasonWinner[]) => void;
 };
 
 export const useSeasonsWinnersListLocal = create<SeasonsWinnersListLocal>()(

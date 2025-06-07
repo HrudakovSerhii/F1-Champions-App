@@ -2,7 +2,7 @@ export const isDevelopment = process.env.NODE_ENV !== 'production';
 
 export const isTest = process.env.NODE_ENV === 'test';
 
-export const SEASONS_RANGE: [number, number] = [2005, 2023];
+export const SEASONS_RANGE: [number, number] = [2005, 2025];
 
 export const MONTH_NAMES = [
   'January',
@@ -21,7 +21,7 @@ export const MONTH_NAMES = [
 
 // App routing
 export const HOME = '/';
-export const SEASON = '/season/:seasonId';
+export const SEASON = '/season/:season';
 export const SEASONS = '/seasons';
 
 export const ABOUT = '/about';

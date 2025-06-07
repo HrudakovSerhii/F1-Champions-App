@@ -20,43 +20,37 @@ class F1MongoDBSetup {
     console.log('🏎️  F1 Champions - MongoDB Setup');
     console.log('═'.repeat(60));
 
-    const envPath = path.join(__dirname, '../.env.local');
-    console.log(`🔍 Loading environment from: ${envPath}`);
+    const envPath = path.join(__dirname, '../.env');
+    let envVars = {};
 
-    if (!fs.existsSync(envPath)) {
-      console.error('❌ .env.local file not found');
-      console.log('💡 Please create .env.local with MongoDB configuration');
-      process.exit(1);
+    // Check if running in Docker (environment variables) or locally (.env file)
+    if (process.env.DOCKER_ENV === 'true' || !fs.existsSync(envPath)) {
+      console.log('🐳 Running in Docker mode, using environment variables');
+      // Use environment variables directly
+      envVars = process.env;
+    } else {
+      console.log('📄 Running locally, reading .env file');
+      // Read from .env file
+      const envContent = fs.readFileSync(envPath, 'utf8');
+
+      // Simplified env parsing
+      envContent.split('\n').forEach((line) => {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+          const [key, value] = trimmed.split('=', 2);
+          envVars[key.trim()] = value.replace(/"/g, '');
+        }
+      });
     }
 
-    const envContent = fs.readFileSync(envPath, 'utf8');
-    const envVars = {};
-
-    envContent.split('\n').forEach((line) => {
-      const trimmed = line.trim();
-      if (trimmed && !trimmed.startsWith('#')) {
-        const [key, ...valueParts] = trimmed.split('=');
-        if (key && valueParts.length > 0) {
-          const value = valueParts.join('=').replace(/"/g, '');
-          envVars[key.trim()] = value;
-        }
-      }
-    });
-
-    // Set configuration
     this.config = {
       port: envVars.MONGODB_DATABASE_PORT || '27000',
       dbName: envVars.MONGODB_DATABASE_NAME || 'f1_champions_local_db',
       replicaSet: envVars.MONGODB_REPLICA_SET_NAME || 'f1rs',
       host: envVars.MONGODB_HOST_NAME || 'localhost',
-      nodeCount: parseInt(envVars.MONGODB_REPLICA_NODES || '1'),
-      isDocker: envVars.DOCKER_ENV === 'true',
     };
 
-    console.log('📋 Configuration loaded:');
-    Object.entries(this.config).forEach(([key, value]) => {
-      console.log(`  ✅ ${key}: ${value}`);
-    });
+    console.log(`📡 MongoDB Config: ${this.config.host}:${this.config.port}/${this.config.dbName} (${this.config.replicaSet})`);
 
     this.connectionString = `mongodb://${this.config.host}:${this.config.port}/?directConnection=true`;
     this.appConnectionString = `mongodb://${this.config.host}:${this.config.port}/${this.config.dbName}?replicaSet=${this.config.replicaSet}`;
@@ -64,7 +58,6 @@ class F1MongoDBSetup {
 
   async connectToMongoDB() {
     console.log('\n🔌 Connecting to MongoDB...');
-    console.log(`   Host: ${this.config.host}:${this.config.port}`);
 
     try {
       this.client = new MongoClient(this.connectionString);
@@ -85,14 +78,11 @@ class F1MongoDBSetup {
     console.log('\n🔧 Initializing replica set...');
 
     try {
-      // Check if replica set is already initialized
-      const status = await this.admin.command({ replSetGetStatus: 1 });
-      console.log('ℹ️  Replica set is already initialized');
+      await this.admin.command({ replSetGetStatus: 1 });
+      console.log('✅ Replica set already initialized');
       return true;
     } catch (error) {
-      if (error.message.includes('no replset config')) {
-        console.log('📦 Setting up new replica set...');
-      } else {
+      if (!error.message.includes('no replset config')) {
         throw error;
       }
     }
@@ -115,13 +105,7 @@ class F1MongoDBSetup {
 
       if (result.ok === 1) {
         console.log('✅ Replica set initialized successfully!');
-        console.log(`📊 Replica set: ${this.config.replicaSet}`);
-        console.log(`🔗 Member: ${this.config.host}:${this.config.port}`);
-
-        // Wait for replica set to stabilize
-        console.log('⏳ Waiting for replica set to stabilize...');
         await new Promise((resolve) => setTimeout(resolve, 3000));
-
         return true;
       } else {
         console.error('❌ Failed to initialize replica set:', result);
@@ -133,53 +117,56 @@ class F1MongoDBSetup {
     }
   }
 
+  async checkDatabaseExists() {
+    const db = this.client.db(this.config.dbName);
+    const collections = await db.listCollections().toArray();
+
+    if (collections.length > 0) {
+      console.log('\n⚠️  Database already exists with collections:');
+      collections.forEach((col) => console.log(`  - ${col.name}`));
+      console.log('\n💡 To recreate database, run: npm run db:purge');
+      return true;
+    }
+
+    return false;
+  }
+
   async setupDatabase() {
     console.log('\n🏎️  Setting up F1 Champions database...');
 
     const db = this.client.db(this.config.dbName);
 
-    console.log('📊 Creating collections and indexes...');
+    try {
+      // Create collections and indexes
+      const drivers = db.collection('drivers');
+      await drivers.createIndex({ driverId: 1 }, { unique: true });
+      await drivers.createIndex({ familyName: 1 });
+      await drivers.createIndex({ nationality: 1 });
 
-    // Drivers collection
-    const drivers = db.collection('drivers');
-    await drivers.createIndex({ driverId: 1 }, { unique: true });
-    await drivers.createIndex({ familyName: 1 });
-    await drivers.createIndex({ nationality: 1 });
+      const constructors = db.collection('constructors');
+      await constructors.createIndex({ name: 1 }, { unique: true });
+      await constructors.createIndex({ nationality: 1 });
 
-    // Constructors collection
-    const constructors = db.collection('constructors');
-    await constructors.createIndex({ name: 1 }, { unique: true });
-    await constructors.createIndex({ nationality: 1 });
+      const seasonWinners = db.collection('season_winners');
+      await seasonWinners.createIndex(
+        { season: 1, driverId: 1, constructorId: 1 },
+        { unique: true }
+      );
+      await seasonWinners.createIndex({ season: 1 });
 
-    // Season Winners collection
-    const seasonWinners = db.collection('season_winners');
-    await seasonWinners.createIndex(
-      { season: 1, driverId: 1, constructorId: 1 },
-      { unique: true }
-    );
-    await seasonWinners.createIndex({ season: 1 });
+      const seasonRaceWinners = db.collection('season_race_winners');
+      await seasonRaceWinners.createIndex(
+        { season: 1, round: 1, driverId: 1, constructorId: 1 },
+        { unique: true }
+      );
+      await seasonRaceWinners.createIndex({ season: 1 });
+      await seasonRaceWinners.createIndex({ round: 1 });
 
-    // Season Race Winners collection
-    const seasonRaceWinners = db.collection('season_race_winners');
-    await seasonRaceWinners.createIndex(
-      { season: 1, driverId: 1, constructorId: 1 },
-      { unique: true }
-    );
-    await seasonRaceWinners.createIndex({ season: 1 });
-    await seasonRaceWinners.createIndex({ round: 1 });
-
-    console.log('✅ Database setup completed!');
-    console.log('📋 Created collections (matching Prisma schema):');
-    console.log(
-      '  - drivers (with indexes on driverId, familyName, nationality)'
-    );
-    console.log('  - constructors (with indexes on name, nationality)');
-    console.log(
-      '  - season_winners (with indexes on season+driverId+constructorId, season)'
-    );
-    console.log(
-      '  - season_race_winners (with indexes on season+driverId+constructorId, season, round)'
-    );
+      console.log('✅ Database schema setup completed!');
+    } catch (error) {
+      console.error('❌ Error setting up database schema:', error.message);
+      throw error;
+    }
   }
 
   async run() {
@@ -189,11 +176,16 @@ class F1MongoDBSetup {
       const replicaSetReady = await this.initializeReplicaSet();
 
       if (replicaSetReady) {
-        await this.setupDatabase();
+        const dbExists = await this.checkDatabaseExists();
 
-        console.log('\n🎉 F1 Champions MongoDB setup completed successfully!');
-        console.log('🔗 Connection string for your application:');
-        console.log(`   ${this.appConnectionString}`);
+        if (!dbExists) {
+          await this.setupDatabase();
+          console.log(
+            '\n🎉 F1 Champions MongoDB setup completed successfully!'
+          );
+          console.log('🔗 Connection string for your application:');
+          console.log(`   ${this.appConnectionString}`);
+        }
       } else {
         console.error(
           '❌ Failed to set up replica set, skipping database setup'

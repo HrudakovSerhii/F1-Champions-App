@@ -1,6 +1,8 @@
 import { StandingItem } from '../types';
 import { SEASONS_RANGE } from '../constants';
 
+import type { SeasonWinner } from '@f1-app/api-types';
+
 /**
  * Function filter standingsLists to get winners only for range specified in App requirements.
  * This could be done by using offset param. on StandingItem[] data fetch but wasn't chosen as it will require to fetch
@@ -9,6 +11,7 @@ import { SEASONS_RANGE } from '../constants';
  * @param seasonRange {SEASONS_RANGE} tuple of seasons - default to [2005-2023]
  * @return StandingItem[]
  */
+// TODO: Review if required
 export const filterWinnersBySeasonRange = (
   data: StandingItem[],
   seasonRange: typeof SEASONS_RANGE = SEASONS_RANGE
@@ -25,5 +28,5 @@ export const filterWinnersBySeasonRange = (
  * @param season {string} id of the season
  * @return StandingItem
  */
-export const selectWinnerBySeason = (data: StandingItem[], season: string) =>
+export const selectWinnerBySeason = (data: SeasonWinner[], season: string) =>
   data.find((standingItem) => standingItem.season === season);

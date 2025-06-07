@@ -3,47 +3,51 @@ import { useEffect, useState } from 'react';
 import useRemoteData, { RemoteData } from './useRemoteData';
 
 import {
-  ROOT_ERGAST_API_PATH,
+  F1_CHAMPIONS_API_PATH,
   SEASON_WINNERS_PATH,
-} from '../constants/ergastApiConstans';
+} from '../constants/apiConstants';
 
-import { Race, SeasonData } from '../types';
+import type { SeasonRaceWinner } from '@f1-app/api-types';
 
-type UseSeasonWinners = Omit<RemoteData<Race[] | undefined>, 'fetchRemoteData'>;
+type UseSeasonWinners = Omit<
+  RemoteData<SeasonRaceWinner[] | undefined>,
+  'fetchRemoteData'
+>;
 
 /**
  * Hook to request list of winners for each race in selected season of F1 championship. Re-using useRemoteData default state props.
  * API GET request to retreat list of winners for each race in selected season
- * @param seasonId {string} season value representing year of the races season
+ * @param season {string} season value representing year of the races season
  * @return UseSeasonWinners
  */
-export const useSeasonWinners: (seasonId: string) => UseSeasonWinners = (
-  seasonId
+export const useSeasonWinners: (season: string) => UseSeasonWinners = (
+  season: string
 ) => {
-  const [raceWinnersList, setRaceWinnersList] = useState<Race[]>();
+  const [seasonWinnerList, setSeasonWinnerList] =
+    useState<SeasonRaceWinner[]>();
 
-  const { data, loading, error, fetchRemoteData } =
-    useRemoteData<SeasonData>(ROOT_ERGAST_API_PATH);
+  const { data, loading, error, fetchRemoteData } = useRemoteData<
+    SeasonRaceWinner[]
+  >(F1_CHAMPIONS_API_PATH);
 
   useEffect(() => {
     if (!loading) {
-      fetchRemoteData(SEASON_WINNERS_PATH.replace('{seasonId}', seasonId));
+      fetchRemoteData(
+        SEASON_WINNERS_PATH.replace('{seasonYear}', season)
+      ).finally();
     }
-  }, [seasonId, fetchRemoteData]);
+  }, [season]);
 
   useEffect(() => {
     if (data) {
-      // We select deeply nested data and store it to local state for easy access
-      const updatedRaceWinnersList = data?.MRData.RaceTable.Races;
-
-      setRaceWinnersList(updatedRaceWinnersList);
+      setSeasonWinnerList(data);
     }
   }, [data]);
 
   return {
     loading,
     error,
-    data: raceWinnersList,
+    data: seasonWinnerList,
   };
 };
 

@@ -32,11 +32,13 @@
         ],
         "options": {
           "buildTarget": "@f1-app/backend:build",
-          "runBuildTargetDependencies": false
+          "runBuildTargetDependencies": false,
+          "inspect": false
         },
         "configurations": {
           "development": {
-            "buildTarget": "@f1-app/backend:build:development"
+            "buildTarget": "@f1-app/backend:build:development",
+            "inspect": false
           },
           "production": {
             "buildTarget": "@f1-app/backend:build:production"
@@ -50,10 +52,25 @@
       }
     }
   },
-  "devDependencies": {
-    "prisma": "^6.8.2"
-  },
   "dependencies": {
-    "@prisma/client": "^6.8.2"
+    "@nestjs/axios": "^3.1.2",
+    "@nestjs/common": "^10.0.2",
+    "@nestjs/config": "^3.2.3",
+    "@nestjs/core": "^10.0.2",
+    "@nestjs/platform-express": "^10.0.2",
+    "@nestjs/swagger": "^7.4.0",
+    "@nestjs/terminus": "^10.2.3",
+    "@nestjs/throttler": "^6.2.1",
+    "@prisma/client": "^6.9.0",
+    "axios": "^1.7.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.0"
+  },
+  "devDependencies": {
+    "@nestjs/schematics": "^10.0.1",
+    "@nestjs/testing": "^10.0.2",
+    "prisma": "^6.9.0"
   }
 }

@@ -19,167 +19,207 @@ export class DatabaseService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Check if SeasonsWinners data already exists to avoid duplicates
+   * Get missing seasons from the database for the given year range
+   * @param yearsRange - Array of years to check
+   * @returns Promise<string[]> - Array of years that are missing from the database
    */
-  async checkExistingSeasonsWinnersData(
-    yearsRange: string[]
-  ): Promise<boolean> {
+  async getMissingSeasonsWinners(yearsRange: string[]): Promise<string[]> {
     try {
-      this.logger.debug(
-        `Checking if seasons data exists for: ${yearsRange} seasons`
-      );
-
       const existingWinners = await this.prisma.seasonWinner.findMany({
         where: {
           season: {
             in: yearsRange,
           },
         },
+        select: {
+          season: true,
+        },
       });
 
-      const hasData = existingWinners.length > 0;
+      const existingSeasons = existingWinners.map((winner) => winner.season);
+      const missingSeasons = yearsRange.filter(
+        (year) => !existingSeasons.includes(year)
+      );
 
-      if (hasData) {
-        this.logger.debug(
-          `seasonsWinner already contain data for seasons range: ${yearsRange}`
-        );
-      }
-
-      return hasData;
+      return missingSeasons;
     } catch (error) {
-      this.logger.error(
-        `Error checking seasons data for ${yearsRange} seasons range:`,
-        error
-      );
-
-      throw new Error(
-        `Failed to check seasons data for ${yearsRange} seasons range`
-      );
+      this.logger.error('Failed to check missing seasons:', error);
+      throw new Error('Failed to check missing seasons');
     }
   }
 
   /**
-   * Check if SeasonRaceWinners data for provided season already exists to avoid duplicates
+   * Get missing seasons for race winners from the database for the given year range
+   * @param yearsRange - Array of years to check
+   * @returns Promise<string[]> - Array of years that are missing race winner data
    */
-  private async checkExistingSeasonRaceWinnersData(
+  async getMissingSeasonsForRaceWinners(
     yearsRange: string[]
-  ): Promise<boolean> {
-    const existingSeasonRaceWinners =
-      await this.prisma.seasonRaceWinner.findMany({
+  ): Promise<string[]> {
+    try {
+      const existingRaceWinners = await this.prisma.seasonRaceWinner.findMany({
         where: {
           season: {
             in: yearsRange,
           },
         },
+        select: {
+          season: true,
+        },
       });
 
-    return existingSeasonRaceWinners.length > 0;
+      const existingSeasons = [
+        ...new Set(existingRaceWinners.map((winner) => winner.season)),
+      ];
+      const missingSeasons = yearsRange.filter(
+        (year) => !existingSeasons.includes(year)
+      );
+
+      return missingSeasons;
+    } catch (error) {
+      this.logger.error('Failed to check missing race winner seasons:', error);
+      throw new Error('Failed to check missing race winner seasons');
+    }
   }
 
-  private async storeSeasonsWinners(seasonsWinners: SeasonWinnerCreateInput[]) {
-    this.logger.log(`🥇 Storing seasons winners...`);
+  /**
+   * Store seasons winners using upsert (create or update if exists)
+   * Handles duplicates gracefully without throwing constraint errors
+   */
+  async storeSeasonsWinners(
+    seasonsWinners: SeasonWinnerCreateInput[]
+  ): Promise<void> {
+    if (seasonsWinners.length === 0) return;
+
+    this.logger.log(`🥇 Upsert ${seasonsWinners.length} season winners`);
 
     await Promise.all(
       seasonsWinners.map((seasonWinner) =>
-        this.prisma.seasonWinner.create({
-          data: seasonWinner,
+        this.prisma.seasonWinner.upsert({
+          where: {
+            season_driverId_constructorId: {
+              season: seasonWinner.season,
+              driverId: seasonWinner.driverId,
+              constructorId: seasonWinner.constructorId,
+            },
+          },
+          update: {
+            wins: seasonWinner.wins,
+            updatedAt: new Date(),
+          },
+          create: {
+            season: seasonWinner.season,
+            wins: seasonWinner.wins,
+            driverId: seasonWinner.driverId,
+            constructorId: seasonWinner.constructorId
+          },
         })
       )
     );
   }
 
-  private async storeSeasonRacesWinners(
+  /**
+   * Store season race winners using upsert (create or update if exists)
+   * Handles duplicates gracefully without throwing constraint errors
+   */
+  async storeSeasonRacesWinners(
     yearsRange: string[],
     seasonRaceWinners: SeasonRaceWinnerCreateInput[]
-  ) {
-    this.logger.log(`🥇 Storing seasons ${yearsRange} race winners...`);
+  ): Promise<void> {
+    if (seasonRaceWinners.length === 0) return;
+
+    this.logger.log(`🏁 Upserting ${seasonRaceWinners.length} race winners`);
 
     await Promise.all(
       seasonRaceWinners.map((seasonRaceWinner) =>
-        this.prisma.seasonRaceWinner.create({
-          data: seasonRaceWiner,
+        this.prisma.seasonRaceWinner.upsert({
+          where: {
+            season_round_driverId_constructorId: {
+              round: seasonRaceWinner.round,
+              season: seasonRaceWinner.season,
+              driverId: seasonRaceWinner.driverId,
+              constructorId: seasonRaceWinner.constructorId,
+            },
+          },
+          update: {
+            points: seasonRaceWinner.points,
+            round: seasonRaceWinner.round,
+            wins: seasonRaceWinner.wins,
+            updatedAt: new Date(),
+          },
+          create: {
+            season: seasonRaceWinner.season,
+            points: seasonRaceWinner.points,
+            round: seasonRaceWinner.round,
+            wins: seasonRaceWinner.wins,
+            driverId: seasonRaceWinner.driverId,
+            constructorId: seasonRaceWinner.constructorId
+          },
         })
       )
     );
   }
 
   /**
-   * Store database uniq data
+   * Store drivers using upsert (create or update if exists)
+   * Handles duplicates gracefully without throwing constraint errors
    */
-  async storeDBUniqData(
-    drivers: DriverCreateInput[],
-    constructors: ConstructorCreateInput[]
-  ) {
-    this.logger.log('👨‍🏎️ Storing drivers...');
+  async storeDrivers(drivers: DriverCreateInput[]): Promise<void> {
+    if (drivers.length === 0) return;
+
+    this.logger.log(`👨‍🏎️ Upserting ${drivers.length} drivers`);
+
     await Promise.all(
       drivers.map((driver) =>
-        this.prisma.driver.create({
-          data: driver,
+        this.prisma.driver.upsert({
+          where: { driverId: driver.driverId },
+          update: {
+            givenName: driver.givenName,
+            familyName: driver.familyName,
+            nationality: driver.nationality,
+            url: driver.url,
+            updatedAt: new Date(),
+          },
+          create: {
+            driverId: driver.driverId,
+            givenName: driver.givenName,
+            familyName: driver.familyName,
+            nationality: driver.nationality,
+            url: driver.url
+          },
         })
       )
     );
-
-    this.logger.log('👨‍⚒️ Storing constructors...');
-    await Promise.all(
-      constructors.map((constructor) =>
-        this.prisma.constructor.create({
-          data: constructor,
-        })
-      )
-    );
-  }
-
-  async storeSeasonsWinnersWithDuplicateCheck(
-    yearsRange: string[],
-    seasonsWinners: SeasonWinnerCreateInput[]
-  ): Promise<void> {
-    if (seasonsWinners.length === 0) {
-      this.logger.warn('No seasons winners to store');
-
-      return;
-    }
-
-    const dataExists = await this.checkExistingSeasonsWinnersData(yearsRange);
-
-    if (dataExists) {
-      this.logger.log(
-        `Winners data for provided seasons already exists, skipping storage`
-      );
-
-      return;
-    }
-
-    await this.storeSeasonsWinners(seasonsWinners);
   }
 
   /**
-   * Store race winners data with duplicate checking
-   * This is the main method to be used by the race-winners service
+   * Store constructors using upsert (create or update if exists)
+   * Handles duplicates gracefully without throwing constraint errors
    */
-  async storeSeasonRaceWinnersWithDuplicateCheck(
-    yearsRange: string[],
-    seasonRaceWinners: SeasonRaceWinnerCreateInput[]
+  async storeConstructors(
+    constructors: ConstructorCreateInput[]
   ): Promise<void> {
-    if (seasonRaceWinners.length === 0) {
-      this.logger.warn('No seasonRaceWinners to store');
+    if (constructors.length === 0) return;
 
-      return;
-    }
+    this.logger.log(`🏗️ Upserting ${constructors.length} constructors`);
 
-    // Check if data already exists
-    const dataExists = await this.checkExistingSeasonRaceWinnersData(
-      yearsRange
+    await Promise.all(
+      constructors.map((constructor) =>
+        this.prisma.constructor.upsert({
+          where: { name: constructor.name },
+          update: {
+            nationality: constructor.nationality,
+            url: constructor.url,
+            updatedAt: new Date(),
+          },
+          create: {
+            name: constructor.name,
+            nationality: constructor.nationality,
+            url: constructor.url
+          },
+        })
+      )
     );
-
-    if (dataExists) {
-      this.logger.log(
-        `Data for seasons ${yearsRange} range already exists, skipping storage`
-      );
-
-      return;
-    }
-
-    await this.storeSeasonRacesWinners(yearsRange, seasonRaceWinners);
   }
 
   /**
@@ -212,10 +252,9 @@ export class DatabaseService {
       });
     } catch (error) {
       this.logger.error(
-        `Error fetching race winners from database for season ${season}:`,
+        `Failed to fetch race winners for season ${season}:`,
         error
       );
-
       return [];
     }
   }
@@ -253,8 +292,7 @@ export class DatabaseService {
         skip: options.offset,
       });
     } catch (error) {
-      this.logger.error(`Error fetching seasons winners from database:`, error);
-
+      this.logger.error('Failed to fetch seasons winners:', error);
       return [];
     }
   }
