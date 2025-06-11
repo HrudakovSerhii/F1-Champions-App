@@ -1,0 +1,120 @@
+{
+  "name": "e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "root": "apps/e2e",
+  "sourceRoot": "apps/e2e/src",
+  "projectType": "application",
+  "tags": [
+    "type:e2e",
+    "scope:testing"
+  ],
+  "targets": {
+    "e2e": {
+      "executor": "@nx/playwright:playwright",
+      "outputs": [
+        "{workspaceRoot}/apps/e2e/test-results",
+        "{workspaceRoot}/apps/e2e/playwright-report"
+      ],
+      "options": {
+        "config": "apps/e2e/playwright.config.ts"
+      },
+      "configurations": {
+        "production": {
+          "config": "apps/e2e/playwright.config.ts"
+        }
+      }
+    },
+    "e2e-ui": {
+      "executor": "@nx/playwright:playwright",
+      "options": {
+        "config": "apps/e2e/playwright.config.ts",
+        "ui": true
+      }
+    },
+    "e2e-headed": {
+      "executor": "@nx/playwright:playwright",
+      "options": {
+        "config": "apps/e2e/playwright.config.ts",
+        "headed": true
+      }
+    },
+    "e2e-debug": {
+      "executor": "@nx/playwright:playwright",
+      "options": {
+        "config": "apps/e2e/playwright.config.ts",
+        "debug": true
+      }
+    },
+    "e2e-api": {
+      "executor": "@nx/playwright:playwright",
+      "options": {
+        "config": "apps/e2e/playwright.config.ts",
+        "project": "api"
+      }
+    },
+    "e2e-chrome": {
+      "executor": "@nx/playwright:playwright",
+      "options": {
+        "config": "apps/e2e/playwright.config.ts",
+        "project": "chromium"
+      }
+    },
+    "e2e-firefox": {
+      "executor": "@nx/playwright:playwright",
+      "options": {
+        "config": "apps/e2e/playwright.config.ts",
+        "project": "firefox"
+      }
+    },
+    "e2e-safari": {
+      "executor": "@nx/playwright:playwright",
+      "options": {
+        "config": "apps/e2e/playwright.config.ts",
+        "project": "webkit"
+      }
+    },
+    "e2e-mobile": {
+      "executor": "@nx/playwright:playwright",
+      "options": {
+        "config": "apps/e2e/playwright.config.ts",
+        "project": "Mobile Chrome"
+      }
+    },
+    "install-browsers": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx playwright install",
+        "cwd": "apps/e2e"
+      }
+    },
+    "show-report": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx playwright show-report",
+        "cwd": "apps/e2e"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": [
+        "{options.outputFile}"
+      ],
+      "options": {
+        "lintFilePatterns": [
+          "apps/e2e/**/*.{js,ts}"
+        ]
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit",
+        "cwd": "apps/e2e"
+      }
+    }
+  },
+  "implicitDependencies": [
+    "web-app",
+    "@f1-app/backend"
+  ]
+}

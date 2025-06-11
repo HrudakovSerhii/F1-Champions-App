@@ -35,7 +35,18 @@
     "db:mongo:stop": "node scripts/mongodb-manager.js stop",
     "db:mongo:status": "node scripts/mongodb-manager.js status",
     "db:mongo:setup": "node scripts/mongodb-setup.js",
-    "db:local:setup": "npm run db:mongo:start && sleep 3 && npm run db:mongo:setup"
+    "db:local:setup": "npm run db:mongo:start && sleep 3 && npm run db:mongo:setup",
+    "e2e": "npx nx e2e e2e",
+    "e2e:ui": "npx nx e2e-ui e2e",
+    "e2e:headed": "npx nx e2e-headed e2e",
+    "e2e:debug": "npx nx e2e-debug e2e",
+    "e2e:api": "npx nx e2e-api e2e",
+    "e2e:chrome": "npx nx e2e-chrome e2e",
+    "e2e:firefox": "npx nx e2e-firefox e2e",
+    "e2e:safari": "npx nx e2e-safari e2e",
+    "e2e:mobile": "npx nx e2e-mobile e2e",
+    "e2e:report": "npx nx show-report e2e",
+    "e2e:install": "npx nx install-browsers e2e"
   },
   "private": true,
   "dependencies": {
