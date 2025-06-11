@@ -24,6 +24,12 @@
     "paths": {
       "@f1-app/api-types": [
         "libs/shared/types/src/index.ts"
+      ],
+      "@f1-app/e2e-testids": [
+        "libs/shared/e2e-testids/src/index.ts"
+      ],
+      "@f1-app/frontend-styles": [
+        "libs/frontend/styles/src/index.ts"
       ]
     }
   }

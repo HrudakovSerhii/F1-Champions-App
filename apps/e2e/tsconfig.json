@@ -39,5 +39,10 @@
     "dist",
     "test-results",
     "playwright-report"
+  ],
+  "references": [
+    {
+      "path": "../../libs/shared/e2e-testids"
+    }
   ]
 }

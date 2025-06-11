@@ -1,5 +1,6 @@
 import { Page, Locator } from '@playwright/test';
 import { BasePage } from './base-page';
+import { TEST_IDS } from '@f1-app/e2e-testids';
 
 /**
  * Home page object for F1 Champions App
@@ -18,26 +19,30 @@ export class HomePage extends BasePage {
   constructor(page: Page) {
     super(page);
 
-    // Initialize selectors
-    this.pageHeader = page.locator('[data-testid="page-header"], h1, .header');
-    this.navigationMenu = page.locator('[data-testid="navigation"], nav, .nav');
+    // Initialize selectors using shared TEST_IDS
+    this.pageHeader = page.locator(
+      `[data-testid="${TEST_IDS.HOME_SCREEN.PAGE_HEADER}"]`
+    );
+    this.navigationMenu = page.locator(
+      `[data-testid="${TEST_IDS.HOME_SCREEN.NAVIGATION_MENU}"]`
+    );
     this.championsSection = page.locator(
-      '[data-testid="champions-section"], .champions, #champions'
+      `[data-testid="${TEST_IDS.HOME_SCREEN.CHAMPIONS_SECTION}"]`
     );
     this.loadingSpinner = page.locator(
-      '[data-testid="loading"], .loading, .spinner'
+      `[data-testid="${TEST_IDS.HOME_SCREEN.LOADING_SPINNER}"]`
     );
     this.errorMessage = page.locator(
-      '[data-testid="error"], .error, .alert-error'
+      `[data-testid="${TEST_IDS.HOME_SCREEN.ERROR_MESSAGE}"]`
     );
     this.championsList = page.locator(
-      '[data-testid="champions-list"], .champions-list, .list'
+      `[data-testid="${TEST_IDS.HOME_SCREEN.CHAMPIONS_LIST}"]`
     );
     this.searchInput = page.locator(
-      '[data-testid="search"], input[type="search"], .search-input'
+      `[data-testid="${TEST_IDS.HOME_SCREEN.SEARCH_INPUT}"]`
     );
     this.seasonFilter = page.locator(
-      '[data-testid="season-filter"], select, .season-select'
+      `[data-testid="${TEST_IDS.HOME_SCREEN.SEASON_FILTER}"]`
     );
   }
 
@@ -100,7 +105,7 @@ export class HomePage extends BasePage {
    */
   async getChampionsCount(): Promise<number> {
     const champions = this.championsList.locator(
-      '[data-testid="champion-item"], .champion-item, .list-item'
+      `[data-testid="${TEST_IDS.HOME_SCREEN.CHAMPION_CARD.CONTAINER}"]`
     );
     return await champions.count();
   }
@@ -160,7 +165,9 @@ export class HomePage extends BasePage {
     team?: string;
   }> {
     const champion = this.championsList
-      .locator('[data-testid="champion-item"], .champion-item')
+      .locator(
+        `[data-testid="${TEST_IDS.HOME_SCREEN.CHAMPION_CARD.CONTAINER}"]`
+      )
       .nth(index);
 
     // @typescript-eslint/ban-ts-comment @ts-expect-error: no need to create type for such object
@@ -168,7 +175,7 @@ export class HomePage extends BasePage {
 
     // Try to get champion name
     const nameElement = champion.locator(
-      '[data-testid="champion-name"], .name, .driver-name'
+      `[data-testid="${TEST_IDS.HOME_SCREEN.CHAMPION_CARD.DRIVER_NAME}"]`
     );
     if (await this.isElementVisible(nameElement)) {
       details.name = await this.getElementText(nameElement);
@@ -176,15 +183,15 @@ export class HomePage extends BasePage {
 
     // Try to get season
     const seasonElement = champion.locator(
-      '[data-testid="champion-season"], .season, .year'
+      `[data-testid="${TEST_IDS.HOME_SCREEN.CHAMPION_CARD.SEASON_YEAR}"]`
     );
     if (await this.isElementVisible(seasonElement)) {
       details.season = await this.getElementText(seasonElement);
     }
 
-    // Try to get team
+    // Try to get team/constructor
     const teamElement = champion.locator(
-      '[data-testid="champion-team"], .team, .constructor'
+      `[data-testid="${TEST_IDS.HOME_SCREEN.CHAMPION_CARD.CONSTRUCTOR}"]`
     );
     if (await this.isElementVisible(teamElement)) {
       details.team = await this.getElementText(teamElement);
@@ -198,9 +205,27 @@ export class HomePage extends BasePage {
    */
   async clickChampion(index: number): Promise<void> {
     const champion = this.championsList
-      .locator('[data-testid="champion-item"], .champion-item')
+      .locator(
+        `[data-testid="${TEST_IDS.HOME_SCREEN.CHAMPION_CARD.CONTAINER}"]`
+      )
       .nth(index);
     await this.clickElement(champion);
+  }
+
+  /**
+   * Click on champion view details button
+   */
+  async clickChampionViewDetails(index: number): Promise<void> {
+    const champion = this.championsList
+      .locator(
+        `[data-testid="${TEST_IDS.HOME_SCREEN.CHAMPION_CARD.CONTAINER}"]`
+      )
+      .nth(index);
+
+    const viewDetailsButton = champion.locator(
+      `[data-testid="${TEST_IDS.HOME_SCREEN.CHAMPION_CARD.VIEW_DETAILS}"]`
+    );
+    await this.clickElement(viewDetailsButton);
   }
 
   /**

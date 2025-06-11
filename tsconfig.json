@@ -13,6 +13,9 @@
       "path": "./libs/shared/types"
     },
     {
+      "path": "./libs/shared/e2e-testids"
+    },
+    {
       "path": "./apps/frontend/web-app"
     },
     {
@@ -29,6 +32,9 @@
     },
     {
       "path": "./apps/backend-e2e"
+    },
+    {
+      "path": "./apps/e2e"
     }
   ]
 }
