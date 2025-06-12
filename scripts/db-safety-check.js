@@ -51,7 +51,7 @@ function validateSafetyConditions() {
         databaseUrl.includes('localhost') || databaseUrl.includes('127.0.0.1')
           ? 'Local database detected'
           : 'Non-local database detected',
-      required: tr,
+      required: true,
     },
     {
       name: 'Database Name',

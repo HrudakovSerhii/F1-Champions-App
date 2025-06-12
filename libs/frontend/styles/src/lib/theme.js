@@ -253,7 +253,8 @@ const f1Theme = {
   initialize: initializeTheme,
 };
 
-module.exports = {
+// Export all theme-related variables and functions
+export default {
   fontDefinitions,
   designTokens,
   generateFontFaceCSS,

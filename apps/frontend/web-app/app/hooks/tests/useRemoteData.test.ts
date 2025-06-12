@@ -1,6 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import {
-  beforeAll,
   afterEach,
   afterAll,
   beforeEach,
@@ -12,36 +11,39 @@ import {
 
 import useRemoteData from '../useRemoteData';
 
-import DataFetcher from '../../utils/dataFetcher/DataFetcher';
+// Create a mock fetch function that we can control
+const mockFetch = vi.fn();
 
-vi.mock('../../utils/dataFetcher/DataFetcher');
+// Mock the DataFetcher class
+vi.mock('../../utils/dataFetcher/DataFetcher', () => {
+  return {
+    default: vi.fn().mockImplementation(() => ({
+      fetch: mockFetch
+    }))
+  };
+});
 
 describe('useRemoteData hook', () => {
   const baseUrl = '/base-url';
   const testUrl = '/test';
-  let fetchSpy: any;
-
-  beforeAll(() => {
-    fetchSpy = vi.spyOn(DataFetcher.prototype, 'fetch');
-  });
 
   afterEach(() => {
-    fetchSpy.mockReset();
+    mockFetch.mockReset();
   });
 
   afterAll(() => {
-    fetchSpy.mockRestore();
+    vi.restoreAllMocks();
   });
 
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should set hook states correctly after successful data fetch', async () => {
     const testData = { data: 'testData' };
     const testQueryParams = 'param=value';
 
-    fetchSpy.mockResolvedValueOnce(testData);
+    mockFetch.mockResolvedValueOnce(testData);
 
     const { result } = renderHook(() =>
       useRemoteData<typeof testData>(baseUrl)
@@ -66,14 +68,14 @@ describe('useRemoteData hook', () => {
     expect(result.current.data).toEqual(testData);
     expect(result.current.error).toBeNull();
 
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
-    expect(fetchSpy).toHaveBeenCalledWith(testUrl, testQueryParams);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledWith(testUrl, testQueryParams);
   });
 
   it('should set hook states correctly after failed data fetch', async () => {
     const testError = new Error('test error');
 
-    fetchSpy.mockRejectedValueOnce(testError);
+    mockFetch.mockRejectedValueOnce(testError);
 
     const { result } = renderHook(() => useRemoteData(baseUrl));
 
@@ -96,9 +98,9 @@ describe('useRemoteData hook', () => {
     expect(result.current.data).toBeNull();
     expect(result.current.error).toEqual(testError);
 
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
 
-    // fetchSpy mock DataFetcher.fetch(url: string, queryParams?: string). This is why second param expected to be undefined
-    expect(fetchSpy).toHaveBeenCalledWith(testUrl, undefined);
+    // mockFetch mock DataFetcher.fetch(url: string, queryParams?: string). This is why second param expected to be undefined
+    expect(mockFetch).toHaveBeenCalledWith(testUrl, undefined);
   });
 });
