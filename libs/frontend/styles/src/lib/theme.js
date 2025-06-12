@@ -235,6 +235,9 @@ const f1Theme = {
   tokens: designTokens,
   fonts: fontDefinitions,
 
+  // Fonts CSS
+  fontsCSSPath: './fonts.css', // Relative path to fonts.css file
+
   // Tailwind configuration
   tailwind: {
     theme: tailwindTheme,
