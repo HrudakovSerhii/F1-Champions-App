@@ -4,15 +4,14 @@
 
 **Base URL**: `http://localhost:4000/api/v1`  
 **API Version**: 1.0.0  
-**Description**: API for Formula 1 season champions and race winners data
+**Description**: API for retrieving Formula 1 championship data including season winners and season race results
 
 ## 📋 Table of Contents
 
 - [Rate Limiting](#rate-limiting)
 - [API Information Routes](#api-information-routes)
 - [Health Check Routes](#health-check-routes)
-- [Champions Routes](#champions-routes)
-- [Race Winners Routes](#race-winners-routes)
+- [Seasons Routes](#seasons-routes)
 
 ---
 
@@ -37,20 +36,26 @@
 {
   "name": "F1 Champions API",
   "version": "1.0.0",
-  "description": "API for Formula 1 season champions and race winners data",
+  "description": "API for retrieving Formula 1 championship data including season winners and season race results",
   "documentation": "http://localhost:4000/api/v1/docs",
   "health": "http://localhost:4000/api/v1/health",
   "endpoints": [
     {
-      "path": "/champions",
+      "path": "f1/winners",
       "method": "GET",
-      "description": "Get Formula 1 season champions",
-      "tag": "Champions"
+      "description": "Get seasons with winners",
+      "tag": "Seasons"
+    },
+    {
+      "path": "f1/season/{seasonYear}/winners",
+      "method": "GET", 
+      "description": "Get season winners",
+      "tag": "Seasons"
     }
   ],
   "features": [
-    "Formula 1 Champions Data",
-    "Race Winners Information",
+    "Formula 1 Season Champions Data",
+    "Season Race Winners Information",
     "Health Monitoring",
     "Rate Limiting",
     "CORS Support",
@@ -64,195 +69,208 @@
 }
 ```
 
-### GET `/health` (App Controller)
+---
 
-**Summary**: Basic Health Check  
-**Description**: Returns basic health status of the API server.
+## 🔧 Health Check Routes
 
-**Response Example**:
+### GET `/v1/health`
 
-```json
-{
-  "status": "ok",
-  "timestamp": "2024-01-01T00:00:00.000Z",
-  "uptime": 123.456,
-  "environment": "development",
-  "database": "connected"
-}
-```
-
-### GET `/f1/champions`
-
-**Summary**: Get All Season Champions  
-**Description**: Returns a list of Formula 1 season champions (drivers who won the championship each year). Provides all championship winners from 1950 onwards.
-
-**Query Parameters**:
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `limit` | integer | No | 30 | Maximum number of results (1-100) |
-| `offset` | integer | No | 0 | Number of results to skip for pagination |
-| `season` | string | No | - | Specific season year (YYYY format) |
-
-**Example Requests**:
-
-```bash
-# Get all champions
-GET /api/v1/f1/champions
-
-# Get champions with pagination
-GET /api/v1/f1/champions?limit=10&offset=20
-
-# Get champion for specific season
-GET /api/v1/f1/champions?season=2023
-```
+**Summary**: Get API health status  
+**Description**: Check the health status of the backend API server
 
 **Response Codes**:
 
-- `200` - Successful response
-- `400` - Bad request (invalid parameters)
-- `500` - Internal server error
+- `200` - API is healthy
+- `503` - API is unhealthy
 
 **Success Response Example**:
 
 ```json
 {
-  "MRData": {
-    "limit": "30",
-    "offset": "0",
-    "series": "f1",
-    "total": "74",
-    "StandingsTable": {
-      "StandingsLists": [
-        {
-          "season": "2023",
-          "round": "22",
-          "DriverStandings": [
-            {
-              "position": "1",
-              "positionText": "1",
-              "points": "575",
-              "wins": "19",
-              "Driver": {
-                "driverId": "max_verstappen",
-                "givenName": "Max",
-                "familyName": "Verstappen",
-                "dateOfBirth": "1997-09-30",
-                "nationality": "Dutch",
-                "url": "http://en.wikipedia.org/wiki/Max_Verstappen"
-              },
-              "Constructors": [
-                {
-                  "constructorId": "red_bull",
-                  "name": "Red Bull",
-                  "nationality": "Austrian",
-                  "url": "http://en.wikipedia.org/wiki/Red_Bull_Racing"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
+  "success": true,
+  "status": "healthy",
+  "timestamp": "2023-12-01T10:30:00Z",
+  "version": "1.0.0",
+  "uptime": 86400,
+  "dependencies": {
+    "database": "healthy",
+    "cache": "healthy"
+  }
+}
+```
+
+**Unhealthy Response Example**:
+
+```json
+{
+  "success": false,
+  "status": "unhealthy",
+  "timestamp": "2023-12-01T10:30:00Z",
+  "version": "1.0.0",
+  "uptime": 86400,
+  "dependencies": {
+    "database": "unhealthy",
+    "cache": "healthy"
   }
 }
 ```
 
 ---
 
-### GET `/f1/seasons/{season}/race-winners`
+## 🏁 Seasons Routes
 
-**Summary**: Get Race Winners for a Season  
-**Description**: Returns a list of race winners for all races in a specific Formula 1 season.
+### GET `/f1/winners`
 
-**Path Parameters**:
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `season` | string | Yes | The season year (YYYY format) |
+**Summary**: Get seasons with winners  
+**Description**: Retrieve all F1 seasons with their respective championship winners
 
 **Query Parameters**:
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `limit` | integer | No | 30 | Maximum number of results (1-100) |
-| `offset` | integer | No | 0 | Number of results to skip for pagination |
+| `minYear` | string | No | - | Minimum season year to filter from (inclusive). Must be 4-digit year (1950-2050) |
+| `maxYear` | string | No | - | Maximum season year to filter to (inclusive). Must be 4-digit year (1950-2050) |
 
 **Example Requests**:
 
 ```bash
-# Get all race winners for 2023 season
-GET /api/v1/f1/seasons/2023/race-winners
+# Get all seasons with winners
+GET /api/v1/winners
 
-# Get race winners with pagination
-GET /api/v1/f1/seasons/2023/race-winners?limit=5&offset=10
+# Get seasons with winners for specific year range
+GET /api/v1/winners?minYear=2020&maxYear=2023
+```
+
+**Response Codes**:
+- `200` - Successful response
+- `500` - Internal server error
+
+**Success Response Example**:
+
+```json
+[
+  {
+    "season": "2023",
+    "wins": 15,
+    "driver": {
+      "familyName": "Verstappen",
+      "givenName": "Max",
+      "url": "https://example.com/drivers/max_verstappen",
+      "nationality": "Dutch",
+      "driverId": "max_verstappen"
+    },
+    "constructor": {
+      "name": "Red Bull",
+      "url": "https://example.com/constructors/red_bull",
+      "nationality": "Austrian"
+    }
+  }
+]
+```
+
+### GET `/f1/season/{seasonYear}/winners`
+
+**Summary**: Get season winners  
+**Description**: Retrieve all race winners for a specific F1 season
+
+**Path Parameters**:
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `seasonYear` | string | Yes | The F1 season year. Must be 4-digit year (1950-2050) |
+
+**Example Requests**:
+
+```bash
+# Get race winners for 2023 season
+GET /api/v1/f1/season/2023/winners
 ```
 
 **Response Codes**:
 
-- `200` - Successful response
-- `400` - Bad request (invalid season format)
+- `200` - Successfully retrieved race winners for the specified season
 - `404` - Season not found
 - `500` - Internal server error
 
 **Success Response Example**:
 
 ```json
-{
-  "MRData": {
-    "limit": "30",
-    "offset": "0",
-    "series": "f1",
-    "total": "22",
-    "RaceTable": {
-      "season": "2023",
-      "Races": [
-        {
-          "season": "2023",
-          "round": "1",
-          "raceName": "Bahrain Grand Prix",
-          "date": "2023-03-05",
-          "time": "15:00:00Z",
-          "url": "https://en.wikipedia.org/wiki/2023_Bahrain_Grand_Prix",
-          "Circuit": {
-            "circuitId": "bahrain",
-            "circuitName": "Bahrain International Circuit",
-            "url": "http://en.wikipedia.org/wiki/Bahrain_International_Circuit",
-            "Location": {
-              "lat": "26.0325",
-              "long": "50.5106",
-              "locality": "Sakhir",
-              "country": "Bahrain"
-            }
-          },
-          "Results": [
-            {
-              "number": "1",
-              "position": "1",
-              "points": "25",
-              "Driver": {
-                "driverId": "max_verstappen",
-                "givenName": "Max",
-                "familyName": "Verstappen",
-                "dateOfBirth": "1997-09-30",
-                "nationality": "Dutch",
-                "url": "http://en.wikipedia.org/wiki/Max_Verstappen"
-              },
-              "Constructor": {
-                "constructorId": "red_bull",
-                "name": "Red Bull",
-                "nationality": "Austrian",
-                "url": "http://en.wikipedia.org/wiki/Red_Bull_Racing"
-              },
-              "Time": {
-                "millis": "5434195",
-                "time": "1:30:34.195"
-              }
-            }
-          ]
-        }
-      ]
+[
+  {
+    "season": "2023",
+    "round": 1,
+    "wins": 5,
+    "points": 347,
+    "driver": {
+      "familyName": "Verstappen",
+      "givenName": "Max",
+      "url": "https://example.com/drivers/max_verstappen",
+      "nationality": "Dutch",
+      "driverId": "max_verstappen"
+    },
+    "constructor": {
+      "name": "Red Bull",
+      "url": "https://example.com/constructors/red_bull",
+      "nationality": "Austrian"
     }
+  }
+]
+```
+
+**Error Response Example**:
+
+```json
+{
+  "success": false,
+  "errorCode": "SEASON_NOT_FOUND",
+  "error": {
+    "message": "Season not found",
+    "code": "SEASON_NOT_FOUND"
   }
 }
 ```
+
+---
+
+## 📝 Data Models
+
+### Driver
+
+| Field         | Type         | Required | Description               |
+|---------------|--------------|----------|---------------------------|
+| `familyName`  | string       | Yes      | Driver's family name      |
+| `givenName`   | string       | Yes      | Driver's given name       |
+| `url`         | string (uri) | Yes      | URL to driver information |
+| `nationality` | string       | Yes      | Driver's nationality      |
+| `driverId`    | string       | Yes      | Unique driver identifier  |
+
+### Constructor
+
+| Field         | Type         | Required | Description                    |
+|---------------|--------------|----------|--------------------------------|
+| `name`        | string       | Yes      | Constructor team name          |
+| `url`         | string (uri) | Yes      | URL to constructor information |
+| `nationality` | string       | Yes      | Constructor's nationality      |
+
+### SeasonWinner
+
+| Field         | Type        | Required | Description             |
+|---------------|-------------|----------|-------------------------|
+| `season`      | string      | Yes      | The F1 season year      |
+| `wins`        | integer     | Yes      | Number of wins          |
+| `driver`      | Driver      | Yes      | Driver information      |
+| `constructor` | Constructor | Yes      | Constructor information |
+
+### SeasonRaceWinner
+
+| Field         | Type        | Required | Description                |
+|---------------|-------------|----------|----------------------------|
+| `season`      | string      | Yes      | The F1 season year         |
+| `round`       | integer     | Yes      | Round number in the season |
+| `wins`        | integer     | Yes      | Number of wins             |
+| `points`      | integer     | Yes      | Total points per season    |
+| `driver`      | Driver      | Yes      | Driver information         |
+| `constructor` | Constructor | Yes      | Constructor information    |
+
+---
 
 ## 🔧 Development Information
 
@@ -269,7 +287,6 @@ GET /api/v1/f1/seasons/2023/race-winners?limit=5&offset=10
 - ✅ Input validation
 - ✅ Health monitoring
 - ✅ Error handling
-- ✅ Pagination support
 - ✅ MongoDB integration
 - ✅ Swagger documentation (available at `/docs`)
 
@@ -285,11 +302,11 @@ curl http://localhost:4000/api/v1/health
 # Test API info
 curl http://localhost:4000/api/v1/
 
-# Test champions endpoint
-curl http://localhost:4000/api/v1/f1/champions?limit=5
+# Test seasons winners endpoint
+curl http://localhost:4000/api/v1/f1/winners?minYear=2020&maxYear=2023
 
-# Test race winners endpoint
-curl http://localhost:4000/api/v1/f1/seasons/2023/race-winners?limit=3
+# Test specific season winners endpoint
+curl http://localhost:4000/api/v1/f1/season/2023/winners
 ```
 
 ---
@@ -298,6 +315,7 @@ curl http://localhost:4000/api/v1/f1/seasons/2023/race-winners?limit=3
 
 1. **Data Source**: The API fetches data from the Jolpica F1 API (Ergast API mirror) and caches it in MongoDB
 2. **Caching**: Responses are cached to improve performance
-3. **Pagination**: All list endpoints support `limit` and `offset` parameters
-4. **Validation**: Input parameters are validated according to F1 data standards
-5. **CORS**: Configured for development (`localhost:3000`, `localhost:4200`) and production domains
+3. **Validation**: Input parameters are validated according to F1 data standards (4-digit years between 1950-2050)
+4. **CORS**: Configured for development (`localhost:3000`, `localhost:4200`) and production domains
+5. **Error Handling**: All endpoints return structured error responses with appropriate HTTP status codes
+6. **Health Monitoring**: Health endpoint provides detailed status of API and its dependencies
