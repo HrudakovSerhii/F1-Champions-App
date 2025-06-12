@@ -9,12 +9,14 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { SeasonRaceWinnersService } from './season-race-winners.service';
 import { GetSeasonRaceWinnersDto } from './dto/get-season-race-winners.dto';
+import { ApiValidationService } from '../../common/services/api-validation.service';
 
 @ApiTags('Seasons')
 @Controller('f1/season')
 export class SeasonRaceWinnersController {
   constructor(
-    private readonly seasonRaceWinnersService: SeasonRaceWinnersService
+    private readonly seasonRaceWinnersService: SeasonRaceWinnersService,
+    private readonly apiValidationService: ApiValidationService
   ) {}
 
   @Get(':seasonYear/winners')
@@ -45,16 +47,13 @@ export class SeasonRaceWinnersController {
     @Query() query: GetSeasonRaceWinnersDto
   ) {
     try {
-      // Validate season format
-      if (!/^[0-9]{4}$/.test(seasonYear)) {
+      // Validate season using validation service
+      const validation =
+        this.apiValidationService.validateSeasonYear(seasonYear);
+      if (!validation.isValid) {
         throw new HttpException(
-          {
-            error: {
-              code: 'INVALID_SEASON',
-              message: 'Season must be a 4-digit year',
-            },
-          },
-          HttpStatus.BAD_REQUEST
+          { error: validation.error },
+          validation.error!.status
         );
       }
 
