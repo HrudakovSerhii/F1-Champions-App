@@ -41,13 +41,13 @@
   "health": "http://localhost:4000/api/v1/health",
   "endpoints": [
     {
-      "path": "f1/winners",
+      "path": "/f1/winners",
       "method": "GET",
       "description": "Get seasons with winners",
       "tag": "Seasons"
     },
     {
-      "path": "f1/season/{seasonYear}/winners",
+      "path": "/f1/season/{seasonYear}/winners",
       "method": "GET", 
       "description": "Get season winners",
       "tag": "Seasons"
@@ -134,10 +134,10 @@
 
 ```bash
 # Get all seasons with winners
-GET /api/v1/winners
+GET /api/v1/f1/winners
 
 # Get seasons with winners for specific year range
-GET /api/v1/winners?minYear=2020&maxYear=2023
+GET /api/v1/f1/winners?minYear=2020&maxYear=2023
 ```
 
 **Response Codes**:
