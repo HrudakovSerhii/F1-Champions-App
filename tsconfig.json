@@ -28,9 +28,6 @@
       "path": "./apps/frontend/mobile-app-e2e"
     },
     {
-      "path": "./apps/backend-e2e"
-    },
-    {
       "path": "./apps/e2e"
     }
   ]
