@@ -18,8 +18,8 @@ const mockFetch = vi.fn();
 vi.mock('../../utils/dataFetcher/DataFetcher', () => {
   return {
     default: vi.fn().mockImplementation(() => ({
-      fetch: mockFetch
-    }))
+      fetch: mockFetch,
+    })),
   };
 });
 

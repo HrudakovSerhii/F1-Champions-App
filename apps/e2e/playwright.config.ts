@@ -13,13 +13,13 @@ export default defineConfig({
   fullyParallel: true,
 
   // Fail the build on CI if you accidentally left test.only in the source code
-  forbidOnly: !!process.env.CI,
+  forbidOnly: TEST_CONFIG.IS_CI,
 
   // Retry on CI only
-  retries: process.env.CI ? 2 : 0,
+  retries: TEST_CONFIG.IS_CI ? 2 : 0,
 
   // Opt out of parallel tests on CI
-  workers: process.env.CI ? 1 : undefined,
+  workers: TEST_CONFIG.IS_CI ? 1 : undefined,
 
   // Reporter to use
   reporter: [
@@ -115,21 +115,21 @@ export default defineConfig({
     },
   ],
 
-  // Run your local dev server before starting the tests
-  webServer: [
-    {
-      command: 'npm run serve:web-app',
-      url: TEST_CONFIG.FRONTEND_URL,
-      reuseExistingServer: !TEST_CONFIG.IS_CI,
-      timeout: 120 * 1000,
-    },
-    {
-      command: 'npm run serve:backend',
-      url: `${TEST_CONFIG.API_BASE_URL}/health`,
-      reuseExistingServer: !TEST_CONFIG.IS_CI,
-      timeout: 120 * 1000,
-    },
-  ],
+  // Commented out since services are running locally
+  // webServer: [
+  //   {
+  //     command: 'cd ../../ && npm run serve:web-app',
+  //     url: TEST_CONFIG.FRONTEND_URL,
+  //     reuseExistingServer: true,
+  //     timeout: 30 * 1000, // 30 secondsHey @here
+  //   },
+  //   {
+  //     command: 'cd ../../ && npm run serve:backend',
+  //     url: `${TEST_CONFIG.API_BASE_URL}/health`,
+  //     reuseExistingServer: true,
+  //     timeout: 30 * 1000, // 30 seconds
+  //   },
+  // ],
 
   // Output directory for test results
   outputDir: 'test-results/',

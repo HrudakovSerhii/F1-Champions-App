@@ -5,11 +5,11 @@ import { TEST_CONFIG, validateConfig } from '@/constants';
  * Test environment utilities for managing E2E test setup
  */
 export class TestEnvironment {
-  private readonly baseURL: string;
+  private readonly feURL: string;
   private readonly apiURL: string;
 
   constructor() {
-    this.baseURL = TEST_CONFIG.FRONTEND_URL;
+    this.feURL = TEST_CONFIG.FRONTEND_URL;
     this.apiURL = TEST_CONFIG.API_BASE_URL;
 
     // Validate configuration on initialization
@@ -24,11 +24,11 @@ export class TestEnvironment {
   async waitForServices(): Promise<void> {
     console.log('⏳ Waiting for services to be ready...');
 
-    const maxRetries = 30;
+    const maxRetries = 3;
     const retryDelay = 2000; // 2 seconds
 
     // Check frontend
-    await this.waitForService(this.baseURL, 'Frontend', maxRetries, retryDelay);
+    await this.waitForService(this.feURL, 'Frontend', maxRetries, retryDelay);
 
     // Check backend API
     await this.waitForService(
@@ -58,6 +58,8 @@ export class TestEnvironment {
           ignoreHTTPSErrors: true,
         });
 
+        console.log(`📡 ${serviceName} response: ${response.status()}`);
+
         if (response.ok()) {
           console.log(`✅ ${serviceName} is ready`);
           await context.dispose();
@@ -68,7 +70,9 @@ export class TestEnvironment {
       } catch (error) {
         // Service not ready, continue retrying
         console.log(
-          `Service not ready, continue retrying after error: ${error}`
+          `❌ ${serviceName} error on attempt ${i + 1}: ${
+            error.message || error
+          }`
         );
       }
 
@@ -126,13 +130,13 @@ export class TestEnvironment {
         throw new Error(`API info endpoint failed: ${infoResponse.status()}`);
       }
 
-      // Test champions endpoint
-      const championsResponse = await context.get(
-        `${this.apiURL}/f1/champions?limit=1`
+      // Test winners endpoint
+      const seasonsWinnersResponse = await context.get(
+        `${this.apiURL}/f1/winners`
       );
-      if (!championsResponse.ok()) {
+      if (!seasonsWinnersResponse.ok()) {
         throw new Error(
-          `Champions endpoint failed: ${championsResponse.status()}`
+          `Seasons winners endpoint failed: ${seasonsWinnersResponse.status()}`
         );
       }
 

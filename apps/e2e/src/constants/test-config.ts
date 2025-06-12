@@ -39,7 +39,7 @@ export const TEST_CONFIG = {
   },
 
   // Test environment flags
-  IS_CI: !!process.env.CI,
+  IS_CI: process.env.CI === undefined ? false : Boolean(process.env.CI),
   IS_DEBUG: process.env.DEBUG === 'true',
 
   // Browser configuration
@@ -53,13 +53,13 @@ export const TEST_CONFIG = {
 export const API_ENDPOINTS = {
   ROOT: '/',
   HEALTH: '/health',
-  CHAMPIONS: '/f1/champions',
+  SEASONS_WINNERS: '/f1/winners',
   SEASON_WINNERS: (season: string) => `/f1/season/${season}/winners`,
 } as const;
 
 // Common test data
 export const TEST_DATA = {
-  VALID_SEASONS: ['2023', '2022', '2021', '2020', '1950'],
+  VALID_SEASONS: ['2023', '2022', '2021', '2020', '2005'],
   INVALID_SEASONS: ['abc', '19', '99999', '1949', '2050'],
   SAMPLE_LIMITS: [1, 5, 10, 25, 50, 100],
   INVALID_LIMITS: [-1, 0, 101, 'abc'],

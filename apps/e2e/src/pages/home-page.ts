@@ -149,8 +149,8 @@ export class HomePage extends BasePage {
    * Wait for champions data to load
    */
   async waitForChampionsToLoad(): Promise<void> {
-    // Wait for API response
-    await this.waitForResponse(/\/api\/v1\/f1\/champions/);
+    // Wait for API response (updated to match OpenAPI schema endpoints)
+    await this.waitForResponse(/\/api\/v1\/f1\winners/);
 
     // Wait for champions list to be visible
     await this.waitForElement(this.championsList);
