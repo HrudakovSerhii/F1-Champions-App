@@ -59,7 +59,7 @@ export const API_ENDPOINTS = {
 
 // Common test data
 export const TEST_DATA = {
-  VALID_SEASONS: ['2023', '2022', '2021', '2020', '2005'],
+  VALID_SEASONS: ['2023', '2021', '2020', '2010', '2005'],
   INVALID_SEASONS: ['abc', '19', '99999', '1949', '2050'],
   SAMPLE_LIMITS: [1, 5, 10, 25, 50, 100],
   INVALID_LIMITS: [-1, 0, 101, 'abc'],

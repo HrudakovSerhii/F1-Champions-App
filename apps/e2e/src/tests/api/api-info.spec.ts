@@ -32,11 +32,15 @@ test.describe('F1 Champions API - Information Endpoints', () => {
       expect(Array.isArray(body.endpoints)).toBe(true);
       expect(body.endpoints.length).toBeGreaterThan(0);
 
-      // Assert features array
       expect(Array.isArray(body.features)).toBe(true);
-      expect(body.features).toContain('Formula 1 Champions Data');
-      expect(body.features).toContain('Rate Limiting');
+      expect(body.features).toContain('Formula 1 Season Champions Data');
+      expect(body.features).toContain('Season Race Winners Information');
+      expect(body.features).toContain('Health Status Monitoring');
+      expect(body.features).toContain('Rate Limiting & Security');
       expect(body.features).toContain('CORS Support');
+      expect(body.features).toContain('Request Validation');
+      expect(body.features).toContain('OpenAPI Documentation');
+      expect(body.features).toContain('Dependency Status Tracking');
 
       // Assert rate limit configuration
       expect(body.rateLimit).toHaveProperty('requests');
@@ -49,14 +53,38 @@ test.describe('F1 Champions API - Information Endpoints', () => {
       const response = await request.get(getApiUrl(API_ENDPOINTS.ROOT));
       const body = await response.json();
 
-      // Find champions endpoint
-      const championsEndpoint = body.endpoints.find(
-        (ep: any) => ep.path === '/champions'
+      // Find seasons-winners endpoint (matching actual backend service paths)
+      const seasonsWinnersEndpoint = body.endpoints.find((ep: any) =>
+        getApiUrl(API_ENDPOINTS.SEASONS_WINNERS).includes(ep.path)
       );
-      expect(championsEndpoint).toBeDefined();
-      expect(championsEndpoint.method).toBe('GET');
-      expect(championsEndpoint.description).toContain('champions');
-      expect(championsEndpoint.tag).toBe('Champions');
+      expect(seasonsWinnersEndpoint).toBeDefined();
+      expect(seasonsWinnersEndpoint.method).toBe('GET');
+      expect(seasonsWinnersEndpoint.description).toContain(
+        'seasons with winners'
+      );
+      expect(seasonsWinnersEndpoint.tag).toBe('Seasons');
+
+      // Find season winners endpoint
+      const seasonWinnersEndpoint = body.endpoints.find((ep: any) =>
+        getApiUrl(API_ENDPOINTS.SEASON_WINNERS('{seasonYear}')).includes(
+          ep.path
+        )
+      );
+      expect(seasonWinnersEndpoint).toBeDefined();
+      expect(seasonWinnersEndpoint.method).toBe('GET');
+      expect(seasonWinnersEndpoint.description).toContain(
+        'season race winners'
+      );
+      expect(seasonWinnersEndpoint.tag).toBe('Seasons');
+
+      // Find health endpoint
+      const healthEndpoint = body.endpoints.find((ep: any) =>
+        getApiUrl(API_ENDPOINTS.HEALTH).includes(ep.path)
+      );
+      expect(healthEndpoint).toBeDefined();
+      expect(healthEndpoint.method).toBe('GET');
+      expect(healthEndpoint.description).toContain('health status');
+      expect(healthEndpoint.tag).toBe('Health');
     });
 
     test('should return correct content type', async ({ request }) => {
