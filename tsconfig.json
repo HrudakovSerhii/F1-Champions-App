@@ -4,13 +4,13 @@
   "files": [],
   "references": [
     {
-      "path": "./libs/frontend/shared"
-    },
-    {
       "path": "./libs/frontend/styles"
     },
     {
       "path": "./libs/shared/types"
+    },
+    {
+      "path": "./libs/shared/e2e-testids"
     },
     {
       "path": "./apps/frontend/web-app"
@@ -28,7 +28,7 @@
       "path": "./apps/frontend/mobile-app-e2e"
     },
     {
-      "path": "./apps/backend-e2e"
+      "path": "./apps/e2e"
     }
   ]
 }

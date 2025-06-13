@@ -6,6 +6,9 @@
       "path": "../../../libs/frontend/styles"
     },
     {
+      "path": "../../../libs/shared/e2e-testids"
+    },
+    {
       "path": "../../../libs/shared/types"
     },
     {

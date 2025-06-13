@@ -20,10 +20,11 @@ describe('App utils', () => {
       const result = filterWinnersBySeasonRange(testData);
 
       expect(result).toMatchObject([
-        { round: '2' },
-        { round: '3' },
-        { round: '4' },
-        { round: '5' },
+        { season: '2005', round: '2' },
+        { season: '2005', round: '3' },
+        { season: '2006', round: '4' },
+        { season: '2006', round: '5' },
+        { season: '2024', round: '6' },
       ]);
     });
 

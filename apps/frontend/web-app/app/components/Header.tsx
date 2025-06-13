@@ -9,7 +9,7 @@ const Header = () => {
         <div className="flex flex-wrap items-center justify-between p-4">
           <a href="https://www.formula1.com/" className="flex items-center">
             <img
-              src="/assets/f1-icon.png"
+              src="../../assets/icons/f1-icon.png"
               className="h-12 mr-1"
               alt="F1 Logo"
             />

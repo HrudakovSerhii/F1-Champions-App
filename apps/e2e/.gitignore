@@ -1,0 +1,31 @@
+# Test results and reports
+test-results/
+playwright-report/
+playwright/.auth/
+
+# Screenshots and videos
+screenshots/
+videos/
+
+# Node modules (if any)
+node_modules/
+
+# Coverage reports
+coverage/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db 

@@ -44,10 +44,40 @@ class MongoDBManager {
       replicaSet: envVars.MONGODB_REPLICA_SET_NAME || 'f1rs',
       host: envVars.MONGODB_HOST_NAME || 'localhost',
       // Additional MongoDB settings (can be overridden via env vars)
-      dbPath: envVars.MONGODB_DB_PATH || './mongodb/data',
-      logPath: envVars.MONGODB_LOG_PATH || './mongodb/logs/mongo.log',
+      dbPath: envVars.MONGODB_DB_PATH || '../mongodb/data',
+      logPath: envVars.MONGODB_LOG_PATH || '../mongodb/logs/mongo.log',
       bindIp: envVars.MONGODB_BIND_IP || '127.0.0.1,localhost',
     };
+  }
+
+  // Check if port is in use and what process is using it
+  async checkPortUsage() {
+    return new Promise((resolve) => {
+      const lsofCommand = `lsof -i :${this.config.port}`;
+
+      exec(lsofCommand, (error, stdout) => {
+        if (error || !stdout.trim()) {
+          resolve({ inUse: false });
+        } else {
+          const lines = stdout.trim().split('\n');
+          if (lines.length > 1) {
+            const processLine = lines[1];
+            const parts = processLine.split(/\s+/);
+            const processName = parts[0];
+            const pid = parts[1];
+
+            resolve({
+              inUse: true,
+              processName,
+              pid,
+              isMongoDB: processName === 'mongod',
+            });
+          } else {
+            resolve({ inUse: false });
+          }
+        }
+      });
+    });
   }
 
   async start() {
@@ -58,6 +88,35 @@ class MongoDBManager {
     console.log(`🏁 Replica Set: ${this.config.replicaSet}`);
     console.log(`💾 Data Path: ${this.config.dbPath}`);
     console.log(`📝 Log Path: ${this.config.logPath}`);
+    console.log('');
+
+    // Check if port is already in use
+    console.log('🔍 Checking port availability...');
+    const portCheck = await this.checkPortUsage();
+
+    if (portCheck.inUse) {
+      if (portCheck.isMongoDB) {
+        console.log(
+          `✅ MongoDB is already running on port ${this.config.port}`
+        );
+        console.log(`   PID: ${portCheck.pid}`);
+        console.log('ℹ️  No action needed - MongoDB is ready to use');
+        return; // Exit gracefully without error
+      } else {
+        console.log(
+          `❌ Port ${this.config.port} is already in use by another process`
+        );
+        console.log(
+          `   Process: ${portCheck.processName} (PID: ${portCheck.pid})`
+        );
+        console.log(`💡 Please stop the process or use a different port`);
+        throw new Error(
+          `Port ${this.config.port} is occupied by ${portCheck.processName}`
+        );
+      }
+    }
+
+    console.log(`✅ Port ${this.config.port} is available`);
     console.log('');
 
     // Ensure data and log directories exist

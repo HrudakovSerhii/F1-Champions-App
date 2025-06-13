@@ -8,9 +8,10 @@ import {
   DataAggregationService,
   ApiAdapterService,
 } from '../../shared/transformers';
+import { ApiValidationModule } from '../../common/services/api-validation.module';
 
 @Module({
-  imports: [JolpicaF1Module],
+  imports: [JolpicaF1Module, ApiValidationModule],
   controllers: [SeasonRaceWinnersController],
   providers: [
     SeasonRaceWinnersService,

@@ -1,10 +1,19 @@
 import React from 'react';
 
-const Spinner: React.FC<{ title: string }> = ({ title }) => {
+interface SpinnerProps {
+  title: string;
+  'data-testid'?: string;
+}
+
+const Spinner: React.FC<SpinnerProps> = ({
+  title,
+  'data-testid': dataTestId,
+}) => {
   return (
     <div
       role="status"
       className="app-spinner flex justify-center absolute top-[calc(50%-2rem)] right-[calc(50%-2rem)]"
+      data-testid={dataTestId}
     >
       <svg
         aria-hidden="true"

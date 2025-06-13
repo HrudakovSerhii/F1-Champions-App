@@ -56,7 +56,7 @@ const SeasonWinnersTableRow: React.FC<SeasonWinnersTableRowProps> = ({
         <div className="flex">
           <span>{wins}</span>
           <img
-            src="/assets/chequered-flag-icon.png"
+            src="../../../../assets/icons/chequered-flag-icon.png"
             className="h-4 ml-2"
             alt="chequered flag icon"
           />
