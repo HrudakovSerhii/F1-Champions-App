@@ -160,29 +160,29 @@ test.describe('F1 Champions API - Information Endpoints', () => {
       }
     });
 
-    test.skip('should enforce rate limiting (skip in CI)', async ({
-      request,
-    }) => {
-      // This test is skipped by default as it can be slow and may interfere with other tests
-      // Uncomment and run manually to test rate limiting
-
-      const requests = [];
-
-      // Make multiple rapid requests to trigger rate limiting
-      for (let i = 0; i < 35; i++) {
-        requests.push(request.get(getApiUrl(API_ENDPOINTS.HEALTH)));
-      }
-
-      const responses = await Promise.all(requests);
-
-      // Some requests should succeed
-      const successfulResponses = responses.filter((r) => r.status() === 200);
-      expect(successfulResponses.length).toBeGreaterThan(0);
-
-      // Some requests should be rate limited (429 Too Many Requests)
-      const rateLimitedResponses = responses.filter((r) => r.status() === 429);
-      expect(rateLimitedResponses.length).toBeGreaterThan(0);
-    });
+    // test.skip('should enforce rate limiting (skip in CI)', async ({
+    //   request,
+    // }) => {
+    //   // This test is skipped by default as it can be slow and may interfere with other tests
+    //   // Uncomment and run manually to test rate limiting
+    //
+    //   const requests = [];
+    //
+    //   // Make multiple rapid requests to trigger rate limiting
+    //   for (let i = 0; i < 35; i++) {
+    //     requests.push(request.get(getApiUrl(API_ENDPOINTS.HEALTH)));
+    //   }
+    //
+    //   const responses = await Promise.all(requests);
+    //
+    //   // Some requests should succeed
+    //   const successfulResponses = responses.filter((r) => r.status() === 200);
+    //   expect(successfulResponses.length).toBeGreaterThan(0);
+    //
+    //   // Some requests should be rate limited (429 Too Many Requests)
+    //   const rateLimitedResponses = responses.filter((r) => r.status() === 429);
+    //   expect(rateLimitedResponses.length).toBeGreaterThan(0);
+    // });
   });
 
   test.describe('Error Handling', () => {

@@ -57,21 +57,53 @@ export const API_ENDPOINTS = {
   SEASON_WINNERS: (season: string) => `/f1/season/${season}/winners`,
 } as const;
 
-// Common test data
-export const TEST_DATA = {
-  VALID_SEASONS: ['2023', '2021', '2020', '2010', '2005'],
-  INVALID_SEASONS: ['abc', '19', '99999', '1949', '2050'],
-  SAMPLE_LIMITS: [1, 5, 10, 25, 50, 100],
-  INVALID_LIMITS: [-1, 0, 101, 'abc'],
-  SAMPLE_OFFSETS: [0, 10, 50, 100],
-} as const;
-
 // Error messages for validation
 export const ERROR_MESSAGES = {
   INVALID_SEASON: 'Season must be a 4-digit year',
   INVALID_LIMIT: 'Limit must be between 1 and 100',
   SEASON_NOT_FOUND: 'Season not found',
   RATE_LIMIT_EXCEEDED: 'Too Many Requests',
+} as const;
+
+// Invalid season types and their expected error responses
+export enum InvalidSeasonType {
+  NON_NUMERIC = 'abc',
+  TOO_SHORT = '19',
+  TOO_LONG = '99999',
+  BELOW_MIN = '1949',
+  ABOVE_MAX = '2026', // We need to use current date year, but it's hard on enums
+}
+
+export const INVALID_SEASON_ERRORS = {
+  [InvalidSeasonType.NON_NUMERIC]: {
+    code: 'SEASON_FORMAT_TYPE_ERROR',
+    message: 'Season must be a number',
+  },
+  [InvalidSeasonType.TOO_SHORT]: {
+    code: 'SEASON_FORMAT_ERROR',
+    message: 'Season must be exactly 4 digits',
+  },
+  [InvalidSeasonType.TOO_LONG]: {
+    code: 'SEASON_FORMAT_ERROR',
+    message: 'Season must be exactly 4 digits',
+  },
+  [InvalidSeasonType.BELOW_MIN]: {
+    code: 'SEASON_RANGE_ERROR',
+    message: `Minimum available season is ${TEST_CONFIG.API_LIMITS.MIN_YEAR}`,
+  },
+  [InvalidSeasonType.ABOVE_MAX]: {
+    code: 'SEASON_RANGE_ERROR',
+    message: `Maximum available season is ${TEST_CONFIG.API_LIMITS.MAX_YEAR}`,
+  },
+} as const;
+
+// Common test data
+export const TEST_DATA = {
+  VALID_SEASONS: ['2023', '2021', '2020', '2010', '1950'],
+  INVALID_SEASONS: Object.values(InvalidSeasonType),
+  SAMPLE_LIMITS: [1, 5, 10, 25, 50, 100],
+  INVALID_LIMITS: [-1, 0, 101, 'abc'],
+  SAMPLE_OFFSETS: [0, 10, 50, 100],
 } as const;
 
 // Helper function to get full API URL for an endpoint

@@ -5,6 +5,7 @@ import {
   Query,
   HttpException,
   HttpStatus,
+  ValidationPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { SeasonRaceWinnersService } from './season-race-winners.service';
@@ -28,11 +29,18 @@ export class SeasonRaceWinnersController {
     name: 'seasonYear',
     description: 'The F1 season year (e.g., 2023)',
     example: '2023',
-    schema: { type: 'string', pattern: '^[0-9]{4}$' },
+    schema: {
+      type: 'string',
+      pattern: '^[0-9]{4}$, // Only allow exactly 4 digits',
+    },
   })
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved race winners for the specified season',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid season format',
   })
   @ApiResponse({
     status: 404,
@@ -43,7 +51,27 @@ export class SeasonRaceWinnersController {
     description: 'Internal server error',
   })
   async getSeasonRaceWinners(
-    @Param('seasonYear') seasonYear: string,
+    @Param(
+      'seasonYear',
+      new ValidationPipe({
+        transform: true,
+        transformOptions: { enableImplicitConversion: true },
+        errorHttpStatusCode: HttpStatus.BAD_REQUEST,
+        validateCustomDecorators: true,
+        exceptionFactory: (errors) => {
+          return new HttpException(
+            {
+              error: {
+                code: 'SEASON_FORMAT_TYPE_ERROR',
+                message: 'Season must be a number',
+              },
+            },
+            HttpStatus.BAD_REQUEST
+          );
+        },
+      })
+    )
+    seasonYear: string,
     @Query() query: GetSeasonRaceWinnersDto
   ) {
     try {

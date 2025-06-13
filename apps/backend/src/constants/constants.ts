@@ -10,8 +10,8 @@ export const BASE_URL =
 
 export const DEFAULT_PORT = 4000;
 
-export const DEFAULT_MIN_YEAR = 2005;
-export const DEFAULT_MAX_YEAR = 2025;
+export const DEFAULT_MIN_YEAR = 1950;
+export const DEFAULT_MAX_YEAR = new Date().getFullYear();
 
 export const API_GLOBAL_PREFIX = 'api/v1';
 

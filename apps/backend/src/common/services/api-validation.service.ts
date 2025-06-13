@@ -6,6 +6,7 @@ export interface ValidationResult {
   error?: {
     code: string;
     message: string;
+    description?: string;
     status: number;
   };
 }
@@ -67,11 +68,24 @@ export class ApiValidationService {
     // Range validation
     const year = parseInt(seasonYear.trim(), 10);
     if (year < DEFAULT_MIN_YEAR || year > DEFAULT_MAX_YEAR) {
+      let message: string;
+      let description: string;
+
+      if (year < DEFAULT_MIN_YEAR) {
+        message = `Minimum available season is ${DEFAULT_MIN_YEAR}`;
+        description =
+          'if its less then 1950, then Jolpi API will not be able to return data for this season';
+      } else {
+        message = `Maximum available season is ${DEFAULT_MAX_YEAR}`;
+        description = `Season must be between ${DEFAULT_MIN_YEAR} and ${DEFAULT_MAX_YEAR}`;
+      }
+
       return {
         isValid: false,
         error: {
+          message,
+          description,
           code: 'SEASON_RANGE_ERROR',
-          message: `Season must be between ${DEFAULT_MIN_YEAR} and ${DEFAULT_MAX_YEAR}`,
           status: HttpStatus.BAD_REQUEST,
         },
       };
