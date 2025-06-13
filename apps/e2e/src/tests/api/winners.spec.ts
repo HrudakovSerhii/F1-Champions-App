@@ -1,12 +1,59 @@
 import { test, expect } from '@playwright/test';
 import { API_ENDPOINTS, TEST_DATA, getApiUrl } from '@/constants';
 
+// Helper function to handle rate-limited requests
+async function makeRequestWithRetry(request: any, url: string, maxRetries = 5) {
+  // Add initial delay before first request
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await request.get(url);
+
+      if (response.status() !== 429) {
+        return response;
+      }
+
+      console.log(
+        `Rate limited on attempt ${attempt}/${maxRetries} for URL: ${url}`
+      );
+
+      if (attempt === maxRetries) {
+        throw new Error(
+          `Rate limited after ${maxRetries} attempts for URL: ${url}`
+        );
+      }
+
+      // Longer delays between retries: 2s, 4s, 8s, 16s, 32s
+      const delay = Math.pow(2, attempt) * 1000;
+      console.log(`Waiting ${delay / 1000} seconds before retry...`);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    } catch (error) {
+      if (attempt === maxRetries) {
+        throw error;
+      }
+      console.log(
+        `Request failed on attempt ${attempt}/${maxRetries}: ${error.message}`
+      );
+      // Wait before retry on any error
+      const delay = Math.pow(2, attempt) * 1000;
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
+
 test.describe('F1 Champions API - Seasons Endpoints', () => {
-  test.describe('GET /v1/seasons-winners - All Seasons Winners', () => {
+  // Add a delay between test cases
+  test.beforeEach(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  });
+
+  test.describe('GET /v1/winners - All Seasons Winners', () => {
     test('should return seasons winners with default parameters', async ({
       request,
     }) => {
-      const response = await request.get(
+      const response = await makeRequestWithRetry(
+        request,
         getApiUrl(API_ENDPOINTS.SEASONS_WINNERS)
       );
 
@@ -42,7 +89,8 @@ test.describe('F1 Champions API - Seasons Endpoints', () => {
     test('should handle year range parameters', async ({ request }) => {
       const minYear = '2020';
       const maxYear = '2023';
-      const response = await request.get(
+      const response = await makeRequestWithRetry(
+        request,
         `${getApiUrl(
           API_ENDPOINTS.SEASONS_WINNERS
         )}?minYear=${minYear}&maxYear=${maxYear}`
@@ -66,12 +114,11 @@ test.describe('F1 Champions API - Seasons Endpoints', () => {
     test('should validate year range logic (minYear > maxYear)', async ({
       request,
     }) => {
-      // Test invalid range where minYear is greater than maxYear
-      const response = await request.get(
+      const response = await makeRequestWithRetry(
+        request,
         `${getApiUrl(API_ENDPOINTS.SEASONS_WINNERS)}?minYear=2023&maxYear=2022`
       );
 
-      // Should return 400 for invalid range logic
       expect(response.status()).toBe(400);
 
       const body = await response.json();
@@ -82,20 +129,20 @@ test.describe('F1 Champions API - Seasons Endpoints', () => {
     });
 
     test('should validate year parameter format', async ({ request }) => {
-      // Test valid 4-digit year
-      const validResponse = await request.get(
+      const validResponse = await makeRequestWithRetry(
+        request,
         `${getApiUrl(API_ENDPOINTS.SEASONS_WINNERS)}?minYear=2020&maxYear=2023`
       );
       expect(validResponse.status()).toBe(200);
     });
 
     test('should reject invalid year parameters', async ({ request }) => {
-      // Test invalid year formats from TEST_DATA
       for (const invalidYear of TEST_DATA.INVALID_SEASONS) {
-        const response = await request.get(
+        const response = await makeRequestWithRetry(
+          request,
           `${getApiUrl(API_ENDPOINTS.SEASONS_WINNERS)}?minYear=${invalidYear}`
         );
-        // Should return 400 for invalid year format with validation service
+
         expect(response.status()).toBe(400);
 
         const body = await response.json();
@@ -103,7 +150,6 @@ test.describe('F1 Champions API - Seasons Endpoints', () => {
         expect(body.error).toHaveProperty('code');
         expect(body.error).toHaveProperty('message');
 
-        // Expect specific validation error codes based on input type
         const expectedCodes = [
           'MINYEAR_REQUIRED',
           'MINYEAR_FORMAT_TYPE_ERROR',
@@ -111,16 +157,18 @@ test.describe('F1 Champions API - Seasons Endpoints', () => {
           'MINYEAR_RANGE_ERROR',
         ];
         expect(expectedCodes).toContain(body.error.code);
+
+        // Add delay between requests to avoid rate limiting
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     });
 
     test('should handle edge case years', async ({ request }) => {
-      // Test year before F1 started (1949 or earlier)
-      const response = await request.get(
+      const response = await makeRequestWithRetry(
+        request,
         `${getApiUrl(API_ENDPOINTS.SEASONS_WINNERS)}?minYear=1949&maxYear=1949`
       );
 
-      // Should return 400 for year out of range with validation service
       expect(response.status()).toBe(400);
 
       const body = await response.json();
@@ -133,11 +181,12 @@ test.describe('F1 Champions API - Seasons Endpoints', () => {
     test('should return consistent data across multiple requests', async ({
       request,
     }) => {
-      // Make two identical requests
-      const response1 = await request.get(
+      const response1 = await makeRequestWithRetry(
+        request,
         `${getApiUrl(API_ENDPOINTS.SEASONS_WINNERS)}?minYear=2020&maxYear=2023`
       );
-      const response2 = await request.get(
+      const response2 = await makeRequestWithRetry(
+        request,
         `${getApiUrl(API_ENDPOINTS.SEASONS_WINNERS)}?minYear=2020&maxYear=2023`
       );
 
@@ -147,7 +196,6 @@ test.describe('F1 Champions API - Seasons Endpoints', () => {
       const body1 = await response1.json();
       const body2 = await response2.json();
 
-      // Data should be consistent
       expect(body1.length).toBe(body2.length);
       if (body1.length > 0 && body2.length > 0) {
         expect(body1[0].season).toBe(body2[0].season);
@@ -166,7 +214,6 @@ test.describe('F1 Champions API - Seasons Endpoints', () => {
 
       const responses = await Promise.all(requests);
 
-      // All requests should succeed
       responses.forEach((response) => {
         expect(response.status()).toBe(200);
       });
@@ -180,7 +227,7 @@ test.describe('F1 Champions API - Seasons Endpoints', () => {
       const responseTime = Date.now() - startTime;
 
       expect(response.status()).toBe(200);
-      expect(responseTime).toBeLessThan(2000); // Should respond within 2 seconds
+      expect(responseTime).toBeLessThan(2000);
     });
   });
 
@@ -188,12 +235,11 @@ test.describe('F1 Champions API - Seasons Endpoints', () => {
     test('should return proper error structure for invalid requests', async ({
       request,
     }) => {
-      // Test with invalid season format
-      const response = await request.get(
+      const response = await makeRequestWithRetry(
+        request,
         getApiUrl(API_ENDPOINTS.SEASON_WINNERS('invalid'))
       );
 
-      // Should return 400 with specific validation error structure
       expect(response.status()).toBe(400);
 
       const body = await response.json();
@@ -205,7 +251,8 @@ test.describe('F1 Champions API - Seasons Endpoints', () => {
     test('should return correct content type for errors', async ({
       request,
     }) => {
-      const response = await request.get(
+      const response = await makeRequestWithRetry(
+        request,
         getApiUrl(API_ENDPOINTS.SEASON_WINNERS('invalid'))
       );
 
