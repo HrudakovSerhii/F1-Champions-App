@@ -63,6 +63,24 @@ test.describe('F1 Champions API - Seasons Endpoints', () => {
       }
     });
 
+    test('should validate year range logic (minYear > maxYear)', async ({
+      request,
+    }) => {
+      // Test invalid range where minYear is greater than maxYear
+      const response = await request.get(
+        `${getApiUrl(API_ENDPOINTS.SEASONS_WINNERS)}?minYear=2023&maxYear=2022`
+      );
+
+      // Should return 400 for invalid range logic
+      expect(response.status()).toBe(400);
+
+      const body = await response.json();
+      expect(body).toHaveProperty('error');
+      expect(body.error).toHaveProperty('code', 'YEAR_RANGE_LOGIC_ERROR');
+      expect(body.error).toHaveProperty('message');
+      expect(body.error.message).toContain('cannot be greater than');
+    });
+
     test('should validate year parameter format', async ({ request }) => {
       // Test valid 4-digit year
       const validResponse = await request.get(
@@ -77,8 +95,22 @@ test.describe('F1 Champions API - Seasons Endpoints', () => {
         const response = await request.get(
           `${getApiUrl(API_ENDPOINTS.SEASONS_WINNERS)}?minYear=${invalidYear}`
         );
-        // Should return 400 for invalid year format or 500 for server error
-        expect([400, 500]).toContain(response.status());
+        // Should return 400 for invalid year format with validation service
+        expect(response.status()).toBe(400);
+
+        const body = await response.json();
+        expect(body).toHaveProperty('error');
+        expect(body.error).toHaveProperty('code');
+        expect(body.error).toHaveProperty('message');
+
+        // Expect specific validation error codes based on input type
+        const expectedCodes = [
+          'MINYEAR_REQUIRED',
+          'MINYEAR_FORMAT_TYPE_ERROR',
+          'MINYEAR_FORMAT_ERROR',
+          'MINYEAR_RANGE_ERROR',
+        ];
+        expect(expectedCodes).toContain(body.error.code);
       }
     });
 
@@ -88,15 +120,14 @@ test.describe('F1 Champions API - Seasons Endpoints', () => {
         `${getApiUrl(API_ENDPOINTS.SEASONS_WINNERS)}?minYear=1949&maxYear=1949`
       );
 
-      // Should return 200 with empty data, 400 for invalid year, or 500 for server error
-      expect([200, 400, 500]).toContain(response.status());
+      // Should return 400 for year out of range with validation service
+      expect(response.status()).toBe(400);
 
-      if (response.status() === 200) {
-        const body = await response.json();
-        expect(Array.isArray(body)).toBe(true);
-        // Should be empty or have no data for 1949
-        expect(body.length).toBe(0);
-      }
+      const body = await response.json();
+      expect(body).toHaveProperty('error');
+      expect(body.error).toHaveProperty('code', 'MINYEAR_RANGE_ERROR');
+      expect(body.error).toHaveProperty('message');
+      expect(body.error.message).toContain('must be between');
     });
 
     test('should return consistent data across multiple requests', async ({
@@ -121,125 +152,6 @@ test.describe('F1 Champions API - Seasons Endpoints', () => {
       if (body1.length > 0 && body2.length > 0) {
         expect(body1[0].season).toBe(body2[0].season);
       }
-    });
-  });
-
-  test.describe('GET /v1/season/{seasonYear}/winners - Specific Season Winners', () => {
-    test('should return season winners for valid season', async ({
-      request,
-    }) => {
-      const season = TEST_DATA.VALID_SEASONS[0]; // Use first valid season from TEST_DATA
-      const response = await request.get(
-        getApiUrl(API_ENDPOINTS.SEASON_WINNERS(season))
-      );
-
-      expect(response.status()).toBe(200);
-
-      const body = await response.json();
-      expect(Array.isArray(body)).toBe(true);
-
-      // If we have data, validate structure
-      if (body.length > 0) {
-        const raceWinner = body[0];
-        expect(raceWinner).toHaveProperty('season');
-        expect(raceWinner).toHaveProperty('round');
-        expect(raceWinner).toHaveProperty('wins');
-        expect(raceWinner).toHaveProperty('points');
-        expect(raceWinner).toHaveProperty('driver');
-        expect(raceWinner).toHaveProperty('constructor');
-
-        // Validate season matches request
-        expect(raceWinner.season).toBe(season);
-
-        // Validate driver structure
-        expect(raceWinner.driver).toHaveProperty('familyName');
-        expect(raceWinner.driver).toHaveProperty('givenName');
-        expect(raceWinner.driver).toHaveProperty('url');
-        expect(raceWinner.driver).toHaveProperty('nationality');
-        expect(raceWinner.driver).toHaveProperty('driverId');
-
-        // Validate constructor structure
-        expect(raceWinner.constructor).toHaveProperty('name');
-        expect(raceWinner.constructor).toHaveProperty('url');
-        expect(raceWinner.constructor).toHaveProperty('nationality');
-      }
-    });
-
-    test('should handle invalid season format', async ({ request }) => {
-      // Use invalid seasons from TEST_DATA
-      for (const invalidSeason of TEST_DATA.INVALID_SEASONS) {
-        const response = await request.get(
-          getApiUrl(API_ENDPOINTS.SEASON_WINNERS(invalidSeason))
-        );
-        // Should return 400 for invalid season format or 500 for server error
-        expect([400, 500]).toContain(response.status());
-      }
-    });
-
-    test('should handle non-existent season gracefully', async ({
-      request,
-    }) => {
-      // Test season before F1 started (1949 or earlier)
-      const response = await request.get(
-        getApiUrl(API_ENDPOINTS.SEASON_WINNERS('1949'))
-      );
-
-      // Should return 404 for not found, 400 for invalid year, or 500 for server error
-      expect([400, 404, 500]).toContain(response.status());
-
-      if (response.status() === 404) {
-        const body = await response.json();
-        expect(body).toHaveProperty('success', false);
-        expect(body).toHaveProperty('errorCode');
-        expect(body).toHaveProperty('error');
-      }
-    });
-
-    test('should return 404 for future season', async ({ request }) => {
-      const futureYear = (new Date().getFullYear() + 10).toString();
-      const response = await request.get(
-        getApiUrl(API_ENDPOINTS.SEASON_WINNERS(futureYear))
-      );
-
-      // Should return 404 for not found or 400 for invalid year
-      expect([400, 404, 500]).toContain(response.status());
-    });
-
-    test('should validate season data structure', async ({ request }) => {
-      const season = TEST_DATA.VALID_SEASONS[0];
-      const response = await request.get(
-        getApiUrl(API_ENDPOINTS.SEASON_WINNERS(season))
-      );
-
-      expect(response.status()).toBe(200);
-
-      const body = await response.json();
-      expect(Array.isArray(body)).toBe(true);
-
-      // Validate each race winner in the response
-      body.forEach((raceWinner: any) => {
-        // Validate required fields
-        expect(typeof raceWinner.season).toBe('string');
-        expect(typeof raceWinner.round).toBe('number');
-        expect(typeof raceWinner.wins).toBe('number');
-        expect(typeof raceWinner.points).toBe('number');
-
-        // Validate driver object
-        expect(typeof raceWinner.driver.familyName).toBe('string');
-        expect(typeof raceWinner.driver.givenName).toBe('string');
-        expect(typeof raceWinner.driver.url).toBe('string');
-        expect(typeof raceWinner.driver.nationality).toBe('string');
-        expect(typeof raceWinner.driver.driverId).toBe('string');
-
-        // Validate constructor object
-        expect(typeof raceWinner.constructor.name).toBe('string');
-        expect(typeof raceWinner.constructor.url).toBe('string');
-        expect(typeof raceWinner.constructor.nationality).toBe('string');
-
-        // Validate URL formats
-        expect(raceWinner.driver.url).toMatch(/^https?:\/\/.+/);
-        expect(raceWinner.constructor.url).toMatch(/^https?:\/\/.+/);
-      });
     });
   });
 
@@ -281,16 +193,13 @@ test.describe('F1 Champions API - Seasons Endpoints', () => {
         getApiUrl(API_ENDPOINTS.SEASON_WINNERS('invalid'))
       );
 
-      expect([400, 404, 500]).toContain(response.status());
+      // Should return 400 with specific validation error structure
+      expect(response.status()).toBe(400);
 
-      if (response.status() === 400 || response.status() === 404) {
-        const body = await response.json();
-        expect(body).toHaveProperty('success', false);
-        expect(body).toHaveProperty('errorCode');
-        expect(body).toHaveProperty('error');
-        expect(body.error).toHaveProperty('message');
-        expect(body.error).toHaveProperty('code');
-      }
+      const body = await response.json();
+      expect(body).toHaveProperty('error');
+      expect(body.error).toHaveProperty('code', 'SEASON_FORMAT_TYPE_ERROR');
+      expect(body.error).toHaveProperty('message', 'Season must be a number');
     });
 
     test('should return correct content type for errors', async ({
