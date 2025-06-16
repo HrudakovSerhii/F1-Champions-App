@@ -17,8 +17,5 @@
   },
   "nx": {
     "name": "e2e-testids"
-  },
-  "dependencies": {
-    "tslib": "^2.3.0"
   }
 }
