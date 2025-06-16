@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
+    "serve:be": "npm run db:local:setup && sleep 5 && npm run prisma:verify && sleep 5 && npm run serve:backend",
     "build:web-app": "npx nx build web-app && node scripts/copy-fonts.js",
     "serve:web-app": "npx nx dev web-app",
     "dev:web-app": "npx nx dev web-app",
@@ -15,7 +16,8 @@
     "dev:backend": "npx nx serve @f1-app/backend",
     "test:backend": "npx nx test @f1-app/backend",
     "generate-types": "./scripts/generate-types.sh",
-    "web-app:init": "npm install && npm run generate-types",
+    "generate-testids": "./scripts/generate-testids.sh",
+    "web-app:init": "npm install && npm run generate-types && npm run generate-testids",
     "prisma:init": "cd apps/backend && npx ts-node src/scripts/init-prisma.ts",
     "prisma:stats": "cd apps/backend && npx ts-node src/scripts/init-prisma.ts stats",
     "prisma:verify": "cd apps/backend && npx ts-node src/scripts/init-prisma.ts verify",

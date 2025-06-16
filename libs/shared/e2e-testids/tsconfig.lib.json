@@ -5,13 +5,16 @@
     "rootDir": "src",
     "outDir": "dist",
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
-    "emitDeclarationOnly": true,
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "module": "es2022",
+    "moduleResolution": "bundler",
     "forceConsistentCasingInFileNames": true,
     "types": [
       "node"
-    ]
+    ],
+    "emitDeclarationOnly": false
   },
   "include": [
     "src/**/*.ts"

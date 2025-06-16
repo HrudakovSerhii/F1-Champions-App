@@ -7,8 +7,8 @@ const BROWSERS = process.env.E2E_TEST_BROWSERS?.split(',') || ['chromium'];
 const definedBrowsers = BROWSERS.map((browser) => ({
   name: browser,
   use: {
-    ...devices[browser]
-  }
+    ...devices[browser],
+  },
 }));
 
 /**
