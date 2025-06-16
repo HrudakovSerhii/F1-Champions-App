@@ -20,7 +20,7 @@ describe('AppService', () => {
       expect(result).toHaveProperty('version', '1.0.0');
       expect(result).toHaveProperty(
         'description',
-        'API for Formula 1 season champions and race winners data'
+        'API for retrieving Formula 1 championship data including season winners and season race results'
       );
       expect(result).toHaveProperty('documentation');
       expect(result).toHaveProperty('health');

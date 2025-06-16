@@ -100,18 +100,9 @@ describe('HealthController Integration Tests', () => {
       ];
 
       for (const collection of collections) {
-        try {
-          // Try to count documents in each collection
-          const count = await collection.count();
-          expect(typeof count).toBe('number');
-          console.log(`✅ Collection '${collection.name}': ${count} documents`);
-        } catch (error) {
-          console.warn(
-            `⚠️  Collection '${collection.name}' not accessible:`,
-            error
-          );
-          // Don't fail the test if collection doesn't exist yet
-        }
+        const count = await collection.count();
+
+        expect(typeof count).toBe('number');
       }
     });
   });
