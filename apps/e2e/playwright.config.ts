@@ -1,6 +1,16 @@
 import { defineConfig, devices } from '@playwright/test';
 import { TEST_CONFIG } from '@/constants';
 
+// Get browsers to test from environment variable
+const BROWSERS = process.env.E2E_TEST_BROWSERS?.split(',') || ['chromium'];
+
+const definedBrowsers = BROWSERS.map((browser) => ({
+  name: browser,
+  use: {
+    ...devices[browser]
+  }
+}));
+
 /**
  * Configuration for F1 Champions App E2E Tests
  * @see https://playwright.dev/docs/test-configuration
@@ -62,49 +72,7 @@ export default defineConfig({
       name: 'setup',
       testMatch: /.*\.setup\.ts/,
     },
-
-    // Desktop browsers
-    {
-      name: 'chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-      },
-      dependencies: ['setup'],
-    },
-
-    {
-      name: 'firefox',
-      use: {
-        ...devices['Desktop Firefox'],
-      },
-      dependencies: ['setup'],
-    },
-
-    {
-      name: 'webkit',
-      use: {
-        ...devices['Desktop Safari'],
-      },
-      dependencies: ['setup'],
-    },
-
-    // Mobile browsers
-    {
-      name: 'Mobile Chrome',
-      use: {
-        ...devices['Pixel 5'],
-      },
-      dependencies: ['setup'],
-    },
-
-    {
-      name: 'Mobile Safari',
-      use: {
-        ...devices['iPhone 12'],
-      },
-      dependencies: ['setup'],
-    },
-
+    ...definedBrowsers,
     // API testing project
     {
       name: 'api',
@@ -114,22 +82,6 @@ export default defineConfig({
       },
     },
   ],
-
-  // Commented out since services are running locally
-  // webServer: [
-  //   {
-  //     command: 'cd ../../ && npm run serve:web-app',
-  //     url: TEST_CONFIG.FRONTEND_URL,
-  //     reuseExistingServer: true,
-  //     timeout: 30 * 1000, // 30 secondsHey @here
-  //   },
-  //   {
-  //     command: 'cd ../../ && npm run serve:backend',
-  //     url: `${TEST_CONFIG.API_BASE_URL}/health`,
-  //     reuseExistingServer: true,
-  //     timeout: 30 * 1000, // 30 seconds
-  //   },
-  // ],
 
   // Output directory for test results
   outputDir: 'test-results/',
