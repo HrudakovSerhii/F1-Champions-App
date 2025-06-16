@@ -88,11 +88,14 @@ RUN echo "🔧 Build environment:" && \
     echo "  VITE_API_BASE_URL: $VITE_API_BASE_URL" && \
     echo "  API_BASE_URL: $API_BASE_URL"
 
+# Generate test IDs
+RUN npm run generate-testids
+
 # Ensure styles library is built
 RUN npx nx build frontend-styles
 
 # Build the application with environment variables
-RUN npx nx build web-app --prod
+RUN npx nx run web-app:build --prod
 
 # Copy fonts
 COPY ./scripts/copy-fonts.js ./scripts/

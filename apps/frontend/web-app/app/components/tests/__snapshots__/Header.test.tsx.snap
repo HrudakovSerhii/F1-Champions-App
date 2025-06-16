@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Header should render correctly 1`] = `
+exports[`Header > should render correctly 1`] = `
 <DocumentFragment>
   <header
     class="app-header"
@@ -18,7 +18,7 @@ exports[`Header should render correctly 1`] = `
           <img
             alt="F1 Logo"
             class="h-12 mr-1"
-            src="/assets/f1-icon.png"
+            src="../../assets/icons/f1-icon.png"
           />
           <div
             class="flex flex-col"
@@ -31,7 +31,7 @@ exports[`Header should render correctly 1`] = `
             <span
               class="text-xs"
             >
-              Season 2005-2023
+              Season 2005-2025
             </span>
           </div>
         </a>
@@ -45,6 +45,7 @@ exports[`Header should render correctly 1`] = `
               <a
                 aria-current="page"
                 class="hover:text-blue-700"
+                data-discover="true"
                 href="/"
                 title="Go to Home page"
               >
@@ -54,6 +55,7 @@ exports[`Header should render correctly 1`] = `
             <li>
               <a
                 class="hover:text-blue-700"
+                data-discover="true"
                 href="/seasons"
                 title="Go to Seasons page to view seasons full information"
               >
@@ -63,6 +65,7 @@ exports[`Header should render correctly 1`] = `
             <li>
               <a
                 class="hover:text-blue-700"
+                data-discover="true"
                 href="/about"
                 title="Go to About page to see SPA description and targets"
               >
@@ -72,6 +75,7 @@ exports[`Header should render correctly 1`] = `
             <li>
               <a
                 class="hover:text-blue-700"
+                data-discover="true"
                 href="/contact"
                 title="Go to Contact page to check SPA author information and contacts"
               >
