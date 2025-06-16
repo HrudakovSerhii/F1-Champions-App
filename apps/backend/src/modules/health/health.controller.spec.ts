@@ -65,8 +65,19 @@ describe('HealthController', () => {
       const dbError = new Error('Connection refused');
       mockPrismaService.driver.findFirst.mockRejectedValue(dbError);
 
-      // Act & Assert
-      await expect(controller.check()).rejects.toThrow();
+      // Act
+      const result = await controller.check();
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result.status).toBe('ok');
+      expect(result.info).toBeDefined();
+      if (result.info) {
+        expect(result.info.database).toEqual({
+          status: 'down',
+          message: 'Database connection failed: Connection refused',
+        });
+      }
       expect(mockPrismaService.driver.findFirst).toHaveBeenCalled();
     });
 
@@ -74,8 +85,19 @@ describe('HealthController', () => {
       // Arrange
       mockPrismaService.driver.findFirst.mockRejectedValue('Unknown error');
 
-      // Act & Assert
-      await expect(controller.check()).rejects.toThrow();
+      // Act
+      const result = await controller.check();
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result.status).toBe('ok');
+      expect(result.info).toBeDefined();
+      if (result.info) {
+        expect(result.info.database).toEqual({
+          status: 'down',
+          message: 'Database connection failed: Unknown error',
+        });
+      }
       expect(mockPrismaService.driver.findFirst).toHaveBeenCalled();
     });
   });
@@ -102,12 +124,16 @@ describe('HealthController', () => {
       const dbError = new Error('Database connection failed');
       mockPrismaService.driver.findFirst.mockRejectedValue(dbError);
 
-      // Act & Assert
-      try {
-        await controller.check();
-      } catch (error) {
-        // The health check service will throw an error for failed checks
-        expect(error).toBeDefined();
+      // Act
+      const result = await controller.check();
+
+      // Assert
+      expect(result.info).toBeDefined();
+      if (result.info) {
+        expect(result.info.database).toEqual({
+          status: 'down',
+          message: 'Database connection failed: Database connection failed',
+        });
       }
     });
 
@@ -115,11 +141,16 @@ describe('HealthController', () => {
       // Arrange
       mockPrismaService.driver.findFirst.mockRejectedValue('String error');
 
-      // Act & Assert
-      try {
-        await controller.check();
-      } catch (error) {
-        expect(error).toBeDefined();
+      // Act
+      const result = await controller.check();
+
+      // Assert
+      expect(result.info).toBeDefined();
+      if (result.info) {
+        expect(result.info.database).toEqual({
+          status: 'down',
+          message: 'Database connection failed: Unknown error',
+        });
       }
     });
   });
