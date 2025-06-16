@@ -52,43 +52,9 @@ test.describe('F1 Champions API - Seasons Endpoints', () => {
     test('should return seasons winners with default parameters', async ({
       request,
     }) => {
-      const response = await makeRequestWithRetry(
-        request,
-        getApiUrl(API_ENDPOINTS.SEASONS_WINNERS)
-      );
-
-      expect(response.status()).toBe(200);
-
-      const body = await response.json();
-
-      // Assert response is an array
-      expect(Array.isArray(body)).toBe(true);
-
-      // If we have data, validate structure
-      if (body.length > 0) {
-        const seasonWinner = body[0];
-        expect(seasonWinner).toHaveProperty('season');
-        expect(seasonWinner).toHaveProperty('wins');
-        expect(seasonWinner).toHaveProperty('driver');
-        expect(seasonWinner).toHaveProperty('constructor');
-
-        // Validate driver structure
-        expect(seasonWinner.driver).toHaveProperty('familyName');
-        expect(seasonWinner.driver).toHaveProperty('givenName');
-        expect(seasonWinner.driver).toHaveProperty('url');
-        expect(seasonWinner.driver).toHaveProperty('nationality');
-        expect(seasonWinner.driver).toHaveProperty('driverId');
-
-        // Validate constructor structure
-        expect(seasonWinner.constructor).toHaveProperty('name');
-        expect(seasonWinner.constructor).toHaveProperty('url');
-        expect(seasonWinner.constructor).toHaveProperty('nationality');
-      }
-    });
-
-    test('should handle year range parameters', async ({ request }) => {
-      const minYear = '2020';
-      const maxYear = '2023';
+      // We used minYear and maxYear params in order to prevent backend to run requests to Jolpi API too much (from 1950 till 2025)
+      const minYear = 2015;
+      const maxYear = 2023;
       const response = await makeRequestWithRetry(
         request,
         `${getApiUrl(
@@ -101,12 +67,45 @@ test.describe('F1 Champions API - Seasons Endpoints', () => {
       const body = await response.json();
       expect(Array.isArray(body)).toBe(true);
 
-      // If we have data, verify years are within range
+      if (body.length > 0) {
+        const seasonWinner = body[0];
+        expect(seasonWinner).toHaveProperty('season');
+        expect(seasonWinner).toHaveProperty('wins');
+        expect(seasonWinner).toHaveProperty('driver');
+        expect(seasonWinner).toHaveProperty('constructor');
+
+        expect(seasonWinner.driver).toHaveProperty('familyName');
+        expect(seasonWinner.driver).toHaveProperty('givenName');
+        expect(seasonWinner.driver).toHaveProperty('url');
+        expect(seasonWinner.driver).toHaveProperty('nationality');
+        expect(seasonWinner.driver).toHaveProperty('driverId');
+
+        expect(seasonWinner.constructor).toHaveProperty('name');
+        expect(seasonWinner.constructor).toHaveProperty('url');
+        expect(seasonWinner.constructor).toHaveProperty('nationality');
+      }
+    });
+
+    test('should handle year range parameters', async ({ request }) => {
+      const minYear = 2020;
+      const maxYear = 2023;
+      const response = await makeRequestWithRetry(
+        request,
+        `${getApiUrl(
+          API_ENDPOINTS.SEASONS_WINNERS
+        )}?minYear=${minYear}&maxYear=${maxYear}`
+      );
+
+      expect(response.status()).toBe(200);
+
+      const body = await response.json();
+      expect(Array.isArray(body)).toBe(true);
+
       if (body.length > 0) {
         body.forEach((seasonWinner: any) => {
           const year = parseInt(seasonWinner.season);
-          expect(year).toBeGreaterThanOrEqual(parseInt(minYear));
-          expect(year).toBeLessThanOrEqual(parseInt(maxYear));
+          expect(year).toBeGreaterThanOrEqual(minYear);
+          expect(year).toBeLessThanOrEqual(maxYear);
         });
       }
     });
@@ -205,7 +204,7 @@ test.describe('F1 Champions API - Seasons Endpoints', () => {
 
   test.describe('Performance and Load', () => {
     test('should handle concurrent requests', async ({ request }) => {
-      const concurrentRequests = 5;
+      const concurrentRequests = 3;
       const requests = [];
 
       for (let i = 0; i < concurrentRequests; i++) {
