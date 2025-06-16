@@ -10,7 +10,7 @@ export default defineConfig({
   testDir: './src/tests',
 
   // Run tests in files in parallel
-  fullyParallel: true,
+  fullyParallel: false,
 
   // Fail the build on CI if you accidentally left test.only in the source code
   forbidOnly: TEST_CONFIG.IS_CI,

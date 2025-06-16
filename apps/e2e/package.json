@@ -18,10 +18,9 @@
     "test:trace": "playwright show-trace",
     "install-browsers": "playwright install"
   },
-  "dependencies": {},
   "devDependencies": {
     "@playwright/test": "^1.36.0",
     "@types/node": "^20.0.0",
     "typescript": "~5.7.2"
   }
-} 
+}
