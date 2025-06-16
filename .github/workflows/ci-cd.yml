@@ -94,8 +94,8 @@ jobs:
       - name: Test affected
         run: |
           # Skip E2E tests in CI pipeline
-          AFFECTED_APPS=$(npx nx show projects --affected --base=origin/main --head=HEAD --type=app)
-          if [[ $AFFECTED_APPS == *"e2e"* ]]; then
+          AFFECTED_PROJECTS=$(npx nx show projects --affected --base=origin/main --head=HEAD)
+          if [[ $AFFECTED_PROJECTS == *"e2e"* ]]; then
             echo "Skipping E2E tests in CI pipeline"
             npx nx affected --target=test --base=origin/main --head=HEAD --coverage --exclude=e2e
           else
