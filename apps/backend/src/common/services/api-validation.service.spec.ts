@@ -104,7 +104,7 @@ describe('ApiValidationService', () => {
         expect(result.isValid).toBe(false);
         expect(result.error?.code).toBe('SEASON_RANGE_ERROR');
         expect(result.error?.message).toBe(
-          `Season must be between ${DEFAULT_MIN_YEAR} and ${DEFAULT_MAX_YEAR}`
+          `Minimum available season is ${DEFAULT_MIN_YEAR}`
         );
         expect(result.error?.status).toBe(HttpStatus.BAD_REQUEST);
       });
