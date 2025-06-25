@@ -1,10 +1,7 @@
 import { Outlet, useParams } from 'react-router';
-
 import Header from './components/Header';
 
-import './App.css';
-
-function App() {
+const App = () => {
   const routerParams = useParams();
 
   return (
@@ -13,6 +10,6 @@ function App() {
       <Outlet context={routerParams} />
     </div>
   );
-}
+};
 
 export default App;
