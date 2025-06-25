@@ -10,12 +10,6 @@ on:
       - main
       - develop
   workflow_dispatch:
-    inputs:
-      force_all:
-        description: 'Force build all applications'
-        required: false
-        default: false
-        type: boolean
 
 permissions:
   contents: read
@@ -29,10 +23,6 @@ concurrency:
 jobs:
   setup:
     runs-on: ubuntu-latest
-    outputs:
-      affected-apps: ${{ steps.affected.outputs.apps }}
-      has-web-app: ${{ steps.affected.outputs.has-web-app }}
-      has-backend: ${{ steps.affected.outputs.has-backend }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -50,31 +40,10 @@ jobs:
 
       - name: Build e2e-testids library
         run: npx nx build @f1-app/e2e-testids
-
-      - name: Get affected applications
-        id: affected
-        run: |
-          if [ "${{ github.event.inputs.force_all }}" == "true" ]; then
-            echo "apps=[\"@f1-app/web-app\", \"@f1-app/backend-api\"]" >> $GITHUB_OUTPUT
-            echo "has-web-app=true" >> $GITHUB_OUTPUT
-            echo "has-backend=true" >> $GITHUB_OUTPUT
-          else
-            AFFECTED=$(npx nx show projects --affected --base=origin/main --head=HEAD --type=app)
-            echo "Affected apps: $AFFECTED"
-
-            # Convert to JSON array
-            APPS_JSON=$(echo "$AFFECTED" | jq -R -s -c 'split("\n") | map(select(length > 0))')
-            echo "apps=$APPS_JSON" >> $GITHUB_OUTPUT
-
-            # Check specific apps
-            echo "has-web-app=$(echo "$AFFECTED" | grep -q "@f1-app/web-app" && echo "true" || echo "false")" >> $GITHUB_OUTPUT
-            echo "has-backend=$(echo "$AFFECTED" | grep -q "@f1-app/backend-api" && echo "true" || echo "false")" >> $GITHUB_OUTPUT
-          fi
 
   lint-and-test:
     runs-on: ubuntu-latest
     needs: setup
-    if: needs.setup.outputs.affected-apps != '[]'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -93,24 +62,23 @@ jobs:
       - name: Build e2e-testids library
         run: npx nx build @f1-app/e2e-testids
 
-      - name: Lint affected
-        run: npx nx affected --target=lint --base=origin/main --head=HEAD
+      - name: Lint all
+        run: npx nx run-many --target=lint --all
 
-      - name: Test affected
+      - name: Test all
         run: |
-          # Skip integration tests that require real database
-          AFFECTED_PROJECTS=$(npx nx show projects --affected --base=origin/main --head=HEAD)
-          if [[ $AFFECTED_PROJECTS == *"e2e"* || $AFFECTED_PROJECTS == *"backend"* ]]; then
-            echo "Skipping integration tests in CI pipeline"
-            npx nx affected --target=test --base=origin/main --head=HEAD --testPathIgnorePatterns=".*\.integration\.test\.ts$"
-          else
-            npx nx affected --target=test --base=origin/main --head=HEAD --coverage
-          fi
+          # Run e2e tests (Playwright)
+          echo "Running e2e tests with Playwright"
+          npx nx run e2e:e2e
+          
+          # Run Jest tests (excluding integration tests)
+          echo "Running Jest tests (excluding integration tests)"
+          npx nx run-many --target=test --all --testPathIgnorePatterns=".*\.integration\.test\.ts$" --coverage
 
   build-web-app:
     runs-on: ubuntu-latest
     needs: [ setup, lint-and-test ]
-    if: needs.setup.outputs.has-web-app == 'true' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -135,7 +103,6 @@ jobs:
   build-backend:
     runs-on: ubuntu-latest
     needs: [ setup, lint-and-test ]
-    if: needs.setup.outputs.has-backend == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
