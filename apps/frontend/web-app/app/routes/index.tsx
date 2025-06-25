@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 
 import { createBrowserRouter } from 'react-router-dom';
-import { createRoutesFromElements, Route } from 'react-router';
+import { createRoutesFromElements, Route } from 'react-router-dom';
 
 import App from '../App';
 

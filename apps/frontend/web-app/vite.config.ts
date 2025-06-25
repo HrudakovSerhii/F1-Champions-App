@@ -91,7 +91,14 @@ export default defineConfig(({ mode }) => {
 
     // Optimized for Docker environments
     optimizeDeps: {
-      include: ['react', 'react-dom'],
+      include: [
+        'react', 
+        'react-dom', 
+        'react-router-dom',
+        '@react-router/node',
+        '@react-router/serve'
+      ],
+      exclude: [],
     },
 
     test: {
@@ -107,6 +114,14 @@ export default defineConfig(({ mode }) => {
       coverage: {
         reportsDirectory: './test-output/vitest/coverage',
         provider: 'v8' as const,
+      },
+      // Ensure proper dependency resolution in test environment
+      deps: {
+        inline: [
+          'react-router-dom',
+          '@react-router/node',
+          '@react-router/serve'
+        ],
       },
     },
   };

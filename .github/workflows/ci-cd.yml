@@ -51,6 +51,13 @@ jobs:
       - name: Install test dependencies
         run: npm install -D @vitest/coverage-v8
 
+      - name: Ensure workspace dependencies are properly linked
+        run: |
+          echo "Ensuring workspace dependencies are properly linked..."
+          npm run web-app:init || true
+          npx nx reset
+          npx nx graph --file=project-graph.json
+
       - name: Get affected applications
         id: affected
         run: |
@@ -92,6 +99,13 @@ jobs:
 
       - name: Install test dependencies
         run: npm install -D @vitest/coverage-v8
+
+      - name: Ensure workspace dependencies are properly linked
+        run: |
+          echo "Ensuring workspace dependencies are properly linked..."
+          npm run web-app:init || true
+          npx nx reset
+          npx nx graph --file=project-graph.json
 
       - name: Lint affected
         run: npx nx affected --target=lint --base=origin/main --head=HEAD
