@@ -41,8 +41,11 @@ jobs:
       - name: Build e2e-testids library
         run: npx nx build @f1-app/e2e-testids
 
-      - name: Build web-app for e2e tests
-        run: npx nx build web-app
+      - name: Build web-app for e2e tests (development mode)
+        run: npx nx build web-app --configuration=development
+
+      - name: Build backend for e2e tests
+        run: npx nx build @f1-app/backend
 
   lint-and-test:
     runs-on: ubuntu-latest
@@ -65,21 +68,24 @@ jobs:
       - name: Build e2e-testids library
         run: npx nx build @f1-app/e2e-testids
 
-      - name: Build web-app for e2e tests
-        run: npx nx build web-app
+      - name: Build web-app for e2e tests (development mode)
+        run: npx nx build web-app --configuration=development
+
+      - name: Build backend for e2e tests
+        run: npx nx build @f1-app/backend
 
       - name: Lint all
         run: npx nx run-many --target=lint --all
 
       - name: Test all
         run: |
-          # Run e2e tests (Playwright)
-          echo "Running e2e tests with Playwright"
-          npx nx run e2e:e2e
-          
-          # Run Jest tests (excluding integration tests)
+          # Run Jest tests first (excluding integration tests)
           echo "Running Jest tests (excluding integration tests)"
           npx nx run-many --target=test --all --testPathIgnorePatterns=".*\.integration\.test\.ts$" --coverage
+          
+          # Run e2e tests (Playwright) - this will start both frontend and backend
+          echo "Running e2e tests with Playwright"
+          npx nx run e2e:e2e
 
   build-web-app:
     runs-on: ubuntu-latest
@@ -125,7 +131,7 @@ jobs:
         run: npm ci
 
       - name: Build backend
-        run: npx nx build @f1-app/backend-api
+        run: npx nx build @f1-app/backend
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
