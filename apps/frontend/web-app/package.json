@@ -15,12 +15,6 @@
     "name": "web-app"
   },
   "dependencies": {
-    "react": "~18.3.1",
-    "react-dom": "~18.3.1",
-    "zustand": "^4.3.7",
-    "web-vitals": "^2.1.4",
-    "axios": "^1.6.0",
-    "isbot": "^4.4.0"
   },
   "devDependencies": {
     "@babel/core": "^7.14.5",
