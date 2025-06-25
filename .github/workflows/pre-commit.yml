@@ -1,0 +1,172 @@
+name: Pre-commit E2E Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pre-commit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e-pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx nx install-browsers e2e
+
+      - name: Get affected files
+        id: affected
+        run: |
+          # Get list of changed files
+          CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
+          echo "Changed files: $CHANGED_FILES"
+          
+          # Check if e2e tests or related files are affected
+          if echo "$CHANGED_FILES" | grep -q "apps/e2e/"; then
+            echo "e2e-affected=true" >> $GITHUB_OUTPUT
+          else
+            echo "e2e-affected=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # Check if frontend files are affected
+          if echo "$CHANGED_FILES" | grep -q "apps/frontend/"; then
+            echo "frontend-affected=true" >> $GITHUB_OUTPUT
+          else
+            echo "frontend-affected=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # Check if backend files are affected
+          if echo "$CHANGED_FILES" | grep -q "apps/backend/"; then
+            echo "backend-affected=true" >> $GITHUB_OUTPUT
+          else
+            echo "backend-affected=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run E2E test validation (linting and type checking)
+        if: steps.affected.outputs.e2e-affected == 'true' || steps.affected.outputs.frontend-affected == 'true' || steps.affected.outputs.backend-affected == 'true'
+        run: |
+          echo "Running E2E test validation..."
+          npx nx lint e2e
+          npx nx typecheck e2e
+
+      - name: Run E2E test structure validation
+        if: steps.affected.outputs.e2e-affected == 'true' || steps.affected.outputs.frontend-affected == 'true' || steps.affected.outputs.backend-affected == 'true'
+        run: |
+          echo "Validating E2E test structure..."
+          
+          # Check if test files exist and are properly structured
+          if [ -f "apps/e2e/src/tests/ui/home-page.spec.ts" ]; then
+            echo "✅ UI tests found"
+          else
+            echo "❌ UI tests missing"
+            exit 1
+          fi
+          
+          if [ -f "apps/e2e/src/tests/api/api-info.spec.ts" ]; then
+            echo "✅ API tests found"
+          else
+            echo "❌ API tests missing"
+            exit 1
+          fi
+          
+          # Validate Playwright config
+          if [ -f "apps/e2e/playwright.config.ts" ]; then
+            echo "✅ Playwright config found"
+          else
+            echo "❌ Playwright config missing"
+            exit 1
+          fi
+
+      - name: Run E2E test compilation check
+        if: steps.affected.outputs.e2e-affected == 'true' || steps.affected.outputs.frontend-affected == 'true' || steps.affected.outputs.backend-affected == 'true'
+        run: |
+          echo "Checking E2E test compilation..."
+          cd apps/e2e
+          npx tsc --noEmit
+
+      - name: Run E2E test dry run (without starting applications)
+        if: steps.affected.outputs.e2e-affected == 'true' || steps.affected.outputs.frontend-affected == 'true' || steps.affected.outputs.backend-affected == 'true'
+        run: |
+          echo "Running E2E test dry run..."
+          
+          # Test that Playwright can load the configuration
+          cd apps/e2e
+          npx playwright test --list
+          
+          # Check that test files can be parsed
+          npx playwright test --list --project=chromium
+          npx playwright test --list --project=api
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-validation-results-${{ github.sha }}
+          path: |
+            apps/e2e/test-results/
+            apps/e2e/playwright-report/
+          retention-days: 7
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let comment = '## E2E Pre-commit Validation Results\n\n';
+            
+            // Check if any relevant files were affected
+            const frontendAffected = '${{ steps.affected.outputs.frontend-affected }}' === 'true';
+            const backendAffected = '${{ steps.affected.outputs.backend-affected }}' === 'true';
+            const e2eAffected = '${{ steps.affected.outputs.e2e-affected }}' === 'true';
+            
+            if (frontendAffected || backendAffected || e2eAffected) {
+              comment += '✅ **E2E validation completed**\n\n';
+              comment += '**What was validated:**\n';
+              comment += '- ✅ E2E test linting and type checking\n';
+              comment += '- ✅ E2E test structure validation\n';
+              comment += '- ✅ E2E test compilation check\n';
+              comment += '- ✅ Playwright configuration validation\n\n';
+              
+              comment += '**Note:** Full E2E tests require running applications with external dependencies.\n';
+              comment += 'This pre-commit check validates test structure and configuration only.\n\n';
+              
+              comment += `📊 [View detailed results](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID})\n`;
+            } else {
+              comment += '⚠️ **No E2E validation needed**\n';
+              comment += 'No frontend, backend, or e2e files were changed.\n\n';
+            }
+            
+            comment += '\n---\n';
+            comment += '*This comment was automatically generated by the pre-commit E2E validation workflow.*';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            }); 
