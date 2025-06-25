@@ -1,1 +1,1 @@
-export * from './lib/e2e-testids.js';
+export * from './lib/e2e-testids';

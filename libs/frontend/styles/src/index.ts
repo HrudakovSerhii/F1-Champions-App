@@ -1,5 +1,4 @@
 // Export the theme from the JavaScript file
-// @ts-expect-error Theme object untyped
 import themeExports from './lib/theme.js';
 
 export const {
