@@ -31,7 +31,7 @@ describe('AppService', () => {
       // Validate endpoints structure
       expect(Array.isArray(result.endpoints)).toBe(true);
       expect(result.endpoints.length).toBeGreaterThan(0);
-      result.endpoints.forEach((endpoint) => {
+      result.endpoints.forEach((endpoint: any) => {
         expect(endpoint).toHaveProperty('path');
         expect(endpoint).toHaveProperty('method');
         expect(endpoint).toHaveProperty('description');
