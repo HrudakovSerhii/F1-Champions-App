@@ -48,16 +48,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install test dependencies
-        run: npm install -D @vitest/coverage-v8
-
-      - name: Ensure workspace dependencies are properly linked
-        run: |
-          echo "Ensuring workspace dependencies are properly linked..."
-          npm run web-app:init || true
-          npx nx reset
-          npx nx graph --file=project-graph.json
-
       - name: Build e2e-testids library
         run: npx nx build @f1-app/e2e-testids
 
@@ -99,16 +89,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Install test dependencies
-        run: npm install -D @vitest/coverage-v8
-
-      - name: Ensure workspace dependencies are properly linked
-        run: |
-          echo "Ensuring workspace dependencies are properly linked..."
-          npm run web-app:init || true
-          npx nx reset
-          npx nx graph --file=project-graph.json
 
       - name: Build e2e-testids library
         run: npx nx build @f1-app/e2e-testids
