@@ -22,28 +22,52 @@
         "production": {
           "config": "apps/e2e/playwright.config.ts"
         }
-      }
+      },
+      "dependsOn": [
+        {
+          "target": "dev",
+          "projects": "web-app"
+        }
+      ]
     },
     "e2e-ui": {
       "executor": "@nx/playwright:playwright",
       "options": {
         "config": "apps/e2e/playwright.config.ts",
         "ui": true
-      }
+      },
+      "dependsOn": [
+        {
+          "target": "dev",
+          "projects": "web-app"
+        }
+      ]
     },
     "e2e-headed": {
       "executor": "@nx/playwright:playwright",
       "options": {
         "config": "apps/e2e/playwright.config.ts",
         "headed": true
-      }
+      },
+      "dependsOn": [
+        {
+          "target": "dev",
+          "projects": "web-app"
+        }
+      ]
     },
     "e2e-debug": {
       "executor": "@nx/playwright:playwright",
       "options": {
         "config": "apps/e2e/playwright.config.ts",
         "debug": true
-      }
+      },
+      "dependsOn": [
+        {
+          "target": "dev",
+          "projects": "web-app"
+        }
+      ]
     },
     "e2e-api": {
       "executor": "@nx/playwright:playwright",
@@ -56,29 +80,53 @@
       "executor": "@nx/playwright:playwright",
       "options": {
         "config": "apps/e2e/playwright.config.ts",
-        "project": "chromium"
-      }
+        "project": ["chromium"]
+      },
+      "dependsOn": [
+        {
+          "target": "dev",
+          "projects": "web-app"
+        }
+      ]
     },
     "e2e-firefox": {
       "executor": "@nx/playwright:playwright",
       "options": {
         "config": "apps/e2e/playwright.config.ts",
-        "project": "firefox"
-      }
+        "project": ["firefox"]
+      },
+      "dependsOn": [
+        {
+          "target": "dev",
+          "projects": "web-app"
+        }
+      ]
     },
     "e2e-safari": {
       "executor": "@nx/playwright:playwright",
       "options": {
         "config": "apps/e2e/playwright.config.ts",
-        "project": "webkit"
-      }
+        "project": ["webkit"]
+      },
+      "dependsOn": [
+        {
+          "target": "dev",
+          "projects": "web-app"
+        }
+      ]
     },
     "e2e-mobile": {
       "executor": "@nx/playwright:playwright",
       "options": {
         "config": "apps/e2e/playwright.config.ts",
-        "project": "Mobile Chrome"
-      }
+        "project": ["Mobile Chrome"]
+      },
+      "dependsOn": [
+        {
+          "target": "dev",
+          "projects": "web-app"
+        }
+      ]
     },
     "install-browsers": {
       "executor": "nx:run-commands",

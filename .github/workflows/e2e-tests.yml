@@ -54,6 +54,9 @@ jobs:
       - name: Install Playwright browsers
         run: npx nx install-browsers e2e
 
+      - name: Build e2e-testids library
+        run: npx nx build @f1-app/e2e-testids
+
       - name: Setup test environment
         run: |
           echo "Setting up test environment..."
