@@ -26,6 +26,9 @@
       ],
       "@/utils/*": [
         "./src/utils/*"
+      ],
+      "@f1-app/e2e-testids": [
+        "../../libs/shared/e2e-testids/src/index.ts"
       ]
     }
   },

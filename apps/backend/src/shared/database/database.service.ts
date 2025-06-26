@@ -36,7 +36,7 @@ export class DatabaseService {
         },
       });
 
-      const existingSeasons = existingWinners.map((winner) => winner.season);
+      const existingSeasons = existingWinners.map((winner: { season: string }) => winner.season);
       const missingSeasons = yearsRange.filter(
         (year) => !existingSeasons.includes(year)
       );
@@ -69,7 +69,7 @@ export class DatabaseService {
       });
 
       const existingSeasons = [
-        ...new Set(existingRaceWinners.map((winner) => winner.season)),
+        ...new Set(existingRaceWinners.map((winner: { season: string }) => winner.season)),
       ];
       const missingSeasons = yearsRange.filter(
         (year) => !existingSeasons.includes(year)

@@ -107,10 +107,10 @@ export class JolpicaF1Service {
       const url = `${this.baseUrl}/${season}/driverstandings`;
       this.logger.log(url);
       const response = await firstValueFrom(
-        this.httpService.get<JolpiDriverStandingMRData>(url)
+        this.httpService.get<JolpiDriverStandingMRData>(url) as any
       );
 
-      return response.data;
+      return (response as any).data;
     } catch (error) {
       this.logger.error(
         `Failed to season race winners for season ${season} from Jolpica F1 API:`,

@@ -84,14 +84,24 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks: {
             vendor: ['react', 'react-dom'],
+            router: ['react-router-dom', 'react-router'],
           },
         },
+        // Ensure react-router-dom is properly resolved
+        external: [],
       },
     },
 
     // Optimized for Docker environments
     optimizeDeps: {
-      include: ['react', 'react-dom'],
+      include: [
+        'react', 
+        'react-dom', 
+        'react-router-dom',
+        '@react-router/node',
+        '@react-router/serve'
+      ],
+      exclude: [],
     },
 
     test: {
@@ -107,6 +117,14 @@ export default defineConfig(({ mode }) => {
       coverage: {
         reportsDirectory: './test-output/vitest/coverage',
         provider: 'v8' as const,
+      },
+      // Ensure proper dependency resolution in test environment
+      deps: {
+        inline: [
+          'react-router-dom',
+          '@react-router/node',
+          '@react-router/serve'
+        ],
       },
     },
   };

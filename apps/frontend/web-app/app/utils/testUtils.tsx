@@ -1,7 +1,7 @@
 import React from 'react';
-import { Router } from 'react-router';
+import { Router } from 'react-router-dom';
 
-import { render, RenderOptions } from '@testing-library/react';
+import { render, RenderOptions, RenderResult } from '@testing-library/react';
 
 import type { MemoryHistory } from 'history';
 
@@ -15,7 +15,7 @@ export const renderWithRouter = (
   ui: React.ReactElement,
   history: MemoryHistory,
   options?: Omit<RenderOptions, 'queries'>
-) => {
+): RenderResult => {
   const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     <Router location={history.location} navigator={history}>
       {children}

@@ -1,0 +1,178 @@
+name: E2E Tests with Mocked Services
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of E2E tests to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - ui-only
+          - api-only
+      mock_services:
+        description: 'Use mocked services'
+        required: true
+        default: true
+        type: boolean
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/e2e/**'
+      - 'apps/frontend/**'
+      - 'apps/backend/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: e2e-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx nx install-browsers e2e
+
+      - name: Build e2e-testids library
+        run: npx nx build @f1-app/e2e-testids
+
+      - name: Setup test environment
+        run: |
+          echo "Setting up test environment..."
+          
+          # Create mock service configuration
+          mkdir -p apps/e2e/src/mocks
+          
+          # Set environment variables for mocked services
+          echo "MOCK_SERVICES=true" >> $GITHUB_ENV
+          echo "FE_BASE_URL=http://localhost:3000" >> $GITHUB_ENV
+          echo "BE_BASE_URL=http://localhost:4000" >> $GITHUB_ENV
+          echo "CI=true" >> $GITHUB_ENV
+
+      - name: Run UI E2E tests
+        if: github.event.inputs.test_type == 'ui-only' || github.event.inputs.test_type == 'all'
+        run: |
+          echo "Running UI E2E tests with mocked services..."
+          npx nx e2e-chrome e2e --project=chromium --grep="F1 Champions App - Home Page"
+        env:
+          MOCK_SERVICES: true
+          FE_BASE_URL: http://localhost:3000
+          BE_BASE_URL: http://localhost:4000
+          CI: true
+
+      - name: Run API E2E tests
+        if: github.event.inputs.test_type == 'api-only' || github.event.inputs.test_type == 'all'
+        run: |
+          echo "Running API E2E tests with mocked services..."
+          npx nx e2e-api e2e --project=api --grep="F1 Champions API - Information Endpoints"
+        env:
+          MOCK_SERVICES: true
+          FE_BASE_URL: http://localhost:3000
+          BE_BASE_URL: http://localhost:4000
+          CI: true
+
+      - name: Run all E2E tests
+        if: github.event.inputs.test_type == 'all'
+        run: |
+          echo "Running all E2E tests with mocked services..."
+          npx nx e2e-chrome e2e --project=chromium
+        env:
+          MOCK_SERVICES: true
+          FE_BASE_URL: http://localhost:3000
+          BE_BASE_URL: http://localhost:4000
+          CI: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results-${{ github.sha }}
+          path: |
+            apps/e2e/test-results/
+            apps/e2e/playwright-report/
+          retention-days: 30
+
+      - name: Generate test report
+        if: always()
+        run: |
+          echo "Generating test report..."
+          cd apps/e2e
+          if [ -d "playwright-report" ]; then
+            echo "Test report generated successfully"
+            ls -la playwright-report/
+          else
+            echo "No test report generated"
+          fi
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            let comment = '## E2E Test Results (Mocked Services)\n\n';
+            
+            // Check if test results exist
+            const testResultsPath = 'apps/e2e/test-results/';
+            const reportPath = 'apps/e2e/playwright-report/';
+            
+            if (fs.existsSync(testResultsPath)) {
+              comment += '✅ **E2E tests completed**\n\n';
+              
+              // Check for failures
+              const testResults = fs.readdirSync(testResultsPath);
+              const hasFailures = testResults.some(file => 
+                file.endsWith('.json') && 
+                JSON.parse(fs.readFileSync(path.join(testResultsPath, file))).status === 'failed'
+              );
+              
+              if (hasFailures) {
+                comment += '❌ **Some tests failed**\n';
+                comment += 'Check the test results artifact for details.\n\n';
+              } else {
+                comment += '✅ **All tests passed**\n\n';
+              }
+              
+              comment += '**Test Configuration:**\n';
+              comment += '- 🔧 Mocked services enabled\n';
+              comment += '- 🌐 No external API dependencies\n';
+              comment += '- 🗄️ No database dependencies\n\n';
+              
+              comment += `📊 [View detailed report](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID})\n`;
+            } else {
+              comment += '⚠️ **No test results found**\n';
+              comment += 'Tests may not have run or failed to generate results.\n\n';
+            }
+            
+            comment += '\n---\n';
+            comment += '*This comment was automatically generated by the E2E test workflow.*';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            }); 

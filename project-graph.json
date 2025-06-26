@@ -991,6 +991,16 @@
               "executor": "nx:run-commands",
               "configurations": {},
               "parallelism": true
+            },
+            "build": {
+              "executor": "@nx/js:tsc",
+              "outputs": ["{options.outputPath}"],
+              "options": {
+                "outputPath": "dist/libs/shared/e2e-testids",
+                "main": "libs/shared/e2e-testids/src/index.ts",
+                "tsConfig": "libs/shared/e2e-testids/tsconfig.lib.json",
+                "assets": []
+              }
             }
           },
           "projectType": "library",
