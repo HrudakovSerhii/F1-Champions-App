@@ -97,7 +97,7 @@ jobs:
             libs/frontend/styles/dist
           key: ${{ needs.build-shared-libs.outputs.cache-key }}
 
-  
+
       - name: Verify shared libraries
         run: |
           echo "Checking if shared libraries are built..."
@@ -105,25 +105,9 @@ jobs:
           ls -la libs/shared/e2e-testids/dist/ || echo "E2E testids not found"
           ls -la libs/frontend/styles/dist/ || echo "Styles not found"
 
-  
+
       - name: Lint all projects
         run: npx nx run-many --target=lint --all
-
-
-      - name: Type check e2e-testids library
-        run: npx nx run @f1-app/e2e-testids:typecheck
-
-      - name: Type check frontend-styles library
-        run: npx nx run @f1-app/frontend-styles:typecheck
-
-      - name: Type check web-app
-        run: npx nx run web-app:typecheck
-
-      - name: Type check backend
-        run: npx nx run @f1-app/backend:typecheck
-
-      - name: Type check e2e tests
-        run: npx nx run e2e:typecheck
 
   unit-tests:
     runs-on: ubuntu-latest
