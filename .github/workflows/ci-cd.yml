@@ -54,6 +54,10 @@ jobs:
         if: steps.cache-libs.outputs.cache-hit != 'true'
         run: npm ci
 
+      - name: Generate types from OpenAPI schema
+        if: steps.cache-libs.outputs.cache-hit != 'true'
+        run: npm run generate-types
+
       - name: Build shared types library (foundation dependency)
         if: steps.cache-libs.outputs.cache-hit != 'true'
         run: npx nx build @f1-app/api-types
