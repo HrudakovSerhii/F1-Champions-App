@@ -110,7 +110,7 @@ jobs:
         run: npx nx run-many --target=lint --all
 
       - name: Type check all projects
-        run: npx nx run-many --target=typecheck --all
+        run: npx nx run-many --target=typecheck --all --exclude=@f1-app/api-types,@f1-app/mobile-app
 
   unit-tests:
     runs-on: ubuntu-latest

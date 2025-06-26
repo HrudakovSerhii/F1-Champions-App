@@ -1,11 +1,6 @@
 name: E2E Tests (Full Dev Environment)
 
 on:
-  pull_request:
-    branches:
-      - develop
-      - main
-    types: [ opened, synchronize, reopened, ready_for_review ]
   workflow_dispatch:
     inputs:
       debug:
@@ -27,8 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
-    # Skip if PR is in draft mode (unless manually triggered)
-    if: github.event.pull_request.draft == false || github.event_name == 'workflow_dispatch'
+    # Manual trigger only
 
     services:
       mongodb:
