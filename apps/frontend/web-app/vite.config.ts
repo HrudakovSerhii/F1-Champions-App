@@ -1,9 +1,8 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
+import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error
 export default defineConfig(({ mode }) => {
   // Docker environment detection
   const isDocker =
@@ -24,6 +23,10 @@ export default defineConfig(({ mode }) => {
         isDocker || process.env.HOST === '0.0.0.0' ? '0.0.0.0' : 'localhost',
       // Enable CORS for Docker development
       cors: isDevelopment,
+      // Serve fonts from root public directory during development
+      fs: {
+        allow: ['..', '../../../public'],
+      },
       // Docker-friendly HMR
       hmr: isDevelopment
         ? {
@@ -41,7 +44,7 @@ export default defineConfig(({ mode }) => {
       host: isDocker ? '0.0.0.0' : 'localhost',
     },
 
-    plugins: [react()],
+    plugins: [react(), nxViteTsPaths()],
 
     // Define environment variables for the browser
     define: {
@@ -53,6 +56,11 @@ export default defineConfig(({ mode }) => {
         '@': resolve(__dirname, './app'),
       },
     },
+
+    // Serve static assets from root public directory
+    publicDir: isDevelopment
+      ? resolve(__dirname, '../../../public')
+      : resolve(__dirname, './public'),
 
     // Uncomment this if you are using workers.
     // worker: {
@@ -76,14 +84,24 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks: {
             vendor: ['react', 'react-dom'],
+            router: ['react-router-dom', 'react-router'],
           },
         },
+        // Ensure react-router-dom is properly resolved
+        external: [],
       },
     },
 
     // Optimized for Docker environments
     optimizeDeps: {
-      include: ['react', 'react-dom'],
+      include: [
+        'react', 
+        'react-dom', 
+        'react-router-dom',
+        '@react-router/node',
+        '@react-router/serve'
+      ],
+      exclude: [],
     },
 
     test: {
@@ -99,6 +117,14 @@ export default defineConfig(({ mode }) => {
       coverage: {
         reportsDirectory: './test-output/vitest/coverage',
         provider: 'v8' as const,
+      },
+      // Ensure proper dependency resolution in test environment
+      deps: {
+        inline: [
+          'react-router-dom',
+          '@react-router/node',
+          '@react-router/serve'
+        ],
       },
     },
   };

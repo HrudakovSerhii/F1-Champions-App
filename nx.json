@@ -28,7 +28,11 @@
           "buildDepsName": "build-deps",
           "watchDepsName": "watch-deps"
         }
-      }
+      },
+      "exclude": [
+        "libs/shared/*",
+        "libs/shared/e2e-testids/*"
+      ]
     },
     {
       "plugin": "@nx/react-native/plugin",
@@ -41,7 +45,7 @@
         "runAndroidTargetName": "run-android",
         "buildIosTargetName": "build-ios",
         "buildAndroidTargetName": "build-android",
-        "syncDepsTargetName": "sync-deps"
+        "syncDepsName": "sync-deps"
       }
     },
     {
@@ -69,8 +73,8 @@
         "previewTargetName": "preview",
         "serveStaticTargetName": "serve-static",
         "typecheckTargetName": "typecheck",
-        "buildDepsTargetName": "build-deps",
-        "watchDepsTargetName": "watch-deps"
+        "buildDepsName": "build-deps",
+        "watchDepsName": "watch-deps"
       }
     },
     {
@@ -85,8 +89,8 @@
         "buildTargetName": "build",
         "devTargetName": "dev",
         "startTargetName": "start",
-        "watchDepsTargetName": "watch-deps",
-        "buildDepsTargetName": "build-deps",
+        "watchDepsName": "watch-deps",
+        "buildDepsName": "build-deps",
         "typecheckTargetName": "typecheck"
       }
     },
@@ -96,8 +100,26 @@
         "buildTargetName": "build",
         "serveTargetName": "serve",
         "previewTargetName": "preview",
-        "buildDepsTargetName": "build-deps",
-        "watchDepsTargetName": "watch-deps"
+        "buildDepsName": "build-deps",
+        "watchDepsName": "watch-deps"
+      }
+    },
+    {
+      "plugin": "@nx/js/typescript",
+      "include": [
+        "libs/shared/*",
+        "libs/shared/e2e-testids/*"
+      ],
+      "options": {
+        "typecheck": {
+          "targetName": "typecheck"
+        },
+        "build": {
+          "targetName": "build",
+          "configName": "tsconfig.lib.json",
+          "buildDepsName": "build-deps",
+          "watchDepsName": "watch-deps"
+        }
       }
     }
   ],

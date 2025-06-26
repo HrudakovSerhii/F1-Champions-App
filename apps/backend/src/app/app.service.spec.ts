@@ -20,7 +20,7 @@ describe('AppService', () => {
       expect(result).toHaveProperty('version', '1.0.0');
       expect(result).toHaveProperty(
         'description',
-        'API for Formula 1 season champions and race winners data'
+        'API for retrieving Formula 1 championship data including season winners and season race results'
       );
       expect(result).toHaveProperty('documentation');
       expect(result).toHaveProperty('health');
@@ -31,7 +31,7 @@ describe('AppService', () => {
       // Validate endpoints structure
       expect(Array.isArray(result.endpoints)).toBe(true);
       expect(result.endpoints.length).toBeGreaterThan(0);
-      result.endpoints.forEach((endpoint) => {
+      result.endpoints.forEach((endpoint: any) => {
         expect(endpoint).toHaveProperty('path');
         expect(endpoint).toHaveProperty('method');
         expect(endpoint).toHaveProperty('description');

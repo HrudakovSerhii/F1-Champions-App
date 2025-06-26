@@ -8,13 +8,15 @@ import {
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { SeasonsWinnersService } from './seasons-winners.service';
 import { GetSeasonsWinnersDto } from './dto/get-seasons-winners.dto';
-
-import { DEFAULT_MAX_YEAR, DEFAULT_MIN_YEAR } from '../../constants/constants';
+import { ApiValidationService } from '../../common/services/api-validation.service';
 
 @ApiTags('SeasonsWinners')
 @Controller('f1/winners')
 export class SeasonsWinnersController {
-  constructor(private readonly championsService: SeasonsWinnersService) {}
+  constructor(
+    private readonly championsService: SeasonsWinnersService,
+    private readonly apiValidationService: ApiValidationService
+  ) {}
 
   @Get()
   @ApiOperation({
@@ -38,16 +40,22 @@ export class SeasonsWinnersController {
     try {
       const { minYear, maxYear } = query;
 
-      const _minYear = minYear
-        ? parseInt(minYear.toString(), 10)
-        : DEFAULT_MIN_YEAR;
-      const _maxYear = maxYear
-        ? parseInt(maxYear.toString(), 10)
-        : DEFAULT_MAX_YEAR;
+      // Validate year range using validation service
+      const validation = this.apiValidationService.validateYearRange(
+        minYear?.toString(),
+        maxYear?.toString()
+      );
+
+      if (!validation.isValid) {
+        throw new HttpException(
+          { error: validation.error },
+          validation.error!.status
+        );
+      }
 
       const result = await this.championsService.getSeasonsWinners(
-        _minYear,
-        _maxYear
+        validation.minYear!,
+        validation.maxYear!
       );
 
       if (!result) {

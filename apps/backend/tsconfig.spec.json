@@ -12,8 +12,6 @@
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "composite": false,
-    "emitDeclarationOnly": false,
     "declarationMap": false,
     "lib": [
       "es2022"

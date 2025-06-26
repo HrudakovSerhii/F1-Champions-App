@@ -52,6 +52,26 @@ RUN echo '#!/bin/bash' > /app/docker-entrypoint.sh && \
     echo 'done' >> /app/docker-entrypoint.sh && \
     echo 'echo "✅ MongoDB is ready!"' >> /app/docker-entrypoint.sh && \
     echo '' >> /app/docker-entrypoint.sh && \
+    echo '# Run NX sync with retry logic' >> /app/docker-entrypoint.sh && \
+    echo 'echo "🔄 Running NX sync..."' >> /app/docker-entrypoint.sh && \
+    echo 'MAX_RETRIES=3' >> /app/docker-entrypoint.sh && \
+    echo 'RETRY_COUNT=0' >> /app/docker-entrypoint.sh && \
+    echo 'while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do' >> /app/docker-entrypoint.sh && \
+    echo '    if npx nx sync; then' >> /app/docker-entrypoint.sh && \
+    echo '        echo "✅ NX sync completed successfully"' >> /app/docker-entrypoint.sh && \
+    echo '        break' >> /app/docker-entrypoint.sh && \
+    echo '    else' >> /app/docker-entrypoint.sh && \
+    echo '        RETRY_COUNT=$((RETRY_COUNT + 1))' >> /app/docker-entrypoint.sh && \
+    echo '        if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then' >> /app/docker-entrypoint.sh && \
+    echo '            echo "❌ ERROR: NX sync failed after $MAX_RETRIES attempts"' >> /app/docker-entrypoint.sh && \
+    echo '            echo "Please check your NX configuration and try again"' >> /app/docker-entrypoint.sh && \
+    echo '            exit 1' >> /app/docker-entrypoint.sh && \
+    echo '        fi' >> /app/docker-entrypoint.sh && \
+    echo '        echo "⚠️ NX sync failed, retrying in 5 seconds... (Attempt $RETRY_COUNT of $MAX_RETRIES)"' >> /app/docker-entrypoint.sh && \
+    echo '        sleep 5' >> /app/docker-entrypoint.sh && \
+    echo '    fi' >> /app/docker-entrypoint.sh && \
+    echo 'done' >> /app/docker-entrypoint.sh && \
+    echo '' >> /app/docker-entrypoint.sh && \
     echo '# Generate OpenAPI types' >> /app/docker-entrypoint.sh && \
     echo 'if [ -f "./scripts/generate-types.sh" ]; then' >> /app/docker-entrypoint.sh && \
     echo '    echo "🔧 Generating OpenAPI types..."' >> /app/docker-entrypoint.sh && \
@@ -137,6 +157,26 @@ RUN echo '#!/bin/sh' > /app/docker-entrypoint.sh && \
     echo '' >> /app/docker-entrypoint.sh && \
     echo 'PORT=${PORT:-4000}' >> /app/docker-entrypoint.sh && \
     echo 'echo "📡 Backend running on port: $PORT"' >> /app/docker-entrypoint.sh && \
+    echo '' >> /app/docker-entrypoint.sh && \
+    echo '# Run NX sync with retry logic' >> /app/docker-entrypoint.sh && \
+    echo 'echo "🔄 Running NX sync..."' >> /app/docker-entrypoint.sh && \
+    echo 'MAX_RETRIES=3' >> /app/docker-entrypoint.sh && \
+    echo 'RETRY_COUNT=0' >> /app/docker-entrypoint.sh && \
+    echo 'while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do' >> /app/docker-entrypoint.sh && \
+    echo '    if npx nx sync; then' >> /app/docker-entrypoint.sh && \
+    echo '        echo "✅ NX sync completed successfully"' >> /app/docker-entrypoint.sh && \
+    echo '        break' >> /app/docker-entrypoint.sh && \
+    echo '    else' >> /app/docker-entrypoint.sh && \
+    echo '        RETRY_COUNT=$((RETRY_COUNT + 1))' >> /app/docker-entrypoint.sh && \
+    echo '        if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then' >> /app/docker-entrypoint.sh && \
+    echo '            echo "❌ ERROR: NX sync failed after $MAX_RETRIES attempts"' >> /app/docker-entrypoint.sh && \
+    echo '            echo "Please check your NX configuration and try again"' >> /app/docker-entrypoint.sh && \
+    echo '            exit 1' >> /app/docker-entrypoint.sh && \
+    echo '        fi' >> /app/docker-entrypoint.sh && \
+    echo '        echo "⚠️ NX sync failed, retrying in 5 seconds... (Attempt $RETRY_COUNT of $MAX_RETRIES)"' >> /app/docker-entrypoint.sh && \
+    echo '        sleep 5' >> /app/docker-entrypoint.sh && \
+    echo '    fi' >> /app/docker-entrypoint.sh && \
+    echo 'done' >> /app/docker-entrypoint.sh && \
     echo '' >> /app/docker-entrypoint.sh && \
     echo '# Wait for database' >> /app/docker-entrypoint.sh && \
     echo 'echo "⏳ Waiting for database..."' >> /app/docker-entrypoint.sh && \

@@ -2,21 +2,36 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 import { SEASON } from '../../../constants';
+import { TEST_IDS, getDynamicTestId } from '@f1-app/e2e-testids';
 
 import { SeasonWinner } from '@f1-app/api-types';
 
-const SeasonWinnerCard: React.FC<SeasonWinner> = ({
+interface SeasonWinnerCardProps extends SeasonWinner {
+  index: number;
+}
+
+const SeasonWinnerCard: React.FC<SeasonWinnerCardProps> = ({
   season,
   wins,
   driver,
   constructor,
+  index,
 }) => {
   const { familyName, givenName, url } = driver;
   const { name, url: constructorUrl } = constructor;
 
   return (
-    <div className="app-season-winner-card flex flex-grow flex-col w-full p-6 border border-gray-200 rounded-lg shadow">
-      <span className="text-2xl font-bold tracking-tight text-gray-900 ">
+    <div
+      className="app-season-winner-card flex flex-grow flex-col w-full p-6 border border-gray-200 rounded-lg shadow"
+      data-testid={getDynamicTestId(
+        TEST_IDS.HOME_SCREEN.CHAMPION_CARD.CONTAINER,
+        { index }
+      )}
+    >
+      <span
+        className="text-2xl font-bold tracking-tight text-gray-900"
+        data-testid={TEST_IDS.HOME_SCREEN.CHAMPION_CARD.SEASON_YEAR}
+      >
         {season}
       </span>
 
@@ -24,16 +39,24 @@ const SeasonWinnerCard: React.FC<SeasonWinner> = ({
         to={url}
         className="mt-2 text-lg font-bold tracking-tight text-gray-600 hover:text-blue-600 hover:underline"
         title={`Link to ${givenName} ${familyName} wikipedia page.`}
+        data-testid={TEST_IDS.HOME_SCREEN.CHAMPION_CARD.DRIVER_NAME}
       >
         {givenName} {familyName}
       </Link>
 
-      <p className="mt-1 font-normal text-xs text-gray-700">{wins} Wins</p>
+      <p
+        className="mt-1 font-normal text-xs text-gray-700"
+        data-testid={TEST_IDS.HOME_SCREEN.CHAMPION_CARD.WINS}
+      >
+        {wins} Wins
+      </p>
+
       <a
         className="mt-1 font-normal text-xs text-gray-700"
         href={constructorUrl}
         target="_blank"
         rel="noreferrer"
+        data-testid={TEST_IDS.HOME_SCREEN.CHAMPION_CARD.CONSTRUCTOR}
       >
         {name}
       </a>
@@ -41,6 +64,7 @@ const SeasonWinnerCard: React.FC<SeasonWinner> = ({
       <Link
         to={SEASON.replace(':season', season)}
         className="inline-flex items-center mt-3 px-3 py-2 text-sm font-medium bg-blue-100 hover:bg-blue-200 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg"
+        data-testid={TEST_IDS.HOME_SCREEN.CHAMPION_CARD.VIEW_DETAILS}
       >
         Read more
         <svg

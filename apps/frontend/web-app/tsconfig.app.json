@@ -53,6 +53,9 @@
       "path": "../../../libs/frontend/styles/tsconfig.lib.json"
     },
     {
+      "path": "../../../libs/shared/e2e-testids/tsconfig.lib.json"
+    },
+    {
       "path": "../../../libs/shared/types"
     }
   ]

@@ -1,8 +1,5 @@
-export * from './lib/styles.js';
-
-// Export the theme from the CommonJS file
-// Note: We need to use require() since theme.cjs is CommonJS
-const themeExports = require('./lib/theme.cjs');
+// Export the theme from the JavaScript file
+import themeExports from './lib/theme.js';
 
 export const {
   fontDefinitions,
@@ -14,3 +11,5 @@ export const {
   initializeTheme,
   f1Theme,
 } = themeExports;
+
+export { themeExports as defaultTheme };

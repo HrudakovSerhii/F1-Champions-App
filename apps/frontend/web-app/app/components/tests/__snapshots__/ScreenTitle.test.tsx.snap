@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`App ScreenTitle component should render correctly 1`] = `
+exports[`App ScreenTitle component > should render correctly 1`] = `
 <DocumentFragment>
   <div
     class="w-full max-w-screen-xl p-4"

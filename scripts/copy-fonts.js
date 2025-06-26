@@ -5,7 +5,7 @@ const path = require('path');
 const sourceDir = path.resolve(__dirname, '../public/fonts');
 const targetDir = path.resolve(
   __dirname,
-  '../apps/frontend/web-app/dist/public/fonts'
+  '../apps/frontend/web-app/public/fonts'
 );
 
 // Create target directory if it doesn't exist

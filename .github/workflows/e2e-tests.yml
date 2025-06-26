@@ -1,0 +1,177 @@
+name: E2E Tests (Full Dev Environment)
+
+on:
+  workflow_dispatch:
+    inputs:
+      debug:
+        description: 'Run E2E tests in debug mode'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    # Manual trigger only
+
+    services:
+      mongodb:
+        image: mongo:7.0
+        env:
+          MONGO_INITDB_ROOT_USERNAME: root
+          MONGO_INITDB_ROOT_PASSWORD: example
+          MONGO_INITDB_DATABASE: f1_champions_local_db
+        ports:
+          - 27000:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --name mongodb
+
+    env:
+      # Only GitHub Actions specific variables (not application config)
+      CI: "true"
+      DEBUG: ${{ github.event.inputs.debug == 'true' && 'true' || 'false' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create E2E environment file
+        run: |
+          echo "📝 Creating E2E environment configuration..."
+          cat > .env << EOF
+          # E2E Test Environment Configuration
+          NODE_ENV=development
+          DOCKER_ENV=false
+          FE_BASE_URL=http://localhost:3000
+          BE_BASE_URL=http://localhost:4000
+          API_BASE_URL_PATH=/api/v1
+
+          # MongoDB configuration
+          MONGODB_DATABASE_PORT=27000
+          MONGODB_DATABASE_NAME=f1_champions_local_db
+          MONGODB_REPLICA_SET_NAME=f1rs
+          MONGODB_REPLICA_NODES=1
+          MONGODB_HOST_NAME=localhost
+          MONGODB_BIND_IP=127.0.0.1,localhost
+
+          # Database connection strings
+          DATABASE_URL=mongodb://root:example@localhost:27000/f1_champions_local_db?authSource=admin
+          MONGO_URI=mongodb://root:example@localhost:27000/f1_champions_local_db?authSource=admin
+
+          # Test specific
+          CI=true
+          E2E_TEST_BROWSERS=chromium
+          EOF
+          echo "✅ Environment file created"
+
+      - name: Build shared libraries (required for apps)
+        run: |
+          echo "🏗️ Building shared libraries..."
+          npx nx build @f1-app/api-types
+          npx nx build @f1-app/e2e-testids
+          npx nx build @f1-app/frontend-styles
+
+      - name: Install Playwright browsers
+        run: npm run e2e:install
+
+      - name: Verify MongoDB connection
+        run: |
+          echo "🔍 Verifying MongoDB connection..."
+          timeout 30 bash -c 'until mongosh --host localhost:27000 --username root --password example --authenticationDatabase admin --eval "db.adminCommand(\"ping\")" --quiet; do echo "Waiting for MongoDB..."; sleep 2; done'
+          echo "✅ MongoDB is ready"
+
+      - name: Setup local database
+        run: |
+          echo "🗄️ Setting up local database..."
+          # Use the package.json script but skip MongoDB start (already running via service)
+          npm run db:mongo:setup
+
+      - name: Initialize and verify Prisma
+        run: |
+          echo "🔧 Setting up Prisma..."
+          npm run prisma:init
+          npm run prisma:verify
+          echo "✅ Prisma setup complete"
+
+      - name: Build applications for E2E testing
+        run: |
+          echo "🏗️ Building applications..."
+          # Build backend in development mode
+          npx nx build @f1-app/backend --configuration=development
+
+          # Build web-app in development mode with all dev features
+          npx nx build web-app --configuration=development
+          echo "✅ Applications built successfully"
+
+      - name: Start Backend Service
+        run: |
+          echo "🚀 Starting backend service..."
+          npm run serve:backend &
+
+          echo "⏳ Waiting for backend to be ready..."
+          timeout 60 bash -c 'until curl -f http://localhost:4000/api/v1/health; do echo "Waiting for backend..."; sleep 3; done'
+          echo "✅ Backend is ready"
+
+      - name: Start Frontend Service
+        run: |
+          echo "🌐 Starting frontend service..."
+          npm run serve:web-app &
+
+          echo "⏳ Waiting for frontend to be ready..."
+          timeout 60 bash -c 'until curl -f http://localhost:3000; do echo "Waiting for frontend..."; sleep 3; done'
+          echo "✅ Frontend is ready"
+
+      - name: Run E2E Tests
+        run: |
+          echo "🧪 Running E2E tests..."
+          if [ "${{ github.event.inputs.debug }}" == "true" ]; then
+            echo "🐛 Running in debug mode"
+            npm run e2e:debug
+          else
+            echo "🏃 Running in normal mode"
+            npm run e2e
+          fi
+
+      - name: Upload E2E Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-test-results-${{ github.sha }}
+          path: |
+            apps/e2e/test-results/
+            apps/e2e/playwright-report/
+          retention-days: 7
+
+      - name: Cleanup Services
+        if: always()
+        run: |
+          echo "🧹 Cleaning up services..."
+          pkill -f "nx.*serve" || true
+          pkill -f "vite" || true
+          pkill -f "webpack" || true
+          echo "✅ Cleanup complete"

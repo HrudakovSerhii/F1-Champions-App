@@ -18,11 +18,5 @@
   },
   "nx": {
     "name": "frontend-styles"
-  },
-  "dependencies": {
-    "tslib": "^2.3.0"
-  },
-  "peerDependencies": {
-    "tailwindcss": "^3.4.0"
   }
 }

@@ -3,23 +3,14 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main
       - develop
   pull_request:
     branches:
-      - main
       - develop
   workflow_dispatch:
-    inputs:
-      force_all:
-        description: 'Force build all applications'
-        required: false
-        default: false
-        type: boolean
 
 permissions:
   contents: read
-  pages: write
   id-token: write
   pull-requests: write
 
@@ -28,12 +19,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  setup:
+  build-shared-libs:
     runs-on: ubuntu-latest
     outputs:
-      affected-apps: ${{ steps.affected.outputs.apps }}
-      has-web-app: ${{ steps.affected.outputs.has-web-app }}
-      has-backend: ${{ steps.affected.outputs.has-backend }}
+      cache-key: ${{ steps.cache-key.outputs.key }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,33 +35,44 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Get affected applications
-        id: affected
+      - name: Generate cache key
+        id: cache-key
         run: |
-          if [ "${{ github.event.inputs.force_all }}" == "true" ]; then
-            echo "apps=[\"@f1-app/web-app\", \"@f1-app/backend-api\", \"@f1-app/mobile-app\"]" >> $GITHUB_OUTPUT
-            echo "has-web-app=true" >> $GITHUB_OUTPUT
-            echo "has-backend=true" >> $GITHUB_OUTPUT
-          else
-            AFFECTED=$(npx nx show projects --affected --base=origin/main --head=HEAD --type=app)
-            echo "Affected apps: $AFFECTED"
+          echo "key=libs-${{ runner.os }}-${{ hashFiles('libs/**/package.json', 'libs/**/tsconfig*.json', 'libs/**/src/**/*') }}" >> $GITHUB_OUTPUT
 
-            # Convert to JSON array
-            APPS_JSON=$(echo "$AFFECTED" | jq -R -s -c 'split("\n") | map(select(length > 0))')
-            echo "apps=$APPS_JSON" >> $GITHUB_OUTPUT
+      - name: Cache built libraries
+        id: cache-libs
+        uses: actions/cache@v4
+        with:
+          path: |
+            libs/shared/types/dist
+            libs/shared/e2e-testids/dist
+            libs/frontend/styles/dist
+          key: ${{ steps.cache-key.outputs.key }}
 
-            # Check specific apps
-            echo "has-web-app=$(echo "$AFFECTED" | grep -q "@f1-app/web-app" && echo "true" || echo "false")" >> $GITHUB_OUTPUT
-            echo "has-backend=$(echo "$AFFECTED" | grep -q "@f1-app/backend-api" && echo "true" || echo "false")" >> $GITHUB_OUTPUT
-          fi
+      - name: Install dependencies
+        if: steps.cache-libs.outputs.cache-hit != 'true'
+        run: npm ci
 
-  lint-and-test:
+      - name: Generate types from OpenAPI schema
+        if: steps.cache-libs.outputs.cache-hit != 'true'
+        run: npm run generate-types
+
+      - name: Build shared types library (foundation dependency)
+        if: steps.cache-libs.outputs.cache-hit != 'true'
+        run: npx nx build @f1-app/api-types
+
+      - name: Build e2e-testids library (for testing)
+        if: steps.cache-libs.outputs.cache-hit != 'true'
+        run: npx nx build @f1-app/e2e-testids
+
+      - name: Build frontend-styles library (for UI theming)
+        if: steps.cache-libs.outputs.cache-hit != 'true'
+        run: npx nx build @f1-app/frontend-styles
+
+  lint:
     runs-on: ubuntu-latest
-    needs: setup
-    if: needs.setup.outputs.affected-apps != '[]'
+    needs: build-shared-libs
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -88,16 +88,70 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint affected
-        run: npx nx affected --target=lint --base=origin/main --head=HEAD
+      - name: Restore cached libraries
+        uses: actions/cache@v4
+        with:
+          path: |
+            libs/shared/types/dist
+            libs/shared/e2e-testids/dist
+            libs/frontend/styles/dist
+          key: ${{ needs.build-shared-libs.outputs.cache-key }}
 
-      - name: Test affected
-        run: npx nx affected --target=test --base=origin/main --head=HEAD --coverage
+
+      - name: Verify shared libraries
+        run: |
+          echo "Checking if shared libraries are built..."
+          ls -la libs/shared/types/dist/ || echo "Types not found"
+          ls -la libs/shared/e2e-testids/dist/ || echo "E2E testids not found"
+          ls -la libs/frontend/styles/dist/ || echo "Styles not found"
+
+
+      - name: Lint all projects
+        run: npx nx run-many --target=lint --all
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    needs: [ build-shared-libs, lint ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Restore cached libraries
+        uses: actions/cache@v4
+        with:
+          path: |
+            libs/shared/types/dist
+            libs/shared/e2e-testids/dist
+            libs/frontend/styles/dist
+          key: ${{ needs.build-shared-libs.outputs.cache-key }}
+
+      - name: Run unit tests
+        run: |
+          echo "Running Jest unit tests (excluding e2e and integration tests)"
+          npx nx run-many --target=test --all --exclude=e2e --testPathIgnorePatterns=".*\.integration\.test\.ts$" --coverage
+
+      - name: Upload test coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-coverage-${{ github.sha }}
+          path: coverage
+          retention-days: 7
 
   build-web-app:
     runs-on: ubuntu-latest
-    needs: [ setup, lint-and-test ]
-    if: needs.setup.outputs.has-web-app == 'true' && github.ref == 'refs/heads/main'
+    needs: [ build-shared-libs, lint, unit-tests ]
+    if: github.ref == 'refs/heads/develop'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -113,36 +167,32 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build web-app
-        run: npx nx build web-app
+      - name: Restore cached libraries
+        uses: actions/cache@v4
+        with:
+          path: |
+            libs/shared/types/dist
+            libs/shared/e2e-testids/dist
+            libs/frontend/styles/dist
+          key: ${{ needs.build-shared-libs.outputs.cache-key }}
 
       - name: Copy font files
         run: node scripts/copy-fonts.js
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
+      - name: Build web-app for production
+        run: npx nx build web-app
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Upload web-app build artifacts
+        uses: actions/upload-artifact@v4
         with:
-          path: './apps/frontend/web-app/dist'
-
-  deploy-web-app:
-    runs-on: ubuntu-latest
-    needs: build-web-app
-    if: github.ref == 'refs/heads/main'
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          name: web-app-build-${{ github.sha }}
+          path: './dist/apps/frontend/web-app'
+          retention-days: 30
 
   build-backend:
     runs-on: ubuntu-latest
-    needs: [ setup, lint-and-test ]
-    if: needs.setup.outputs.has-backend == 'true'
+    needs: [ build-shared-libs, lint, unit-tests ]
+    if: github.ref == 'refs/heads/develop'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -158,94 +208,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build backend
-        run: npx nx build @f1-app/backend-api
+      - name: Restore cached libraries
+        uses: actions/cache@v4
+        with:
+          path: |
+            libs/shared/types/dist
+            libs/shared/e2e-testids/dist
+            libs/frontend/styles/dist
+          key: ${{ needs.build-shared-libs.outputs.cache-key }}
 
-      - name: Upload build artifacts
+      - name: Build backend for production
+        run: npx nx build @f1-app/backend
+
+      - name: Upload backend build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: backend-build-${{ github.sha }}
           path: './dist/apps/backend'
-          retention-days: 30
-
-  deploy-backend-staging:
-    runs-on: ubuntu-latest
-    needs: build-backend
-    if: github.ref == 'refs/heads/develop'
-    environment:
-      name: backend-staging
-      url: https://api-staging.your-domain.com
-    steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-build-${{ github.sha }}
-          path: ./dist
-
-      - name: Deploy to staging
-        run: |
-          echo "Deploying backend to staging..."
-          # Add your staging deployment commands here
-
-  deploy-backend-production:
-    runs-on: ubuntu-latest
-    needs: build-backend
-    if: github.ref == 'refs/heads/main'
-    environment:
-      name: backend-production
-      url: https://api.your-domain.com
-    steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-build-${{ github.sha }}
-          path: ./dist
-
-      - name: Deploy to production
-        run: |
-          echo "Deploying backend to production..."
-          # Add your production deployment commands here
-
-  build-mobile:
-    runs-on: ubuntu-latest
-    needs: [ setup, lint-and-test ]
-    if: needs.setup.outputs.has-mobile == 'true'
-    strategy:
-      matrix:
-        platform: [ android ]
-        # Add ios when you have macOS runners: [android, ios]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Setup Java (Android)
-        if: matrix.platform == 'android'
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Android SDK
-        if: matrix.platform == 'android'
-        uses: android-actions/setup-android@v3
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build mobile app
-        run: npx nx build-${{ matrix.platform }} @f1-app/mobile-app
-
-      - name: Upload mobile artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: mobile-${{ matrix.platform }}-${{ github.sha }}
-          path: './apps/frontend/mobile-app/${{ matrix.platform }}/app/build/outputs/**/*'
           retention-days: 30

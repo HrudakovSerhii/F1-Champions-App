@@ -5,16 +5,19 @@ import {
   Query,
   HttpException,
   HttpStatus,
+  ValidationPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { SeasonRaceWinnersService } from './season-race-winners.service';
 import { GetSeasonRaceWinnersDto } from './dto/get-season-race-winners.dto';
+import { ApiValidationService } from '../../common/services/api-validation.service';
 
 @ApiTags('Seasons')
 @Controller('f1/season')
 export class SeasonRaceWinnersController {
   constructor(
-    private readonly seasonRaceWinnersService: SeasonRaceWinnersService
+    private readonly seasonRaceWinnersService: SeasonRaceWinnersService,
+    private readonly apiValidationService: ApiValidationService
   ) {}
 
   @Get(':seasonYear/winners')
@@ -26,11 +29,18 @@ export class SeasonRaceWinnersController {
     name: 'seasonYear',
     description: 'The F1 season year (e.g., 2023)',
     example: '2023',
-    schema: { type: 'string', pattern: '^[0-9]{4}$' },
+    schema: {
+      type: 'string',
+      pattern: '^[0-9]{4}$, // Only allow exactly 4 digits',
+    },
   })
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved race winners for the specified season',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid season format',
   })
   @ApiResponse({
     status: 404,
@@ -41,20 +51,37 @@ export class SeasonRaceWinnersController {
     description: 'Internal server error',
   })
   async getSeasonRaceWinners(
-    @Param('seasonYear') seasonYear: string,
+    @Param(
+      'seasonYear',
+      new ValidationPipe({
+        transform: true,
+        transformOptions: { enableImplicitConversion: true },
+        errorHttpStatusCode: HttpStatus.BAD_REQUEST,
+        validateCustomDecorators: true,
+        exceptionFactory: (errors) => {
+          return new HttpException(
+            {
+              error: {
+                code: 'SEASON_FORMAT_TYPE_ERROR',
+                message: 'Season must be a number',
+              },
+            },
+            HttpStatus.BAD_REQUEST
+          );
+        },
+      })
+    )
+    seasonYear: string,
     @Query() query: GetSeasonRaceWinnersDto
   ) {
     try {
-      // Validate season format
-      if (!/^[0-9]{4}$/.test(seasonYear)) {
+      // Validate season using validation service
+      const validation =
+        this.apiValidationService.validateSeasonYear(seasonYear);
+      if (!validation.isValid) {
         throw new HttpException(
-          {
-            error: {
-              code: 'INVALID_SEASON',
-              message: 'Season must be a 4-digit year',
-            },
-          },
-          HttpStatus.BAD_REQUEST
+          { error: validation.error },
+          validation.error!.status
         );
       }
 
