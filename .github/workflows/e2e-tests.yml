@@ -1,41 +1,56 @@
-name: E2E Tests with Mocked Services
+name: E2E Tests (Full Dev Environment)
 
 on:
+  pull_request:
+    branches:
+      - develop
+      - main
+    types: [ opened, synchronize, reopened, ready_for_review ]
   workflow_dispatch:
     inputs:
-      test_type:
-        description: 'Type of E2E tests to run'
-        required: true
-        default: 'all'
-        type: choice
-        options:
-          - all
-          - ui-only
-          - api-only
-      mock_services:
-        description: 'Use mocked services'
-        required: true
-        default: true
+      debug:
+        description: 'Run E2E tests in debug mode'
+        required: false
+        default: false
         type: boolean
-  push:
-    branches:
-      - main
-    paths:
-      - 'apps/e2e/**'
-      - 'apps/frontend/**'
-      - 'apps/backend/**'
 
 permissions:
   contents: read
   pull-requests: write
 
 concurrency:
-  group: e2e-tests-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   e2e-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    # Skip if PR is in draft mode (unless manually triggered)
+    if: github.event.pull_request.draft == false || github.event_name == 'workflow_dispatch'
+
+    services:
+      mongodb:
+        image: mongo:7.0
+        env:
+          MONGO_INITDB_ROOT_USERNAME: root
+          MONGO_INITDB_ROOT_PASSWORD: example
+          MONGO_INITDB_DATABASE: f1_champions_local_db
+        ports:
+          - 27000:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --name mongodb
+
+    env:
+      # Only GitHub Actions specific variables (not application config)
+      CI: "true"
+      DEBUG: ${{ github.event.inputs.debug == 'true' && 'true' || 'false' }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,128 +66,118 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Create E2E environment file
+        run: |
+          echo "📝 Creating E2E environment configuration..."
+          cat > .env << EOF
+          # E2E Test Environment Configuration
+          NODE_ENV=development
+          DOCKER_ENV=false
+          FE_BASE_URL=http://localhost:3000
+          BE_BASE_URL=http://localhost:4000
+          API_BASE_URL_PATH=/api/v1
+
+          # MongoDB configuration
+          MONGODB_DATABASE_PORT=27000
+          MONGODB_DATABASE_NAME=f1_champions_local_db
+          MONGODB_REPLICA_SET_NAME=f1rs
+          MONGODB_REPLICA_NODES=1
+          MONGODB_HOST_NAME=localhost
+          MONGODB_BIND_IP=127.0.0.1,localhost
+
+          # Database connection strings
+          DATABASE_URL=mongodb://root:example@localhost:27000/f1_champions_local_db?authSource=admin
+          MONGO_URI=mongodb://root:example@localhost:27000/f1_champions_local_db?authSource=admin
+
+          # Test specific
+          CI=true
+          E2E_TEST_BROWSERS=chromium
+          EOF
+          echo "✅ Environment file created"
+
+      - name: Build shared libraries (required for apps)
+        run: |
+          echo "🏗️ Building shared libraries..."
+          npx nx build @f1-app/api-types
+          npx nx build @f1-app/e2e-testids
+          npx nx build @f1-app/frontend-styles
+
       - name: Install Playwright browsers
-        run: npx nx install-browsers e2e
+        run: npm run e2e:install
 
-      - name: Build e2e-testids library
-        run: npx nx build @f1-app/e2e-testids
-
-      - name: Setup test environment
+      - name: Verify MongoDB connection
         run: |
-          echo "Setting up test environment..."
-          
-          # Create mock service configuration
-          mkdir -p apps/e2e/src/mocks
-          
-          # Set environment variables for mocked services
-          echo "MOCK_SERVICES=true" >> $GITHUB_ENV
-          echo "FE_BASE_URL=http://localhost:3000" >> $GITHUB_ENV
-          echo "BE_BASE_URL=http://localhost:4000" >> $GITHUB_ENV
-          echo "CI=true" >> $GITHUB_ENV
+          echo "🔍 Verifying MongoDB connection..."
+          timeout 30 bash -c 'until mongosh --host localhost:27000 --username root --password example --authenticationDatabase admin --eval "db.adminCommand(\"ping\")" --quiet; do echo "Waiting for MongoDB..."; sleep 2; done'
+          echo "✅ MongoDB is ready"
 
-      - name: Run UI E2E tests
-        if: github.event.inputs.test_type == 'ui-only' || github.event.inputs.test_type == 'all'
+      - name: Setup local database
         run: |
-          echo "Running UI E2E tests with mocked services..."
-          npx nx e2e-chrome e2e --project=chromium --grep="F1 Champions App - Home Page"
-        env:
-          MOCK_SERVICES: true
-          FE_BASE_URL: http://localhost:3000
-          BE_BASE_URL: http://localhost:4000
-          CI: true
+          echo "🗄️ Setting up local database..."
+          # Use the package.json script but skip MongoDB start (already running via service)
+          npm run db:mongo:setup
 
-      - name: Run API E2E tests
-        if: github.event.inputs.test_type == 'api-only' || github.event.inputs.test_type == 'all'
+      - name: Initialize and verify Prisma
         run: |
-          echo "Running API E2E tests with mocked services..."
-          npx nx e2e-api e2e --project=api --grep="F1 Champions API - Information Endpoints"
-        env:
-          MOCK_SERVICES: true
-          FE_BASE_URL: http://localhost:3000
-          BE_BASE_URL: http://localhost:4000
-          CI: true
+          echo "🔧 Setting up Prisma..."
+          npm run prisma:init
+          npm run prisma:verify
+          echo "✅ Prisma setup complete"
 
-      - name: Run all E2E tests
-        if: github.event.inputs.test_type == 'all'
+      - name: Build applications for E2E testing
         run: |
-          echo "Running all E2E tests with mocked services..."
-          npx nx e2e-chrome e2e --project=chromium
-        env:
-          MOCK_SERVICES: true
-          FE_BASE_URL: http://localhost:3000
-          BE_BASE_URL: http://localhost:4000
-          CI: true
+          echo "🏗️ Building applications..."
+          # Build backend in development mode
+          npx nx build @f1-app/backend --configuration=development
 
-      - name: Upload test results
-        if: always()
+          # Build web-app in development mode with all dev features
+          npx nx build web-app --configuration=development
+          echo "✅ Applications built successfully"
+
+      - name: Start Backend Service
+        run: |
+          echo "🚀 Starting backend service..."
+          npm run serve:backend &
+
+          echo "⏳ Waiting for backend to be ready..."
+          timeout 60 bash -c 'until curl -f http://localhost:4000/api/v1/health; do echo "Waiting for backend..."; sleep 3; done'
+          echo "✅ Backend is ready"
+
+      - name: Start Frontend Service
+        run: |
+          echo "🌐 Starting frontend service..."
+          npm run serve:web-app &
+
+          echo "⏳ Waiting for frontend to be ready..."
+          timeout 60 bash -c 'until curl -f http://localhost:3000; do echo "Waiting for frontend..."; sleep 3; done'
+          echo "✅ Frontend is ready"
+
+      - name: Run E2E Tests
+        run: |
+          echo "🧪 Running E2E tests..."
+          if [ "${{ github.event.inputs.debug }}" == "true" ]; then
+            echo "🐛 Running in debug mode"
+            npm run e2e:debug
+          else
+            echo "🏃 Running in normal mode"
+            npm run e2e
+          fi
+
+      - name: Upload E2E Test Results
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: e2e-test-results-${{ github.sha }}
           path: |
             apps/e2e/test-results/
             apps/e2e/playwright-report/
-          retention-days: 30
+          retention-days: 7
 
-      - name: Generate test report
+      - name: Cleanup Services
         if: always()
         run: |
-          echo "Generating test report..."
-          cd apps/e2e
-          if [ -d "playwright-report" ]; then
-            echo "Test report generated successfully"
-            ls -la playwright-report/
-          else
-            echo "No test report generated"
-          fi
-
-      - name: Comment PR with results
-        if: github.event_name == 'pull_request' && always()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const path = require('path');
-            
-            let comment = '## E2E Test Results (Mocked Services)\n\n';
-            
-            // Check if test results exist
-            const testResultsPath = 'apps/e2e/test-results/';
-            const reportPath = 'apps/e2e/playwright-report/';
-            
-            if (fs.existsSync(testResultsPath)) {
-              comment += '✅ **E2E tests completed**\n\n';
-              
-              // Check for failures
-              const testResults = fs.readdirSync(testResultsPath);
-              const hasFailures = testResults.some(file => 
-                file.endsWith('.json') && 
-                JSON.parse(fs.readFileSync(path.join(testResultsPath, file))).status === 'failed'
-              );
-              
-              if (hasFailures) {
-                comment += '❌ **Some tests failed**\n';
-                comment += 'Check the test results artifact for details.\n\n';
-              } else {
-                comment += '✅ **All tests passed**\n\n';
-              }
-              
-              comment += '**Test Configuration:**\n';
-              comment += '- 🔧 Mocked services enabled\n';
-              comment += '- 🌐 No external API dependencies\n';
-              comment += '- 🗄️ No database dependencies\n\n';
-              
-              comment += `📊 [View detailed report](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID})\n`;
-            } else {
-              comment += '⚠️ **No test results found**\n';
-              comment += 'Tests may not have run or failed to generate results.\n\n';
-            }
-            
-            comment += '\n---\n';
-            comment += '*This comment was automatically generated by the E2E test workflow.*';
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            }); 
+          echo "🧹 Cleaning up services..."
+          pkill -f "nx.*serve" || true
+          pkill -f "vite" || true
+          pkill -f "webpack" || true
+          echo "✅ Cleanup complete"
